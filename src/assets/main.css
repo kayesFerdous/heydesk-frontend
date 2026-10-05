@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* The design tokens (docs/design-direction.md, v2 "Cobalt"). Everything in the
+   app picks its colour, radius and shadow from here. The brand is Gigalogy's own
+   cobalt #004AAC and indigo navy #283371; green, amber and red are states, never
+   decoration. */
+@theme {
+  --font-sans: 'Onest', ui-sans-serif, system-ui, 'Noto Sans Bengali', sans-serif;
+
+  --color-brand: #004aac;
+  --color-brand-deep: #003a87;
+  --color-brand-tint: #eaf1fb;
+  --color-brand-glow: #7fb0ff;
+  --color-navy: #283371;
+
+  --color-rail: #0a1b3d;
+
+  --color-surface: #ffffff;
+  --color-wash: #f6f8fb;
+  --color-hairline: #e3e8ef;
+
+  --color-ink: #0e1726;
+  --color-ink-soft: #5b6577;
+
+  --color-success: #18874e;
+  --color-success-tint: #e6f5ec;
+  --color-attention: #8a5a0b;
+  --color-attention-tint: #fff4db;
+  --color-danger: #c42b2b;
+
+  /* Concentric shapes: panels 14px, controls 10px, chips fully round. */
+  --radius-panel: 0.875rem;
+  --radius-control: 0.625rem;
+
+  --shadow-float: 0 16px 40px -20px rgb(10 27 61 / 0.35);
+
+  /* Exponential ease-out: motion settles rather than stopping. */
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Dark mode keeps the structure and lifts the brand blue for contrast. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-brand: #4c8df0;
+    --color-brand-deep: #6fa3f5;
+    --color-brand-tint: #14264a;
+    --color-navy: #aebcf5;
+    --color-rail: #070f22;
+    --color-surface: #0b1220;
+    --color-wash: #111a2c;
+    --color-hairline: #1f2a3f;
+    --color-ink: #e8edf6;
+    --color-ink-soft: #9aa6bb;
+    --color-success: #46c07f;
+    --color-success-tint: #10301f;
+    --color-attention: #f0b445;
+    --color-attention-tint: #33260a;
+    --color-danger: #ef6a6a;
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    /* Prices, order numbers, times and phone numbers line up in columns. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-tint);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--color-brand);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-hairline) transparent;
+  }
+}
+
+@layer components {
+  /* One button vocabulary: 44px, 10px corners, sentence case, four intents.
+     The primary is large and filled so the one action that matters is found
+     first (Material 3 Expressive: key actions found up to 4x faster). */
+  .btn {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] px-5
+      text-sm font-semibold whitespace-nowrap transition-all duration-200
+      ease-[var(--ease-settle)] active:translate-y-px
+      disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply bg-brand text-white hover:bg-brand-deep;
+  }
+
+  .btn-secondary {
+    @apply border border-hairline bg-surface text-ink hover:bg-wash;
+  }
+
+  .btn-quiet {
+    @apply text-ink-soft hover:bg-wash hover:text-ink;
+  }
+
+  .btn-danger {
+    @apply bg-danger text-white hover:opacity-90;
+  }
+
+  /* One input shape. Labels sit above the field, never inside it. */
+  .field {
+    @apply h-11 w-full rounded-[var(--radius-control)] border border-hairline bg-surface px-3.5
+      text-sm text-ink transition-colors duration-200 placeholder:text-ink-soft/70
+      hover:border-ink-soft/40 focus:border-brand focus:outline-none
+      focus:ring-2 focus:ring-brand/20;
+  }
+
+  .field-invalid {
+    @apply border-danger focus:border-danger focus:ring-danger/20;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+
+  /* Status chips: fully round, always an icon plus a word (never colour alone). */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+}
