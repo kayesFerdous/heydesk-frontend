@@ -24,8 +24,8 @@ export function itemNoun(presetId) {
 }
 
 // Where a visitor opens the agent. The backend serves a plain chat page at
-// /?key=<public key>; its address is set per environment in .env files.
+// /?key=<public key>; the dev server forwards /demo/ to it (vue.config.js), so the
+// link uses whatever address this page was opened from: localhost or a tunnel.
 export function chatLink(publicKey) {
-  const base = process.env.VUE_APP_CHAT_BASE || window.location.origin;
-  return `${base}/?key=${publicKey}`;
+  return `${window.location.origin}/demo/?key=${publicKey}`;
 }

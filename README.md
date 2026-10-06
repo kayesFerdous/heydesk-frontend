@@ -69,6 +69,6 @@ attributes (a doctor's days) outside the CSV import.
   the newest 30 to fill them in. A name and last line in the list row would fix it.
 - Nothing clears a conversation's `needs_human` flag, so the banner stays after a
   call back. A `PATCH /api/conversations/{id}` would let the owner mark it handled.
-- The shareable chat link is the backend's dev page (`/?key=...`), set by
-  `VUE_APP_CHAT_BASE` in `.env.development`. Production needs a real customer page.
+- The shareable chat link is the backend's dev page, reached at `<this origin>/demo/?key=...`
+  (the dev server forwards `/demo/`). Production needs a real customer page.
 - Test chats in the app are saved like real ones (same endpoint).

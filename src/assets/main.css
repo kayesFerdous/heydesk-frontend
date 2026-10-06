@@ -39,25 +39,9 @@
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Dark mode keeps the structure and lifts the brand blue for contrast. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-brand: #4c8df0;
-    --color-brand-deep: #6fa3f5;
-    --color-brand-tint: #14264a;
-    --color-navy: #aebcf5;
-    --color-rail: #070f22;
-    --color-surface: #0b1220;
-    --color-wash: #111a2c;
-    --color-hairline: #1f2a3f;
-    --color-ink: #e8edf6;
-    --color-ink-soft: #9aa6bb;
-    --color-success: #46c07f;
-    --color-success-tint: #10301f;
-    --color-attention: #f0b445;
-    --color-attention-tint: #33260a;
-    --color-danger: #ef6a6a;
-  }
+/* Always light, whatever the device prefers. */
+:root {
+  color-scheme: light;
 }
 
 @layer base {

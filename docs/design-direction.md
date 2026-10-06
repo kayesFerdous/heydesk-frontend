@@ -58,9 +58,8 @@ type, colour discipline and detail), `MOTION_INTENSITY 3` (state changes only),
 **One brand colour.** Blue means "you can act here / this is selected".
 Everything else is neutral. Green, amber, red are states, never decoration.
 
-**Dark mode:** same structure. Surface `#0B1220`, wash `#111A2C`, hairline
-`#1F2A3F`, ink `#E8EDF6`, brand lifts to `#4C8DF0` for contrast, rail goes
-slightly deeper `#070F22`. Follows `prefers-color-scheme`.
+**Light only:** the app ignores `prefers-color-scheme` and is always light. A dark theme
+would be the palette in git history (surface `#0B1220`, brand `#4C8DF0`).
 
 **Type:** **Onest** (400/500/600/700), one family. Sentence case everywhere.
 Fixed scale 12 / 13 / 14 / 16 / 20 / 28 / 36. Prices, order numbers, times and

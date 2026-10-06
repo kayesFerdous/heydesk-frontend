@@ -7,7 +7,14 @@ const { defineConfig } = require('@vue/cli-service');
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
+    // Allow the Cloudflare Tunnel's host name, so one public link reaches this dev server.
+    allowedHosts: 'all',
     proxy: {
+      // The backend's own chat and voice page, at <link>/demo/ (its scripts load relative to it).
+      '/demo': {
+        target: 'http://localhost:8000',
+        pathRewrite: { '^/demo': '' },
+      },
       '/api': {
         target: 'http://localhost:8000',
       },

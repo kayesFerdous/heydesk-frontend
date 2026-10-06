@@ -35,11 +35,10 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 ### Agent (`agent.js`)
 | Call | What it does |
 |---|---|
-| `GET /presets` (public) | `[{id, label, description, greeting, instructions, jobs[], items_label, knowledge_schema}]`. `knowledge_schema` is JSON schema; the Agent page builds the "About your business" fields from it |
-| `GET /jobs` | - (the same list arrives as `abilities` on `GET /agent`) |
+| `GET /presets` (public) | `[{id, label, description, greeting, instructions, jobs[{id,label,description}], tools[], items_label, knowledge_schema}]`. `knowledge_schema` is JSON schema; the Agent page builds the "About your business" fields from it |
 | `POST /agent` `{preset, config?, items?}` | Create the agent from a preset. 201. One per business |
-| `GET /agent` | `{public_key, config, abilities[{id,label,description,enabled}], missing[]}`. 404 `not_found` until created |
-| `PATCH /agent` `{...config fields}` | Top-level fields replace: send the whole `knowledge`, the whole `handoff`, the whole `jobs` list. Live on next message. 422 `invalid_config` |
+| `GET /agent` | `{public_key, config, jobs[{id,label,description}], missing[]}`. 404 `not_found` until created |
+| `PATCH /agent` `{...config fields}` | Top-level fields replace: send the whole `knowledge`, the whole `handoff`. Live on next message. 422 `invalid_config` |
 | `GET /agent/items` | The menu/services list |
 | `PUT /agent/items` `[Item]` | Replace the whole list, in order |
 | `POST /agent/items/import` `{csv, mapping?, dry_run?}` | `{saved, count, attributes[], preview[5]}`. Replaces items unless `dry_run`. Known columns: name, price, category, tags, description, code, available; other columns become `attributes`. Frontend does not send `mapping` yet |
@@ -48,11 +47,13 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 
 `config` (AgentConfig): `preset, name, business_name, timezone ("Asia/Dhaka"),
 country, currency, greeting, instructions (admin), notes (owner, 4000),
-knowledge{} (per preset), faq (20000), jobs[] , handoff{message, phone, email}`.
+knowledge{} (per preset), faq (20000), handoff{message, phone, email}`.
 
 Jobs (`presets/jobs.yaml`): `order` (pickup order, makes an `order` record),
-`appointment` and `message` (both make a `request` record). The owner toggles
-them in `config.jobs`. The inbox only lists jobs that are on.
+`appointment` and `message` (both make a `request` record). The owner cannot toggle
+them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
+`GET /jobs` and `config.jobs` are gone, and `GET /agent` returns the read-only
+`jobs` list. The Agent page shows it as plain rows.
 
 ### Documents / knowledge base (`agent.js`, page `pages/knowledge`)
 Searched by the agent when a question is not answered elsewhere. Needs an
@@ -72,11 +73,11 @@ Limits: 30 documents per business, 300,000 chars, 400 chunks. Breaking one is
 | Call | What it does |
 |---|---|
 | `GET /inbox` | `[{job, title, kind, waiting, total}]` for the sidebar badges |
-| `GET /records?job=&status=&q=` | Newest first. `q` matches number, name or phone |
+| `GET /records?job=&status=&q=` | Newest first. `q` matches code ("a104", "A-104", "a 104", "104"), name or phone |
 | `GET /records/{id}` | - |
 | `PATCH /records/{id}` `{status}` | 409 `invalid_transition` if not legal. Legal moves mirrored in `lib/flows.js` |
 
-`Record`: `{id, conversation_id, job, kind: order/request, number, status,
+`Record`: `{id, conversation_id, job, kind: order/request, number, code ("A-104": job's first letter + number, not stored), status,
 customer_name, customer_phone, details{label: value}, note, lines[{code,name,quantity,price}]|null, total|null, currency|null, due_at|null, created_at, updated_at}`.
 Order statuses: new, ready, collected, cancelled. Request: new, handled, archived.
 
@@ -92,7 +93,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | `GET /chat/{public_key}` | `{name, greeting}`. 404 unknown, 404 `unavailable` if suspended |
 | `POST /chat/{public_key}` `{message, conversation_id?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `done{interrupted}`, `error{message}`. 409 `conversation_full` |
 | `POST/PATCH /voice/offer` | WebRTC voice. - |
-| `GET /` (backend) | Plain chat page at `/?key=<public_key>`; `lib/presets.js chatLink` builds it |
+| `GET /` (backend) | Plain chat page at `/?key=<public_key>`; the dev server forwards `/demo/` to it, and `lib/presets.js chatLink` builds `<this origin>/demo/?key=…` |
 
 ### Admin (`admin.js`, role admin only, under `/api/admin`)
 | Call | What it does |
@@ -117,7 +118,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 - `src/api/client.js`: the only `fetch` wrapper (JSON or FormData, error shape,
   401 handler). `chat.js` streams with its own fetch because of SSE.
 - `src/store/modules/`: `auth` (token, me), `agent` (info, presets; getters
-  `config`, `abilities`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
+  `config`, `jobs`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
   counts), `ui` (test chat sheet). Pages fetch lists (items, documents,
   records) themselves, they are not in the store.
 - `src/router.js`: `/inbox /conversations /menu /knowledge /agent` (owner),
