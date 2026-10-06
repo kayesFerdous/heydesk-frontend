@@ -88,7 +88,7 @@
         <p class="mt-2 text-ink-soft">
           {{
             query
-              ? 'Try a customer name, a phone number or an order number.'
+              ? 'Try a customer name, a phone number or a code like A-104.'
               : 'When a customer places an order or leaves a message, it shows up here. Share your chat link to get the first one.'
           }}
         </p>

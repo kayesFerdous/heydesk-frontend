@@ -17,9 +17,9 @@ export default {
   config(state) {
     return state.info ? state.info.config : null;
   },
-  // Every job there is, with whether this agent does it.
-  abilities(state) {
-    return state.info ? state.info.abilities : [];
+  // What this kind of agent does. HeyDesk fixes it per preset; owners cannot change it.
+  jobs(state) {
+    return state.info ? state.info.jobs : [];
   },
   missing(state) {
     return state.info ? state.info.missing : [];

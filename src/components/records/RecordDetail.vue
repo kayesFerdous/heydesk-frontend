@@ -3,7 +3,7 @@
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
         <h2 class="text-xl font-semibold tracking-tight">
-          {{ record.kind === 'order' ? 'Order' : 'Message' }} #{{ record.number }}
+          {{ record.kind === 'order' ? 'Order' : 'Message' }} {{ record.code || '#' + record.number }}
         </h2>
         <p class="mt-2 font-semibold text-navy">
           {{ record.customer_name || 'Customer' }}

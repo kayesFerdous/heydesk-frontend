@@ -90,19 +90,12 @@
           <div class="mt-10 border-t border-hairline pt-8">
             <h2 class="text-lg font-semibold tracking-tight">What your agent can do</h2>
             <p class="mt-1 text-sm text-ink-soft">
-              Switch off anything you do not want customers to ask for.
+              HeyDesk sets these for your kind of business.
             </p>
             <ul class="mt-4 divide-y divide-hairline border-y border-hairline">
-              <li v-for="ability in abilities" :key="ability.id" class="flex items-start gap-4 py-4">
-                <div class="flex-1">
-                  <p class="text-sm font-semibold">{{ capitalize(ability.label) }}</p>
-                  <p class="mt-0.5 text-sm text-ink-soft">{{ ability.description }}</p>
-                </div>
-                <toggle-switch
-                  :model-value="form.jobs.includes(ability.id)"
-                  :label="capitalize(ability.label)"
-                  @update:model-value="setJob(ability.id, $event)"
-                ></toggle-switch>
+              <li v-for="job in jobs" :key="job.id" class="py-4">
+                <p class="text-sm font-semibold">{{ capitalize(job.label) }}</p>
+                <p class="mt-0.5 text-sm text-ink-soft">{{ job.description }}</p>
               </li>
             </ul>
           </div>
@@ -213,7 +206,6 @@
 <script>
 import HoursEditor from '../../components/agent/HoursEditor.vue';
 import CopyField from '../../components/ui/CopyField.vue';
-import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import AgentChat from '../../components/chat/AgentChat.vue';
 import { normalizeHours, DAYS } from '../../lib/hours.js';
 import { chatLink } from '../../lib/presets.js';
@@ -234,7 +226,7 @@ const KNOWLEDGE_LABELS = {
 };
 
 export default {
-  components: { HoursEditor, CopyField, ToggleSwitch, AgentChat },
+  components: { HoursEditor, CopyField, AgentChat },
   data() {
     return {
       form: null,
@@ -255,8 +247,8 @@ export default {
     missing() {
       return this.$store.getters['agent/missing'];
     },
-    abilities() {
-      return this.$store.getters['agent/abilities'];
+    jobs() {
+      return this.$store.getters['agent/jobs'];
     },
     publicKey() {
       return this.$store.getters['agent/publicKey'];
@@ -327,7 +319,6 @@ export default {
         greeting: c.greeting,
         notes: c.notes || '',
         faq: c.faq || '',
-        jobs: [...c.jobs],
         knowledge,
         hours: normalizeHours(c.knowledge.hours),
         handoff: {
@@ -353,7 +344,6 @@ export default {
         greeting: f.greeting,
         notes: f.notes,
         faq: f.faq,
-        jobs: f.jobs,
         knowledge,
         handoff: {
           message: f.handoff.message,
@@ -386,12 +376,6 @@ export default {
     },
     capitalize(text) {
       return text.charAt(0).toUpperCase() + text.slice(1);
-    },
-    // Keep the jobs in the library's order, whichever way they were toggled.
-    setJob(id, on) {
-      const ids = this.abilities.map((a) => a.id);
-      const chosen = on ? [...this.form.jobs, id] : this.form.jobs.filter((j) => j !== id);
-      this.form.jobs = ids.filter((j) => chosen.includes(j));
     },
     openSheet() {
       this.$store.commit('ui/setTestSheet', true);

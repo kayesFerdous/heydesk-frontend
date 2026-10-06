@@ -19,7 +19,7 @@
         <span class="truncate text-sm font-semibold text-navy">
           {{ record.customer_name || 'Customer' }}
         </span>
-        <span class="text-xs text-ink-soft">#{{ record.number }}</span>
+        <span class="text-xs text-ink-soft">{{ record.code || '#' + record.number }}</span>
       </span>
       <span class="block truncate text-sm text-ink-soft">{{ summary }}</span>
     </span>
