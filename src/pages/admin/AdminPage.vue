@@ -38,7 +38,7 @@
           <p class="truncate text-sm font-semibold text-navy">{{ b.name }}</p>
           <p class="truncate text-sm text-ink-soft">{{ b.owner_email || 'No owner' }}</p>
         </div>
-        <p class="hidden text-sm text-ink-soft sm:block">{{ b.preset || 'No agent yet' }}</p>
+        <p class="hidden text-sm text-ink-soft sm:block">{{ b.kind || 'No agent yet' }}</p>
         <p class="hidden text-sm sm:block">{{ b.conversations }} {{ b.conversations === 1 ? 'chat' : 'chats' }}</p>
         <span class="chip justify-self-start" :class="b.status === 'active' ? 'bg-success-tint text-success' : 'bg-attention-tint text-attention'">
           {{ b.status === 'active' ? 'Active' : 'Suspended' }}

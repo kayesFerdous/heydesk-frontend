@@ -53,7 +53,7 @@
           class="flex items-center justify-between gap-4 rounded-[var(--radius-control)] border border-hairline px-4 py-3 text-sm transition-colors hover:bg-wash"
         >
           <span class="font-semibold">
-            {{ record.kind === 'order' ? 'Order' : 'Message for the team' }} #{{ record.number }}
+            {{ record.title }} {{ record.code }}
           </span>
           <span class="flex items-center gap-3">
             <span v-if="record.kind === 'order'" class="font-semibold">{{ money(record.total) }}</span>

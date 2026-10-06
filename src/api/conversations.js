@@ -1,4 +1,5 @@
 import { request } from './client.js';
+import { fetchRecordsOf } from './records.js';
 
 // status is "active" or "needs_human"; leave it out for every conversation.
 export function fetchConversations(token, { status } = {}) {
@@ -7,7 +8,11 @@ export function fetchConversations(token, { status } = {}) {
   });
 }
 
-// The transcript, plus the orders or messages that came out of it.
-export function fetchConversation(token, conversationId) {
-  return request(`/conversations/${conversationId}`, { token });
+// The transcript, plus the orders, appointments or messages that came out of it.
+export async function fetchConversation(token, conversationId) {
+  const [conversation, records] = await Promise.all([
+    request(`/conversations/${conversationId}`, { token }),
+    fetchRecordsOf(token, conversationId),
+  ]);
+  return { ...conversation, records };
 }

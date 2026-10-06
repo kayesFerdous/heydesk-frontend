@@ -1,4 +1,4 @@
-import { PhForkKnife, PhPhone, PhFirstAid, PhSparkle } from '@phosphor-icons/vue';
+import { PhForkKnife, PhPhone, PhFirstAid, PhSparkle, PhStethoscope } from '@phosphor-icons/vue';
 
 // Icons are the frontend's; the words come from the API. An unknown preset
 // still renders, with a neutral icon.
@@ -28,4 +28,16 @@ export function itemNoun(presetId) {
 // link uses whatever address this page was opened from: localhost or a tunnel.
 export function chatLink(publicKey) {
   return `${window.location.origin}/demo/?key=${publicKey}`;
+}
+
+// The navigation link to a desk's own list: a restaurant's menu, a clinic's
+// doctors. A receptionist has none (its services are on the Agent page).
+const LISTS = {
+  restaurant: { label: 'Menu', icon: PhForkKnife },
+  clinic: { label: 'Doctors', icon: PhStethoscope },
+};
+
+export function listLinks(presetId) {
+  const list = LISTS[presetId];
+  return list ? [{ to: '/menu', label: list.label, icon: list.icon }] : [];
 }

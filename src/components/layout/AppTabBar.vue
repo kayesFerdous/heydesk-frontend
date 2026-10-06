@@ -17,10 +17,10 @@
 </template>
 
 <script>
+import { listLinks } from '../../lib/presets.js';
 import {
   PhTray,
   PhChatsCircle,
-  PhForkKnife,
   PhHeadset,
   PhBooks,
   PhBuildings,
@@ -35,7 +35,7 @@ export default {
       return [
         { to: '/inbox', label: 'Inbox', icon: PhTray },
         { to: '/conversations', label: 'Chats', icon: PhChatsCircle },
-        { to: '/menu', label: this.$store.getters['agent/itemsLabel'], icon: PhForkKnife },
+        ...listLinks(this.$store.getters['agent/config'] && this.$store.getters['agent/config'].preset),
         { to: '/knowledge', label: 'Docs', icon: PhBooks },
         { to: '/agent', label: 'Agent', icon: PhHeadset },
       ];

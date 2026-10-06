@@ -1,40 +1,144 @@
 import { request } from './client.js';
 
-// The presets a business can start from. Public: no token needed.
-export function fetchPresets() {
-  return request('/presets');
+// The backend has no presets any more (D41): each kind of business is a "desk"
+// with its own fields and tables. This file keeps the shapes the pages use:
+// a desk looks like a preset, its own fields are the `knowledge` form, and a
+// restaurant's menu or a clinic's doctors are the "items".
+
+// Fields every agent has; anything else in a desk's schema is its own.
+const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff'];
+const ITEMS_LABEL = { restaurant: 'Menu', clinic: 'Doctors', receptionist: 'Services' };
+const JOBS = {
+  restaurant: [
+    { id: 'order', label: 'pickup order', description: 'Customers order from your menu and pick it up. The agent adds up the total and reads it back before saving.' },
+    { id: 'message', label: 'message for the team', description: 'Customers leave a message or ask for a call back.' },
+  ],
+  clinic: [
+    { id: 'appointment', label: 'appointment request', description: "Patients ask to see a doctor on a day the doctor works. Your team calls to confirm." },
+    { id: 'message', label: 'message for the team', description: 'Patients leave a message or ask for a call back.' },
+  ],
+  receptionist: [
+    { id: 'message', label: 'message for the team', description: 'Visitors leave a message or ask for a call back.' },
+  ],
+};
+
+// The business's desk: "restaurant", "clinic" or "receptionist".
+export async function agentKind(token) {
+  return (await request('/agent', { token })).kind;
+}
+
+function ownSchema(schema) {
+  const properties = {};
+  for (const [key, value] of Object.entries(schema.properties || {})) {
+    if (!SHARED.includes(key)) properties[key] = value;
+  }
+  return { ...schema, properties };
+}
+
+// The kinds of business an agent can be. Public: no token needed.
+export async function fetchPresets() {
+  const desks = await request('/desks');
+  return desks.map((d) => ({
+    id: d.kind,
+    label: d.label,
+    description: d.description,
+    items_label: ITEMS_LABEL[d.kind] || 'Items',
+    jobs: JOBS[d.kind] || [],
+    knowledge_schema: ownSchema(d.config_schema),
+  }));
+}
+
+function toInfo(agent) {
+  const config = { preset: agent.kind, knowledge: {} };
+  for (const [key, value] of Object.entries(agent.config)) {
+    if (SHARED.includes(key)) config[key] = value;
+    else config.knowledge[key] = value;
+  }
+  return { ...agent, config, jobs: JOBS[agent.kind] || [] };
+}
+
+// The pages send `knowledge` as one object; the backend wants its fields at the top.
+function flatten(patch) {
+  const flat = { ...(patch || {}), ...((patch && patch.knowledge) || {}) };
+  ['knowledge', 'preset', 'instructions', 'jobs'].forEach((key) => delete flat[key]);
+  return flat;
 }
 
 // 404 not_found until the business has created its agent.
-export function fetchAgent(token) {
-  return request('/agent', { token });
+export async function fetchAgent(token) {
+  return toInfo(await request('/agent', { token }));
 }
 
-export function createAgent(token, body) {
-  return request('/agent', { method: 'POST', body, token });
+export async function createAgent(token, body) {
+  const created = await request('/agent', {
+    method: 'POST',
+    body: { kind: body.preset, config: flatten(body.config) },
+    token,
+  });
+  return toInfo(created);
 }
 
-// Top-level fields replace the config's, so send the whole `knowledge`.
-export function updateAgent(token, patch) {
-  return request('/agent', { method: 'PATCH', body: patch, token });
+export async function updateAgent(token, patch) {
+  return toInfo(await request('/agent', { method: 'PATCH', body: flatten(patch), token }));
 }
 
-export function fetchItems(token) {
-  return request('/agent/items', { token });
+// A clinic's doctor as an item, and back.
+function doctorToItem(d) {
+  return {
+    code: d.code,
+    name: d.name,
+    description: d.description,
+    price: d.fee,
+    category: d.speciality,
+    tags: [],
+    available: d.available,
+    attributes: { days: d.days, hours: `${d.start.slice(0, 5)}-${d.end.slice(0, 5)}`, languages: d.languages },
+  };
+}
+
+function itemToDoctor(item) {
+  const a = item.attributes || {};
+  const [start, end] = String(a.hours || '09:00-17:00').split('-').map((t) => t.trim());
+  return {
+    code: item.code,
+    name: item.name,
+    description: item.description || '',
+    fee: item.price,
+    speciality: item.category,
+    days: [].concat(a.days || []),
+    start,
+    end,
+    languages: [].concat(a.languages || []),
+    available: item.available !== false,
+  };
+}
+
+export async function fetchItems(token) {
+  const kind = await agentKind(token);
+  if (kind === 'restaurant') return request('/menu', { token });
+  if (kind === 'clinic') return (await request('/doctors', { token })).map(doctorToItem);
+  return []; // a receptionist lists its services in its details
 }
 
 // The agent's items become exactly this list, in this order.
-export function replaceItems(token, items) {
-  return request('/agent/items', { method: 'PUT', body: items, token });
+export async function replaceItems(token, items) {
+  const kind = await agentKind(token);
+  if (kind === 'restaurant') return request('/menu', { method: 'PUT', body: items, token });
+  if (kind === 'clinic') {
+    const saved = await request('/doctors', { method: 'PUT', body: items.map(itemToDoctor), token });
+    return saved.map(doctorToItem);
+  }
+  throw Object.assign(new Error('A receptionist lists its services on the Agent page.'), { status: 400 });
 }
 
-// dryRun checks the file and shows what would be saved; false replaces the items.
-export function importItems(token, csv, dryRun) {
-  return request('/agent/items/import', {
-    method: 'POST',
-    body: { csv, dry_run: dryRun },
-    token,
-  });
+// A CSV replaces the menu or the doctors. dryRun checks it and shows what would be saved.
+export async function importItems(token, csv, dryRun) {
+  const kind = await agentKind(token);
+  const path = { restaurant: '/menu/import', clinic: '/doctors/import' }[kind];
+  if (!path) throw Object.assign(new Error('A receptionist has no list to import.'), { status: 400 });
+  const result = await request(path, { method: 'POST', body: { csv, dry_run: dryRun }, token });
+  const preview = kind === 'clinic' ? result.preview.map(doctorToItem) : result.preview;
+  return { ...result, preview, attributes: [] };
 }
 
 // The documents the agent reads when a question is not answered elsewhere.

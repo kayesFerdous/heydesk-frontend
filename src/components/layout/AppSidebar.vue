@@ -74,10 +74,10 @@
 </template>
 
 <script>
+import { listLinks } from '../../lib/presets.js';
 import {
   PhTray,
   PhChatsCircle,
-  PhForkKnife,
   PhHeadset,
   PhBooks,
   PhSignOut,
@@ -131,7 +131,7 @@ export default {
           count: this.$store.getters['inbox/needsHuman'],
           attention: true,
         },
-        { to: '/menu', label: this.$store.getters['agent/itemsLabel'], icon: PhForkKnife },
+        ...listLinks(this.$store.getters['agent/config'] && this.$store.getters['agent/config'].preset),
         { to: '/knowledge', label: 'Knowledge', icon: PhBooks },
         { to: '/agent', label: 'Your agent', icon: PhHeadset },
       ];

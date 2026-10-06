@@ -67,7 +67,7 @@
           Pick a starting point, add your details, and try it out. It takes
           about five minutes. Orders and messages will show up here.
         </p>
-        <router-link to="/setup" class="btn btn-primary mt-6">Choose a preset</router-link>
+        <router-link to="/setup" class="btn btn-primary mt-6">Set up your agent</router-link>
       </div>
     </div>
 

@@ -3,9 +3,15 @@
     <div class="max-w-2xl">
       <h2 class="text-lg font-semibold tracking-tight">Import from a spreadsheet</h2>
       <p class="mt-1 text-sm text-ink-soft">
-        Upload a CSV with a header row. Columns called name, price, category, tags,
-        description and available become the {{ noun }}'s fields. Any other column
-        becomes a fact your agent can use.
+        Upload a CSV with a header row. It replaces the whole list.
+        <template v-if="noun === 'doctor'">
+          Columns: name, speciality, fee, days (like "sat; sun"), hours (like 17:00-21:00), and
+          optionally languages, description, available.
+        </template>
+        <template v-else>
+          Columns: name, price, and optionally category, description, tags (like "spicy; popular"),
+          available.
+        </template>
       </p>
 
       <div class="mt-4">
