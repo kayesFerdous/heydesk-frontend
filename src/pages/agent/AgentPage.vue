@@ -64,8 +64,31 @@
           </div>
           <p v-else-if="saveError" class="mb-8 text-sm text-danger" role="alert">{{ saveError }}</p>
 
+          <!-- Where customers reach the agent: live actions, not part of Save -->
+          <div>
+            <h2 class="text-lg font-semibold tracking-tight">Where customers reach you</h2>
+            <p class="mt-1 text-sm text-ink-soft">Your agent answers on each of these, day and night.</p>
+            <ul class="mt-4 divide-y divide-hairline border-y border-hairline">
+              <li class="flex items-start gap-3 py-4">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-tint text-brand" aria-hidden="true">
+                  <ph-globe :size="20"></ph-globe>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-semibold">Website chat</p>
+                  <p class="mt-0.5 text-sm text-ink-soft">Put this link on your website or social pages.</p>
+                  <div class="mt-3">
+                    <copy-field v-if="publicKey" label="Chat link" :value="link"></copy-field>
+                  </div>
+                </div>
+              </li>
+              <li class="py-4">
+                <telegram-connect :business-name="config.business_name"></telegram-connect>
+              </li>
+            </ul>
+          </div>
+
           <!-- Basics -->
-          <div class="flex flex-col gap-5">
+          <div class="mt-10 flex flex-col gap-5 border-t border-hairline pt-8">
             <h2 class="text-lg font-semibold tracking-tight">Basics</h2>
             <div>
               <label class="label" for="agent-name">Agent name</label>
@@ -174,8 +197,7 @@
           </div>
 
           <div class="mt-10 border-t border-hairline pt-8 lg:hidden">
-            <copy-field v-if="publicKey" label="Chat link" :value="link"></copy-field>
-            <button type="button" class="btn btn-secondary mt-4 w-full" @click="openSheet">
+            <button type="button" class="btn btn-secondary w-full" @click="openSheet">
               Talk to your agent
             </button>
           </div>
@@ -195,16 +217,16 @@
         <div class="min-h-0 flex-1">
           <agent-chat v-if="publicKey" :key="chatKey" :public-key="publicKey"></agent-chat>
         </div>
-        <div class="border-t border-hairline p-5">
-          <copy-field v-if="publicKey" label="Chat link" :value="link"></copy-field>
-        </div>
       </aside>
     </div>
   </section>
 </template>
 
 <script>
+import { PhGlobe } from '@phosphor-icons/vue';
+
 import HoursEditor from '../../components/agent/HoursEditor.vue';
+import TelegramConnect from '../../components/agent/TelegramConnect.vue';
 import CopyField from '../../components/ui/CopyField.vue';
 import AgentChat from '../../components/chat/AgentChat.vue';
 import { normalizeHours, DAYS } from '../../lib/hours.js';
@@ -226,7 +248,7 @@ const KNOWLEDGE_LABELS = {
 };
 
 export default {
-  components: { HoursEditor, CopyField, AgentChat },
+  components: { HoursEditor, TelegramConnect, CopyField, AgentChat, PhGlobe },
   data() {
     return {
       form: null,

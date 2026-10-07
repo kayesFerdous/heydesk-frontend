@@ -23,22 +23,21 @@
       <span class="text-xs text-ink-soft">{{ time(row.updated_at) }}</span>
       <status-chip v-if="row.status === 'needs_human'" status="needs_human"></status-chip>
       <span v-else class="chip bg-wash !font-medium text-ink-soft">
-        <component :is="row.channel === 'voice' ? 'ph-microphone' : 'ph-chat-circle'" :size="14"></component>
-        {{ row.channel === 'voice' ? 'Voice' : 'Chat' }}
+        <component :is="channel.icon" :size="14"></component>
+        {{ channel.label }}
       </span>
     </span>
   </button>
 </template>
 
 <script>
-import { PhMicrophone, PhChatCircle } from '@phosphor-icons/vue';
-
 import StatusChip from '../ui/StatusChip.vue';
+import { channelOf } from '../../lib/channels.js';
 import { formatTime } from '../../lib/format.js';
 import { avatarTint, initials } from '../../lib/group.js';
 
 export default {
-  components: { StatusChip, PhMicrophone, PhChatCircle },
+  components: { StatusChip },
   props: {
     row: { type: Object, required: true },
     selected: { type: Boolean, default: false },
@@ -47,6 +46,9 @@ export default {
   computed: {
     tint() {
       return avatarTint(this.row.name);
+    },
+    channel() {
+      return channelOf(this.row.channel);
     },
   },
   methods: {

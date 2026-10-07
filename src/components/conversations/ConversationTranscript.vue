@@ -8,7 +8,7 @@
         <div class="min-w-0">
           <h2 class="truncate text-lg font-semibold tracking-tight">{{ name }}</h2>
           <p class="text-sm text-ink-soft">
-            {{ conversation.channel === 'voice' ? 'Voice call' : 'Chat' }}, {{ when }}
+            {{ channel.long }}, {{ when }}
           </p>
         </div>
       </div>
@@ -69,6 +69,7 @@
 import { PhArrowLeft, PhUserSound } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
+import { channelOf } from '../../lib/channels.js';
 import { formatMoney, formatTime, formatDay } from '../../lib/format.js';
 
 export default {
@@ -78,6 +79,9 @@ export default {
   },
   emits: ['back'],
   computed: {
+    channel() {
+      return channelOf(this.conversation.channel);
+    },
     name() {
       const record = this.conversation.records[0];
       return (record && record.customer_name) || 'Visitor';

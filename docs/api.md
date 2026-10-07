@@ -69,6 +69,19 @@ agent (404 before). Indexed before the call returns (a few seconds).
 Limits: 30 documents per business, 300,000 chars, 400 chunks. Breaking one is
 `422 unreadable_document` with a plain sentence.
 
+### Telegram (`telegram.js`, card `components/agent/TelegramConnect.vue`)
+The business's own bot from @BotFather (backend D42). The token is sent once
+and never returned.
+| Call | What it does |
+|---|---|
+| `GET /agent/telegram` | `{username, link}` (`https://t.me/<username>`). 404 while no bot is connected |
+| `PUT /agent/telegram` `{token}` | Checks it with Telegram and connects the bot; connecting again replaces it. 422 `invalid_config` with `fields.token` for a token Telegram doesn't know; 400 if the server has no `PUBLIC_URL` |
+| `DELETE /agent/telegram` | 204. Telegram stops sending |
+
+The card finds the token inside BotFather's whole pasted reply (`findBotToken`)
+and connects as soon as one is there. Conversations from Telegram have
+`channel: "telegram"` (`lib/channels.js` labels web, voice and Telegram).
+
 ### Inbox and records (`records.js`)
 | Call | What it does |
 |---|---|
