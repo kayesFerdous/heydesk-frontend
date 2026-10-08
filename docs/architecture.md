@@ -24,7 +24,7 @@ assets/main.css      every colour, radius, shadow and shared class
 Data goes one way: **api/** fetches, **store/** or the page keeps it,
 **components/** show it, and **lib/** helps format or decide. A component never
 calls `fetch` and never imports from `api/` unless it owns a small self-contained
-job (like `TelegramConnect.vue` or `AgentChat.vue`).
+job (like `TelegramConnect.vue`, `AgentChat.vue` or `VoiceCall.vue`).
 
 ## Folders
 

@@ -105,8 +105,10 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 |---|---|
 | `GET /chat/{public_key}` | `{name, greeting}`. 404 unknown, 404 `unavailable` if suspended |
 | `POST /chat/{public_key}` `{message, conversation_id?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `done{interrupted}`, `error{message}`. 409 `conversation_full` |
-| `POST/PATCH /voice/offer` | WebRTC voice. - |
-| `GET /` (backend) | Plain dev chat page at `/?key=<public_key>` (has the voice Call button); the dev server still forwards `/demo/` to it. The shared link is now the frontend's own page: `lib/presets.js chatLink` builds `<this origin>/chat/<public_key>` (`pages/chat/ChatPage.vue`) |
+| `GET /voice/ice` | ICE servers for a call: STUN, plus a Cloudflare TURN relay when the backend has keys |
+| `POST /voice/offer?key=<public_key>` `{sdp, type}` | WebRTC voice. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. Client: `api/voice.js`, `components/chat/VoiceCall.vue` |
+| `PATCH /voice/offer` | Trickle ICE candidates (the frontend does not use it) |
+| `GET /` (backend) | Plain dev chat page at `/?key=<public_key>`; the dev server still forwards `/demo/` to it. The shared link is now the frontend's own page: `lib/presets.js chatLink` builds `<this origin>/chat/<public_key>` (`pages/chat/ChatPage.vue`) |
 
 ### Admin (`admin.js`, role admin only, under `/api/admin`)
 | Call | What it does |

@@ -13,11 +13,13 @@
         </span>
         <span v-else class="skeleton h-10 w-10 shrink-0 !rounded-full"></span>
 
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
           <h1 v-if="agent" class="truncate text-base font-semibold tracking-[-0.01em]">{{ agent.name }}</h1>
           <span v-else class="skeleton block h-4 w-36"></span>
           <live-status v-if="agent" label="Online" class="mt-0.5"></live-status>
         </div>
+
+        <voice-call v-if="agent" :public-key="publicKey"></voice-call>
       </div>
     </header>
 
@@ -41,7 +43,7 @@
       class="min-h-0 flex-1"
       :public-key="publicKey"
       :agent="agent"
-      note="You are chatting with an AI assistant."
+      note="You are chatting with an AI assistant. Tap Call to talk instead."
     ></agent-chat>
   </div>
 </template>
@@ -51,11 +53,12 @@ import { PhChatSlash } from '@phosphor-icons/vue';
 
 import AgentChat from '../../components/chat/AgentChat.vue';
 import LiveStatus from '../../components/ui/LiveStatus.vue';
+import VoiceCall from '../../components/chat/VoiceCall.vue';
 import { fetchChatAgent } from '../../api/chat.js';
 import { initials } from '../../lib/group.js';
 
 export default {
-  components: { AgentChat, LiveStatus, PhChatSlash },
+  components: { AgentChat, LiveStatus, PhChatSlash, VoiceCall },
   data() {
     return {
       agent: null,
