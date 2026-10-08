@@ -1,47 +1,40 @@
 <template>
   <section class="flex flex-col lg:h-full">
-    <header class="px-5 pt-6 sm:px-8 sm:pt-8">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 class="text-[1.75rem] font-semibold tracking-tight">{{ label }}</h1>
-          <p class="mt-1 max-w-xl text-ink-soft">
-            Your agent reads this when customers ask or order. Changes are live right away.
-          </p>
+    <page-header :title="label" :subtitle="`Your agent only offers what is listed here, at these prices. Changes are live right away.`">
+      <template v-if="loaded" #actions>
+        <button type="button" class="btn btn-secondary" @click="importOpen = !importOpen">
+          <ph-upload-simple :size="16"></ph-upload-simple>
+          Import CSV
+        </button>
+        <button type="button" class="btn btn-primary" @click="startAdd">
+          <ph-plus :size="16" weight="bold"></ph-plus>
+          Add {{ noun }}
+        </button>
+      </template>
+      <template v-if="loaded && items.length" #tabs>
+        <div class="flex flex-wrap-reverse items-end gap-x-8 gap-y-3 border-b border-hairline">
+          <div class="tabs !border-b-0" role="tablist">
+            <button
+              v-for="tab in tabs"
+              :key="tab"
+              type="button"
+              role="tab"
+              :aria-selected="tab === category"
+              class="tab"
+              :class="{ 'tab-active': tab === category }"
+              @click="category = tab"
+            >
+              {{ tab }}
+            </button>
+          </div>
+          <label class="relative mb-2 ml-auto block w-full sm:w-64">
+            <span class="sr-only">Search {{ label.toLowerCase() }}</span>
+            <ph-magnifying-glass :size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"></ph-magnifying-glass>
+            <input v-model.trim="query" class="field !h-9 pl-9" type="search" :placeholder="`Search ${label.toLowerCase()}`" />
+          </label>
         </div>
-        <div v-if="loaded" class="flex gap-2">
-          <button type="button" class="btn btn-secondary" @click="importOpen = !importOpen">
-            <ph-upload-simple :size="18"></ph-upload-simple>
-            Import CSV
-          </button>
-          <button type="button" class="btn btn-primary" @click="startAdd">
-            <ph-plus :size="18" weight="bold"></ph-plus>
-            Add {{ noun }}
-          </button>
-        </div>
-      </div>
-
-      <div v-if="loaded && items.length" class="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 border-b border-hairline">
-        <div class="flex gap-6 overflow-x-auto" role="tablist">
-          <button
-            v-for="tab in tabs"
-            :key="tab"
-            type="button"
-            role="tab"
-            :aria-selected="tab === category"
-            class="tab-button"
-            :class="{ 'tab-button-active': tab === category }"
-            @click="category = tab"
-          >
-            {{ tab }}
-          </button>
-        </div>
-        <label class="relative mb-2 ml-auto block w-full sm:w-64">
-          <span class="sr-only">Search {{ label.toLowerCase() }}</span>
-          <ph-magnifying-glass :size="18" class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-soft"></ph-magnifying-glass>
-          <input v-model.trim="query" class="field !h-10 pl-10" type="search" :placeholder="`Search ${label.toLowerCase()}`" />
-        </label>
-      </div>
-    </header>
+      </template>
+    </page-header>
 
     <import-panel
       v-if="importOpen"
@@ -51,22 +44,22 @@
       @imported="onImported"
     ></import-panel>
 
-    <p v-if="saveError" class="px-5 py-3 text-sm text-danger sm:px-8" role="alert">{{ saveError }}</p>
-
-    <p v-if="loadError" class="px-5 py-10 text-sm sm:px-8" role="alert">
-      <span class="text-danger">{{ loadError }}</span>
-      <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="load">Try again</button>
+    <p v-if="saveError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
+      <ph-warning-circle :size="16" class="shrink-0"></ph-warning-circle>
+      {{ saveError }}
     </p>
 
-    <skeleton-rows v-else-if="!loaded" class="mt-4"></skeleton-rows>
+    <load-error v-if="loadError" :message="loadError" @retry="load"></load-error>
 
-    <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+    <skeleton-rows v-else-if="!loaded" class="border-t border-hairline"></skeleton-rows>
+
+    <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto" :class="{ 'border-t border-hairline': !items.length }">
       <div
         v-if="items.length || adding"
-        class="hidden grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] gap-x-4 border-b border-hairline bg-wash px-8 py-2.5 text-xs font-semibold text-ink-soft sm:grid"
+        class="sticky top-0 z-[1] hidden grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] gap-x-4 border-b border-hairline bg-wash/95 px-8 py-2 text-xs font-semibold text-ink-soft backdrop-blur sm:grid"
       >
         <span>{{ noun[0].toUpperCase() + noun.slice(1) }}</span>
-        <span class="text-right">Price</span>
+        <span class="text-right">{{ noun === 'doctor' ? 'Fee' : 'Price' }}</span>
         <span>Available</span>
         <span></span>
       </div>
@@ -96,19 +89,12 @@
         @remove="remove(item.code)"
       ></item-row>
 
-      <div v-if="!items.length && !adding" class="px-5 py-16 sm:px-8">
-        <div class="max-w-md">
-          <h2 class="text-xl font-semibold tracking-tight">No {{ noun }}s yet</h2>
-          <p class="mt-2 text-ink-soft">
-            Add them one at a time, or import a spreadsheet to add them all at once.
-            Your agent can only talk about what is listed here.
-          </p>
-          <div class="mt-6 flex gap-2">
-            <button type="button" class="btn btn-primary" @click="startAdd">Add {{ noun }}</button>
-            <button type="button" class="btn btn-secondary" @click="importOpen = true">Import CSV</button>
-          </div>
-        </div>
-      </div>
+      <empty-state
+        v-if="!items.length && !adding"
+        :icon="icons.list"
+        :title="`No ${noun}s yet`"
+        :text="`Add them one at a time with Add ${noun}, or use Import CSV to bring in a whole spreadsheet at once. Your agent can only offer what is listed here.`"
+      ></empty-state>
 
       <p v-else-if="!filtered.length && !adding" class="px-5 py-10 text-sm text-ink-soft sm:px-8">
         No {{ noun }}s match that.
@@ -122,17 +108,31 @@
 </template>
 
 <script>
-import { PhPlus, PhUploadSimple, PhMagnifyingGlass } from '@phosphor-icons/vue';
+import { PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets } from '@phosphor-icons/vue';
 
 import ItemRow from '../../components/menu/ItemRow.vue';
 import ImportPanel from '../../components/menu/ImportPanel.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
+import PageHeader from '../../components/ui/PageHeader.vue';
+import EmptyState from '../../components/ui/EmptyState.vue';
+import LoadError from '../../components/ui/LoadError.vue';
 import { fetchItems, replaceItems } from '../../api/agent.js';
 import { makeCode } from '../../lib/slug.js';
 import { itemNoun } from '../../lib/presets.js';
 
 export default {
-  components: { ItemRow, ImportPanel, SkeletonRows, PhPlus, PhUploadSimple, PhMagnifyingGlass },
+  components: {
+    ItemRow,
+    ImportPanel,
+    SkeletonRows,
+    PageHeader,
+    EmptyState,
+    LoadError,
+    PhPlus,
+    PhUploadSimple,
+    PhMagnifyingGlass,
+    PhWarningCircle,
+  },
   data() {
     return {
       items: [],
@@ -144,6 +144,7 @@ export default {
       editingCode: null,
       adding: false,
       importOpen: false,
+      icons: { list: PhListBullets },
     };
   },
   computed: {
@@ -256,26 +257,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.tab-button {
-  flex-shrink: 0;
-  white-space: nowrap;
-  margin-bottom: -1px;
-  height: 2.75rem;
-  border-bottom: 2px solid transparent;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink-soft);
-  transition: color 0.2s var(--ease-settle), border-color 0.2s var(--ease-settle);
-}
-
-.tab-button:hover {
-  color: var(--color-ink);
-}
-
-.tab-button-active {
-  color: var(--color-brand);
-  border-bottom-color: var(--color-brand);
-}
-</style>

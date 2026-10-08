@@ -1,56 +1,52 @@
 <template>
   <section class="flex flex-col">
-    <header class="px-5 pt-6 sm:px-8 sm:pt-8">
-      <h1 class="text-[1.75rem] font-semibold tracking-tight">Admin</h1>
-      <p class="mt-1 text-ink-soft">Every business on HeyDesk.</p>
+    <page-header title="Businesses" subtitle="Every business on HeyDesk, its owner, and what happened lately.">
+      <template #tabs>
+        <div class="tabs" role="tablist">
+          <button
+            v-for="t in tabs"
+            :key="t.id"
+            type="button"
+            role="tab"
+            :aria-selected="t.id === tab"
+            class="tab"
+            :class="{ 'tab-active': t.id === tab }"
+            @click="tab = t.id"
+          >
+            {{ t.label }}
+          </button>
+        </div>
+      </template>
+    </page-header>
 
-      <div class="mt-6 flex gap-6 overflow-x-auto border-b border-hairline" role="tablist">
-        <button
-          v-for="t in tabs"
-          :key="t.id"
-          type="button"
-          role="tab"
-          :aria-selected="t.id === tab"
-          class="tab-button"
-          :class="{ 'tab-button-active': t.id === tab }"
-          @click="tab = t.id"
-        >
-          {{ t.label }}
-        </button>
-      </div>
-    </header>
+    <load-error v-if="error" :message="error" @retry="load"></load-error>
 
-    <p v-if="error" class="px-5 py-8 text-sm sm:px-8" role="alert">
-      <span class="text-danger">{{ error }}</span>
-      <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="load">Try again</button>
-    </p>
-
-    <skeleton-rows v-else-if="!loaded" class="mt-2"></skeleton-rows>
+    <skeleton-rows v-else-if="!loaded"></skeleton-rows>
 
     <!-- Businesses -->
     <div v-else-if="tab === 'businesses'">
       <div
         v-for="b in businesses"
         :key="b.id"
-        class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-b border-hairline px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_9rem] sm:px-8"
+        class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_9rem] sm:px-8"
       >
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-navy">{{ b.name }}</p>
+          <p class="truncate text-sm font-semibold">{{ b.name }}</p>
           <p class="truncate text-sm text-ink-soft">{{ b.owner_email || 'No owner' }}</p>
         </div>
         <p class="hidden text-sm text-ink-soft sm:block">{{ b.kind || 'No agent yet' }}</p>
         <p class="hidden text-sm sm:block">{{ b.conversations }} {{ b.conversations === 1 ? 'chat' : 'chats' }}</p>
-        <span class="chip justify-self-start" :class="b.status === 'active' ? 'bg-success-tint text-success' : 'bg-attention-tint text-attention'">
-          {{ b.status === 'active' ? 'Active' : 'Suspended' }}
+        <span class="justify-self-start">
+          <live-status :paused="b.status !== 'active'" label="Active" paused-label="Suspended" :breathe="false"></live-status>
         </span>
         <div class="col-span-2 sm:col-span-1 sm:text-right">
           <span v-if="confirmingId === b.id" class="flex items-center gap-2 sm:justify-end">
-            <button type="button" class="btn !h-9" :class="b.status === 'active' ? 'btn-danger' : 'btn-primary'" @click="toggleStatus(b)">
+            <button type="button" class="btn btn-sm" :class="b.status === 'active' ? 'btn-danger' : 'btn-primary'" @click="toggleStatus(b)">
               {{ b.status === 'active' ? 'Suspend' : 'Reactivate' }}
             </button>
-            <button type="button" class="btn btn-secondary !h-9" @click="confirmingId = null">Keep as is</button>
+            <button type="button" class="btn btn-secondary btn-sm" @click="confirmingId = null">Keep as is</button>
           </span>
-          <button v-else type="button" class="btn btn-quiet !h-9 !px-3" @click="confirmingId = b.id">
+          <button v-else type="button" class="btn btn-quiet btn-sm" @click="confirmingId = b.id">
             {{ b.status === 'active' ? 'Suspend' : 'Reactivate' }}
           </button>
         </div>
@@ -62,7 +58,7 @@
     <div v-else-if="tab === 'owners'">
       <div
         v-if="temporary"
-        class="mx-5 mt-5 rounded-[var(--radius-control)] bg-brand-tint px-4 py-3 text-sm sm:mx-8"
+        class="mx-5 my-5 rounded-[var(--radius-panel)] border border-brand/15 bg-brand-tint px-4 py-3 text-sm sm:mx-8"
         role="status"
       >
         <p class="font-semibold">New password for {{ temporary.email }}</p>
@@ -74,10 +70,10 @@
       <div
         v-for="u in users"
         :key="u.id"
-        class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 border-b border-hairline px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_14rem_9rem] sm:px-8"
+        class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_14rem_9rem] sm:px-8"
       >
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-navy">{{ u.email }}</p>
+          <p class="truncate text-sm font-semibold">{{ u.email }}</p>
           <p class="truncate text-sm text-ink-soft sm:hidden">{{ u.business_name || 'HeyDesk admin' }}</p>
         </div>
         <p class="hidden truncate text-sm text-ink-soft sm:block">{{ u.business_name || 'HeyDesk admin' }}</p>
@@ -85,13 +81,13 @@
           <button
             v-if="u.role === 'owner'"
             type="button"
-            class="btn btn-quiet !h-9 !px-3"
+            class="btn btn-quiet btn-sm"
             :disabled="resettingId === u.id"
             @click="reset(u)"
           >
             Reset password
           </button>
-          <span v-else class="chip bg-wash text-ink-soft">Admin</span>
+          <span v-else class="chip bg-hover text-ink-soft">Admin</span>
         </div>
       </div>
     </div>
@@ -99,7 +95,7 @@
     <!-- Activity -->
     <div v-else>
       <div v-for="group in auditGroups" :key="group.label">
-        <h2 class="px-5 pt-5 pb-2 text-sm font-semibold text-ink-soft sm:px-8">{{ group.label }}</h2>
+        <h2 class="border-b border-hairline bg-wash px-5 py-1.5 text-xs font-semibold text-ink-soft sm:px-8">{{ group.label }}</h2>
         <div
           v-for="event in group.items"
           :key="event.id"
@@ -120,6 +116,9 @@
 
 <script>
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
+import PageHeader from '../../components/ui/PageHeader.vue';
+import LoadError from '../../components/ui/LoadError.vue';
+import LiveStatus from '../../components/ui/LiveStatus.vue';
 import {
   fetchBusinesses,
   setBusinessStatus,
@@ -131,7 +130,7 @@ import { groupByDay } from '../../lib/group.js';
 import { formatTime } from '../../lib/format.js';
 
 export default {
-  components: { SkeletonRows },
+  components: { SkeletonRows, PageHeader, LoadError, LiveStatus },
   data() {
     return {
       tab: 'businesses',
@@ -199,25 +198,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.tab-button {
-  flex-shrink: 0;
-  margin-bottom: -1px;
-  height: 2.75rem;
-  border-bottom: 2px solid transparent;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink-soft);
-  transition: color 0.2s var(--ease-settle), border-color 0.2s var(--ease-settle);
-}
-
-.tab-button:hover {
-  color: var(--color-ink);
-}
-
-.tab-button-active {
-  color: var(--color-brand);
-  border-bottom-color: var(--color-brand);
-}
-</style>

@@ -1,7 +1,7 @@
 # ChatGPT image prompts for HeyDesk (v2: "Cobalt")
 
 Eight self-contained prompts for ChatGPT's image generation. They follow
-[design-direction.md](design-direction.md) (the evidence is in
+[DESIGN.md](../DESIGN.md) (the evidence is in
 [research.md](research.md)). The look is an **upgrade of Gigalogy's own identity**:
 the same cobalt blue and indigo navy, the dot-network logo and the workspace
 switcher, but with a navy rail instead of a blue banner and a calm white work

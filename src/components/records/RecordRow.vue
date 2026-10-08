@@ -1,13 +1,13 @@
 <template>
   <button
     type="button"
-    class="row grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 px-5 py-3 text-left"
+    class="row grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-5 py-3 text-left sm:px-8"
     :class="{ 'row-selected': selected }"
     :aria-current="selected"
     @click="$emit('select')"
   >
     <span
-      class="grid h-10 w-10 place-items-center rounded-full text-sm font-semibold"
+      class="grid h-9 w-9 place-items-center rounded-full text-xs font-semibold"
       :class="tint"
       aria-hidden="true"
     >
@@ -16,17 +16,18 @@
 
     <span class="min-w-0">
       <span class="flex items-baseline gap-2">
-        <span class="truncate text-sm font-semibold text-navy">
+        <span class="truncate text-sm font-semibold">
           {{ record.customer_name || 'Customer' }}
         </span>
-        <span class="text-xs text-ink-soft">{{ record.code || '#' + record.number }}</span>
+        <span class="shrink-0 text-xs text-ink-soft">{{ record.code }}</span>
       </span>
       <span class="block truncate text-sm text-ink-soft">{{ summary }}</span>
     </span>
 
     <span class="flex flex-col items-end gap-1">
-      <span v-if="record.kind === 'order'" class="text-sm font-semibold">
-        {{ money(record.total) }}
+      <span class="flex items-center gap-2">
+        <span v-if="record.kind === 'order'" class="text-sm font-semibold">{{ money(record.total) }}</span>
+        <span v-else class="text-xs text-ink-soft">{{ time(record.created_at) }}</span>
       </span>
       <status-chip :status="record.status"></status-chip>
     </span>
@@ -35,8 +36,9 @@
 
 <script>
 import StatusChip from '../ui/StatusChip.vue';
-import { formatMoney } from '../../lib/format.js';
+import { formatMoney, formatTime } from '../../lib/format.js';
 import { avatarTint, initials } from '../../lib/group.js';
+import { summarize } from '../../lib/records.js';
 
 export default {
   components: { StatusChip },
@@ -47,14 +49,7 @@ export default {
   emits: ['select'],
   computed: {
     summary() {
-      if (this.record.kind === 'order' && this.record.lines) {
-        return this.record.lines
-          .map((line) =>
-            line.quantity > 1 ? `${line.quantity} ${line.name}` : line.name
-          )
-          .join(', ');
-      }
-      return this.record.note || 'Message for the team';
+      return summarize(this.record);
     },
     tint() {
       return avatarTint(this.record.customer_name);
@@ -62,23 +57,8 @@ export default {
   },
   methods: {
     money: formatMoney,
+    time: formatTime,
     initialsOf: initials,
   },
 };
 </script>
-
-<style scoped>
-.row {
-  border-bottom: 1px solid var(--color-hairline);
-  transition: background-color 0.2s var(--ease-settle);
-}
-
-.row:hover {
-  background-color: var(--color-wash);
-}
-
-.row-selected,
-.row-selected:hover {
-  background-color: var(--color-brand-tint);
-}
-</style>

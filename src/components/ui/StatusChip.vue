@@ -1,6 +1,6 @@
 <template>
   <span class="chip" :class="look.classes">
-    <component :is="look.icon" :size="14" weight="bold"></component>
+    <component :is="look.icon" :size="13" weight="bold"></component>
     {{ label }}
   </span>
 </template>
@@ -21,12 +21,14 @@ import { STATUS_LABELS } from '../../lib/flows.js';
 const LOOKS = {
   new: { icon: PhClock, classes: 'bg-brand-tint text-brand' },
   ready: { icon: PhCheckCircle, classes: 'bg-success-tint text-success' },
+  confirmed: { icon: PhCheckCircle, classes: 'bg-success-tint text-success' },
+  done: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
   handled: { icon: PhCheckCircle, classes: 'bg-success-tint text-success' },
-  collected: { icon: PhChecks, classes: 'bg-wash text-ink-soft' },
-  cancelled: { icon: PhXCircle, classes: 'bg-wash text-ink-soft' },
-  archived: { icon: PhArchive, classes: 'bg-wash text-ink-soft' },
+  collected: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
+  cancelled: { icon: PhXCircle, classes: 'bg-hover text-ink-soft' },
+  archived: { icon: PhArchive, classes: 'bg-hover text-ink-soft' },
   needs_human: { icon: PhUserSound, classes: 'bg-attention-tint text-attention' },
-  active: { icon: PhChecks, classes: 'bg-wash text-ink-soft' },
+  active: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
 };
 
 export default {

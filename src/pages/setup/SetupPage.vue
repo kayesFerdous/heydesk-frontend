@@ -1,13 +1,13 @@
 <template>
-  <div class="flex min-h-dvh flex-col">
-    <header class="flex items-center justify-between px-5 py-5 sm:px-10">
+  <div class="flex min-h-dvh flex-col bg-surface">
+    <header class="flex items-center justify-between border-b border-hairline px-5 py-4 sm:px-10">
       <brand-mark></brand-mark>
-      <button type="button" class="text-sm font-semibold text-ink-soft hover:text-ink" @click="signOut">
+      <button type="button" class="btn btn-quiet btn-sm" @click="signOut">
         Sign out
       </button>
     </header>
 
-    <main class="mx-auto w-full max-w-3xl flex-1 px-5 pb-16 sm:px-10">
+    <main class="mx-auto w-full max-w-3xl flex-1 px-5 pt-10 pb-16 sm:px-10">
       <ol class="flex items-center gap-3 text-sm" aria-label="Progress">
         <li
           v-for="(label, index) in steps"
@@ -19,7 +19,7 @@
           <span class="flex items-center gap-2" :aria-current="index === step ? 'step' : undefined">
             <span
               class="grid h-7 w-7 place-items-center rounded-full text-xs font-semibold"
-              :class="index <= step ? 'bg-brand text-white' : 'bg-wash text-ink-soft'"
+              :class="index <= step ? 'bg-brand text-white' : 'bg-hover text-ink-soft'"
             >
               <ph-check v-if="index < step" :size="14" weight="bold"></ph-check>
               <template v-else>{{ index + 1 }}</template>
@@ -31,7 +31,7 @@
 
       <!-- Step 1: choose -->
       <section v-if="step === 0" class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-tight">What should your agent do?</h1>
+        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">What should your agent do?</h1>
         <p class="mt-2 text-ink-soft">Pick a starting point. You can change everything later.</p>
 
         <p v-if="loadError" class="mt-8 text-sm text-danger" role="alert">
@@ -52,7 +52,7 @@
             :class="{ 'choice-selected': preset.id === presetId }"
             @click="presetId = preset.id"
           >
-            <span class="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand">
+            <span class="grid h-11 w-11 place-items-center rounded-[var(--radius-panel)] bg-brand-tint text-brand">
               <component :is="iconFor(preset.id)" :size="24"></component>
             </span>
             <span class="mt-4 block text-base font-semibold">{{ preset.label }}</span>
@@ -76,7 +76,7 @@
 
       <!-- Step 2: details -->
       <section v-else-if="step === 1" class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-tight">Tell us about your business</h1>
+        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">Tell us about your business</h1>
         <p class="mt-2 text-ink-soft">Just the basics. Opening hours, menu and the rest come next.</p>
 
         <form class="mt-8 flex max-w-lg flex-col gap-5" novalidate @submit.prevent="create">
@@ -91,7 +91,7 @@
               autocomplete="organization"
               @input="onBusinessInput"
             />
-            <p v-if="fieldErrors.business_name" class="mt-1.5 text-sm text-danger">
+            <p v-if="fieldErrors.business_name" class="error-text">
               {{ fieldErrors.business_name }}
             </p>
           </div>
@@ -106,7 +106,7 @@
               type="text"
               @input="agentNameEdited = true"
             />
-            <p v-if="fieldErrors.name" class="mt-1.5 text-sm text-danger">{{ fieldErrors.name }}</p>
+            <p v-if="fieldErrors.name" class="error-text">{{ fieldErrors.name }}</p>
           </div>
 
           <div>
@@ -127,19 +127,19 @@
 
       <!-- Step 3: try it -->
       <section v-else class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-tight">Your agent is ready. Try it.</h1>
+        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">Your agent is ready. Try it.</h1>
         <p class="mt-2 text-ink-soft">
           Say hello, ask a question, or place a test order. This is what your customers will see.
         </p>
 
         <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
-          <div class="h-[28rem] overflow-hidden rounded-[var(--radius-panel)] border border-hairline">
+          <div class="h-[28rem] overflow-hidden rounded-[var(--radius-panel)] border border-hairline bg-wash">
             <agent-chat v-if="publicKey" :public-key="publicKey"></agent-chat>
           </div>
 
           <div class="flex flex-col gap-6">
             <copy-field v-if="publicKey" label="Chat link" :value="link"></copy-field>
-            <div v-if="missing.length" class="rounded-[var(--radius-control)] bg-brand-tint p-4 text-sm">
+            <div v-if="missing.length" class="rounded-[var(--radius-panel)] border border-hairline bg-wash p-4 text-sm">
               <p class="font-semibold">Still to fill in</p>
               <ul class="mt-2 list-disc pl-5 text-ink-soft">
                 <li v-for="item in missing" :key="item">{{ item }}</li>
@@ -147,7 +147,7 @@
             </div>
             <div class="flex flex-col gap-2">
               <router-link to="/agent" class="btn btn-primary">Finish setting up</router-link>
-              <router-link to="/inbox" class="btn btn-quiet">Go to my inbox</router-link>
+              <router-link to="/home" class="btn btn-quiet">Go to Home</router-link>
             </div>
           </div>
         </div>
@@ -288,6 +288,7 @@ export default {
 }
 
 .choice:hover {
+  border-color: var(--color-line-strong);
   background-color: var(--color-wash);
 }
 
@@ -295,6 +296,6 @@ export default {
 .choice-selected:hover {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 1px var(--color-brand);
-  background-color: var(--color-surface);
+  background-color: var(--color-brand-tint);
 }
 </style>

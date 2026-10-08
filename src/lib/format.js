@@ -20,3 +20,22 @@ export function formatDay(isoString, timeZone = 'Asia/Dhaka') {
     timeZone,
   });
 }
+
+// "Good morning" by the clock where the business is, not where the browser is.
+export function greeting(timeZone = 'Asia/Dhaka') {
+  const hour = Number(
+    new Date().toLocaleString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone })
+  );
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+// "5 min ago", "2 h ago", else the day: for rows where recency matters more than the clock.
+export function formatAgo(isoString, timeZone = 'Asia/Dhaka') {
+  const minutes = Math.round((Date.now() - new Date(isoString).getTime()) / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 60 * 12) return `${Math.round(minutes / 60)} h ago`;
+  return formatDay(isoString, timeZone);
+}

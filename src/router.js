@@ -2,65 +2,67 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import store from './store/index.js';
 
-// The inbox is where the owner lands, so it ships in the main bundle.
-// Everything else is fetched the first time it is visited.
-import InboxPage from './pages/inbox/InboxPage.vue';
+// Home is where the owner lands, so it ships in the main bundle. Everything
+// else is fetched the first time it is visited.
+import HomePage from './pages/home/HomePage.vue';
 const SignIn = () => import('./pages/auth/SignIn.vue');
 const SetupPage = () => import('./pages/setup/SetupPage.vue');
-const AgentPage = () => import('./pages/agent/AgentPage.vue');
+const InboxPage = () => import('./pages/inbox/InboxPage.vue');
 const ConversationsPage = () => import('./pages/conversations/ConversationsPage.vue');
+const AgentPage = () => import('./pages/agent/AgentPage.vue');
+const ProfileSection = () => import('./pages/agent/ProfileSection.vue');
+const HoursSection = () => import('./pages/agent/HoursSection.vue');
+const AnswersSection = () => import('./pages/agent/AnswersSection.vue');
 const MenuPage = () => import('./pages/menu/MenuPage.vue');
 const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
+const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
 const AdminPage = () => import('./pages/admin/AdminPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
+
+// Every owner page needs a signed-in owner (admins have no business of their own).
+const owner = { requiresAuth: true, requiresOwner: true };
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // Owners land on their inbox, platform admins on the business list.
+    // Owners land on Home, platform admins on the business list.
     {
       path: '/',
-      redirect: () => (store.getters['auth/isAdmin'] ? '/admin' : '/inbox'),
+      redirect: () => (store.getters['auth/isAdmin'] ? '/admin' : '/home'),
     },
     {
       path: '/sign-in',
       component: SignIn,
       meta: { requiresUnauth: true, bare: true },
     },
-    {
-      path: '/inbox',
-      component: InboxPage,
-      meta: { requiresAuth: true, requiresOwner: true, title: 'Inbox' },
-    },
-    {
-      path: '/setup',
-      component: SetupPage,
-      meta: { requiresAuth: true, requiresOwner: true, bare: true },
-    },
-    {
-      path: '/conversations',
-      component: ConversationsPage,
-      meta: { requiresAuth: true, requiresOwner: true, title: 'Conversations' },
-    },
-    {
-      path: '/menu',
-      component: MenuPage,
-      meta: { requiresAuth: true, requiresOwner: true, title: 'Menu' },
-    },
-    {
-      path: '/knowledge',
-      component: KnowledgePage,
-      meta: { requiresAuth: true, requiresOwner: true, title: 'Knowledge' },
-    },
+    { path: '/setup', component: SetupPage, meta: { ...owner, bare: true } },
+
+    // Daily work
+    { path: '/home', component: HomePage, meta: owner },
+    { path: '/inbox', component: InboxPage, meta: owner },
+    { path: '/conversations', component: ConversationsPage, meta: owner },
+
+    // Your agent. The settings are three sections with one page around them
+    // (title, section tabs, the test chat); each section saves on its own.
     {
       path: '/agent',
       component: AgentPage,
-      meta: { requiresAuth: true, requiresOwner: true, title: 'Your agent' },
+      meta: owner,
+      redirect: '/agent/profile',
+      children: [
+        { path: 'profile', component: ProfileSection, meta: owner },
+        { path: 'hours', component: HoursSection, meta: owner },
+        { path: 'answers', component: AnswersSection, meta: owner },
+      ],
     },
+    { path: '/menu', component: MenuPage, meta: owner },
+    { path: '/knowledge', component: KnowledgePage, meta: owner },
+    { path: '/channels', component: ChannelsPage, meta: owner },
+
     {
       path: '/admin',
       component: AdminPage,
-      meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin' },
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     { path: '/:notFound(.*)', component: NotFound, meta: { bare: true } },
   ],
@@ -74,7 +76,7 @@ router.beforeEach((to, _, next) => {
   } else if (to.meta.requiresUnauth && signedIn) {
     next('/');
   } else if (to.meta.requiresAdmin && !isAdmin) {
-    next('/inbox');
+    next('/home');
   } else if (to.meta.requiresOwner && isAdmin) {
     // Admins have no business of their own, so the owner screens have no data.
     next('/admin');

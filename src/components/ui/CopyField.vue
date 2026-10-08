@@ -2,9 +2,9 @@
   <div>
     <label class="label" :for="id">{{ label }}</label>
     <div class="flex gap-2">
-      <input :id="id" class="field flex-1" type="text" :value="value" readonly @focus="$event.target.select()" />
+      <input :id="id" class="field min-w-0 flex-1 !bg-wash" type="text" :value="value" readonly @focus="$event.target.select()" />
       <button type="button" class="btn btn-secondary shrink-0" @click="copy">
-        <component :is="copied ? 'ph-check' : 'ph-copy'" :size="18"></component>
+        <component :is="copied ? 'ph-check' : 'ph-copy'" :size="16" :class="{ 'text-success': copied }"></component>
         {{ copied ? 'Copied' : 'Copy' }}
       </button>
     </div>
@@ -22,6 +22,7 @@ export default {
     label: { type: String, required: true },
     value: { type: String, required: true },
   },
+  emits: ['copied'],
   data() {
     nextId += 1;
     return { id: `copy-field-${nextId}`, copied: false, timer: null };
@@ -34,6 +35,7 @@ export default {
       try {
         await navigator.clipboard.writeText(this.value);
         this.copied = true;
+        this.$emit('copied');
         clearTimeout(this.timer);
         this.timer = setTimeout(() => (this.copied = false), 2000);
       } catch (error) {

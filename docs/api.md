@@ -132,15 +132,22 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   401 handler). `chat.js` streams with its own fetch because of SSE.
 - `src/store/modules/`: `auth` (token, me), `agent` (info, presets; getters
   `config`, `jobs`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
-  counts), `ui` (test chat sheet). Pages fetch lists (items, documents,
-  records) themselves, they are not in the store.
-- `src/router.js`: `/inbox /conversations /menu /knowledge /agent` (owner),
-  `/admin` (admin), `/setup`, `/sign-in`. Guards use route `meta`.
-- Pages: `pages/{inbox,conversations,menu,knowledge,agent,setup,admin,auth}`.
+  counts), `ui` (test chat sheet, phone drawer). Pages fetch lists (items,
+  documents, records) themselves, they are not in the store.
+- `src/router.js`: `/home /inbox /conversations /agent/{profile,hours,answers}
+  /menu /knowledge /channels` (owner), `/admin` (admin), `/setup`, `/sign-in`.
+  Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
+  open one item.
+- Pages: `pages/{home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth}`.
   Shared pieces in `components/{ui,layout,records,conversations,menu,knowledge,agent,chat}`.
-- `src/lib/`: `flows.js` (status buttons), `format.js` (money, time, day),
-  `group.js` (Today/Yesterday), `hours.js`, `presets.js` (icons, nouns, chat
-  link), `slug.js`.
+  Agent settings sections share `mixins/agentSection.js`; each PATCHes only its
+  own fields (the API leaves the rest).
+- `src/lib/`: `flows.js` (status buttons), `format.js` (money, time, day,
+  greeting, ago), `group.js` (Today/Yesterday, avatars), `records.js`
+  (one-line summaries), `navigation.js` (the sidebar and tab bar), `setup.js`
+  (Home checklist, where each `missing` item is fixed), `hours.js`,
+  `presets.js` (icons, nouns, chat link), `channels.js`, `slug.js`.
+- Full guide: [architecture.md](architecture.md).
 
 ## Not built yet (backend supports it)
 

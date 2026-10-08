@@ -1,27 +1,25 @@
 <template>
-  <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hairline px-5 py-4 sm:px-8">
-    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-tint text-brand" aria-hidden="true">
-      <component :is="icon" :size="20"></component>
+  <li class="row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:px-8">
+    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
+      <component :is="icon" :size="18"></component>
     </span>
     <div class="min-w-0 flex-1">
-      <p class="truncate font-semibold">{{ document.title }}</p>
+      <p class="truncate text-sm font-semibold" :title="document.filename || document.title">{{ document.title }}</p>
       <p class="mt-0.5 text-sm text-ink-soft">
-        {{ kindLabel }}<span v-if="document.filename && document.filename !== document.title"> · {{ document.filename }}</span>
-        · {{ document.chunk_count }} {{ document.chunk_count === 1 ? 'piece' : 'pieces' }}
-        · added {{ day }}
+        {{ kindLabel }}, {{ document.chunk_count }} {{ document.chunk_count === 1 ? 'piece' : 'pieces' }}, added {{ day }}
       </p>
     </div>
 
     <span v-if="confirming" class="flex items-center gap-2 text-sm">
       <span>Remove it?</span>
-      <button type="button" class="btn btn-danger !h-9" :disabled="busy" @click="$emit('remove')">
+      <button type="button" class="btn btn-danger btn-sm" :disabled="busy" @click="$emit('remove')">
         {{ busy ? 'Removing...' : 'Remove' }}
       </button>
-      <button type="button" class="btn btn-secondary !h-9" :disabled="busy" @click="confirming = false">Keep it</button>
+      <button type="button" class="btn btn-secondary btn-sm" :disabled="busy" @click="confirming = false">Keep it</button>
     </span>
     <span v-else class="flex items-center gap-1">
-      <button type="button" class="btn btn-quiet" @click="$emit('read')">Read</button>
-      <button type="button" class="btn btn-quiet !text-danger" @click="confirming = true">Remove</button>
+      <button type="button" class="btn btn-quiet btn-sm" @click="$emit('read')">Read</button>
+      <button type="button" class="btn btn-quiet btn-sm hover:!text-danger" @click="confirming = true">Remove</button>
     </span>
   </li>
 </template>

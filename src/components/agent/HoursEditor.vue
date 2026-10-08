@@ -1,11 +1,11 @@
 <template>
-  <div class="divide-y divide-hairline rounded-[var(--radius-panel)] border border-hairline">
+  <div class="panel divide-y divide-hairline">
     <div
       v-for="day in days"
       :key="day.key"
-      class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5"
+      class="flex min-h-14 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2"
     >
-      <span class="w-24 text-sm font-medium">{{ day.label }}</span>
+      <span class="w-24 text-sm font-medium" :class="{ 'text-ink-soft': !modelValue[day.key] }">{{ day.label }}</span>
 
       <toggle-switch
         :model-value="!!modelValue[day.key]"
@@ -15,15 +15,15 @@
 
       <div v-if="modelValue[day.key]" class="flex items-center gap-2">
         <input
-          class="field !h-10 !w-32"
+          class="field !w-32"
           type="time"
           :aria-label="`${day.label} opens`"
           :value="modelValue[day.key][0]"
           @input="setTime(day.key, 0, $event.target.value)"
         />
-        <span class="text-ink-soft">to</span>
+        <span class="text-sm text-ink-soft">to</span>
         <input
-          class="field !h-10 !w-32"
+          class="field !w-32"
           type="time"
           :aria-label="`${day.label} closes`"
           :value="modelValue[day.key][1]"

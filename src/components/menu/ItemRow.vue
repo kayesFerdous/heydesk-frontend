@@ -2,19 +2,23 @@
   <!-- Reading -->
   <div
     v-if="!editing"
-    class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b border-hairline px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] sm:px-8"
-    :class="{ 'opacity-60': !item.available }"
+    class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] sm:px-8"
   >
-    <div class="min-w-0">
-      <p class="truncate text-sm font-semibold text-navy">{{ item.name }}</p>
+    <div class="min-w-0" :class="{ 'opacity-55': !item.available }">
+      <p class="truncate text-sm font-semibold">{{ item.name }}</p>
       <p v-if="item.description" class="truncate text-sm text-ink-soft">{{ item.description }}</p>
-      <p v-if="factsText" class="truncate text-xs text-ink-soft">{{ factsText }}</p>
+      <p v-if="facts.length" class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
+        <span v-for="fact in facts" :key="fact.key" class="inline-flex items-center gap-1">
+          <component :is="fact.icon" :size="13" class="text-ink-faint"></component>
+          {{ fact.text }}
+        </span>
+      </p>
       <div v-if="item.tags.length" class="mt-1.5 flex flex-wrap gap-1.5">
-        <span v-for="tag in item.tags" :key="tag" class="chip bg-wash !font-medium text-ink-soft">{{ tag }}</span>
+        <span v-for="tag in item.tags" :key="tag" class="chip bg-hover !font-medium text-ink-soft">{{ tag }}</span>
       </div>
     </div>
 
-    <p class="text-right text-sm font-semibold sm:order-none">{{ money(item.price) }}</p>
+    <p class="text-right text-sm font-semibold" :class="{ 'opacity-55': !item.available }">{{ money(item.price) }}</p>
 
     <!-- On a phone the switch and Edit share one line under the name. -->
     <div class="col-span-2 flex items-center justify-between sm:contents">
@@ -24,35 +28,35 @@
           :label="`${item.name} is available`"
           @update:model-value="$emit('toggle')"
         ></toggle-switch>
-        <span v-if="!item.available" class="text-xs whitespace-nowrap text-ink-soft">Sold out</span>
+        <span class="text-xs whitespace-nowrap text-ink-soft">{{ item.available ? 'On' : offWord }}</span>
       </div>
 
       <div class="sm:text-right">
-        <button type="button" class="btn btn-quiet !h-9 !px-3" @click="$emit('edit')">Edit</button>
+        <button type="button" class="btn btn-quiet btn-sm" @click="$emit('edit')">Edit</button>
       </div>
     </div>
   </div>
 
   <!-- Editing, in the row itself -->
-  <form v-else class="border-b border-hairline bg-wash px-5 py-5 sm:px-8" novalidate @submit.prevent="submit">
+  <form v-else class="border-b border-hairline bg-brand-tint/40 px-5 py-5 sm:px-8" novalidate @submit.prevent="submit">
     <div class="grid max-w-3xl gap-4 sm:grid-cols-2">
       <div class="sm:col-span-2">
         <label class="label" :for="`n-${uid}`">Name</label>
         <input :id="`n-${uid}`" ref="name" v-model.trim="draft.name" class="field" :class="{ 'field-invalid': errors.name }" type="text" />
-        <p v-if="errors.name" class="mt-1.5 text-sm text-danger">{{ errors.name }}</p>
+        <p v-if="errors.name" class="error-text">{{ errors.name }}</p>
       </div>
       <div>
-        <label class="label" :for="`p-${uid}`">Price</label>
+        <label class="label" :for="`p-${uid}`">{{ noun === 'doctor' ? 'Fee' : 'Price' }} (৳)</label>
         <input :id="`p-${uid}`" v-model.trim="priceText" class="field" :class="{ 'field-invalid': errors.price }" type="text" inputmode="decimal" placeholder="450" />
-        <p v-if="errors.price" class="mt-1.5 text-sm text-danger">{{ errors.price }}</p>
+        <p v-if="errors.price" class="error-text">{{ errors.price }}</p>
       </div>
       <div>
-        <label class="label" :for="`c-${uid}`">Category</label>
+        <label class="label" :for="`c-${uid}`">{{ noun === 'doctor' ? 'Speciality' : 'Category' }}</label>
         <input :id="`c-${uid}`" v-model.trim="draft.category" class="field" :class="{ 'field-invalid': errors.category }" type="text" :list="`cats-${uid}`" />
         <datalist :id="`cats-${uid}`">
           <option v-for="category in categories" :key="category" :value="category"></option>
         </datalist>
-        <p v-if="errors.category" class="mt-1.5 text-sm text-danger">{{ errors.category }}</p>
+        <p v-if="errors.category" class="error-text">{{ errors.category }}</p>
       </div>
       <div class="sm:col-span-2">
         <label class="label" :for="`d-${uid}`">Description</label>
@@ -61,7 +65,7 @@
       <div class="sm:col-span-2">
         <label class="label" :for="`t-${uid}`">Tags</label>
         <input :id="`t-${uid}`" v-model="tagsText" class="field" type="text" placeholder="popular, spicy, vegetarian" />
-        <p class="mt-1.5 text-xs text-ink-soft">Separate with commas. Your agent uses tags to recommend.</p>
+        <p class="hint">Separate with commas. Your agent uses tags to recommend.</p>
       </div>
     </div>
 
@@ -73,8 +77,8 @@
         <span class="flex-1"></span>
         <span v-if="confirming" class="flex items-center gap-2 text-sm">
           Delete this {{ noun }}?
-          <button type="button" class="btn btn-danger !h-9" @click="$emit('remove')">Delete</button>
-          <button type="button" class="btn btn-secondary !h-9" @click="confirming = false">Keep it</button>
+          <button type="button" class="btn btn-danger btn-sm" @click="$emit('remove')">Delete</button>
+          <button type="button" class="btn btn-secondary btn-sm" @click="confirming = false">Keep it</button>
         </span>
         <button v-else type="button" class="btn btn-quiet !text-danger" @click="confirming = true">
           Delete {{ noun }}
@@ -85,10 +89,23 @@
 </template>
 
 <script>
+import { PhCalendarBlank, PhClock, PhInfo, PhTranslate } from '@phosphor-icons/vue';
+
 import ToggleSwitch from '../ui/ToggleSwitch.vue';
 import { formatMoney } from '../../lib/format.js';
 
 let nextUid = 0;
+
+// Known facts get an icon instead of a label.
+const FACTS = {
+  days: { icon: PhCalendarBlank },
+  hours: { icon: PhClock },
+  languages: { icon: PhTranslate },
+};
+
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 export default {
   components: { ToggleSwitch },
@@ -112,13 +129,20 @@ export default {
     };
   },
   computed: {
-    // A business's own facts (a doctor's days, a snack's calories) are shown
+    // A business's own facts (a doctor's days, hours and languages) are shown
     // but edited through the CSV import.
-    factsText() {
+    facts() {
       const attributes = this.item.attributes || {};
       return Object.keys(attributes)
-        .map((key) => `${key}: ${[].concat(attributes[key]).join(', ')}`)
-        .join(' · ');
+        .filter((key) => [].concat(attributes[key]).length)
+        .map((key) => {
+          const values = [].concat(attributes[key]).map((value) => capitalize(String(value)));
+          const look = FACTS[key] || { icon: PhInfo, label: capitalize(key) + ': ' };
+          return { key, icon: look.icon, text: (look.label || '') + values.join(', ') };
+        });
+    },
+    offWord() {
+      return this.noun === 'doctor' ? 'Away' : 'Sold out';
     },
   },
   watch: {

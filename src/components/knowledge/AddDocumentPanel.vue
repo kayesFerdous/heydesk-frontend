@@ -1,7 +1,7 @@
 <template>
-  <div class="border-b border-hairline bg-wash px-5 py-5 sm:px-8">
+  <div class="border-y border-hairline bg-wash px-5 py-6 sm:px-8">
     <form class="max-w-2xl" novalidate @submit.prevent="submit">
-      <h2 class="text-lg font-semibold tracking-tight">Add a document</h2>
+      <h2 class="section-title">Add a document</h2>
       <p class="mt-1 text-sm text-ink-soft">
         Upload a .txt, .md or .pdf file (up to 10 MB), or paste the text. It can take
         a few seconds to read, and your agent can use it as soon as it is added.

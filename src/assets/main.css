@@ -1,39 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-/* The design tokens (docs/design-direction.md, v2 "Cobalt"). Everything in the
-   app picks its colour, radius and shadow from here. The brand is Gigalogy's own
-   cobalt #004AAC and indigo navy #283371; green, amber and red are states, never
-   decoration. */
+/* The design tokens (DESIGN.md, v3 "Cobalt on paper"). Every colour, radius
+   and shadow in the app comes from here, so a page never invents its own.
+
+   One brand colour: Gigalogy's cobalt #004AAC, used for actions and selection
+   only. Everything else is a cool, slightly blue-tinted grey. Green, amber and
+   red are states (live, needs a person, destructive), never decoration. */
 @theme {
   --font-sans: 'Onest', ui-sans-serif, system-ui, 'Noto Sans Bengali', sans-serif;
 
+  /* Brand */
   --color-brand: #004aac;
-  --color-brand-deep: #003a87;
-  --color-brand-tint: #eaf1fb;
-  --color-brand-glow: #7fb0ff;
-  --color-navy: #283371;
+  --color-brand-hover: #003d8f;
+  --color-brand-tint: #eef3fb;
+  --color-brand-tint-strong: #dfe9f8;
 
-  --color-rail: #0a1b3d;
-
+  /* Surfaces: white work area, a quiet paper sidebar */
   --color-surface: #ffffff;
-  --color-wash: #f6f8fb;
-  --color-hairline: #e3e8ef;
+  --color-sidebar: #f5f6f9;
+  --color-wash: #f7f8fa;
+  --color-hover: #eef0f4;
 
-  --color-ink: #0e1726;
-  --color-ink-soft: #5b6577;
+  /* Lines */
+  --color-hairline: #e6e9ef;
+  --color-line-strong: #d4d9e2;
 
-  --color-success: #18874e;
-  --color-success-tint: #e6f5ec;
-  --color-attention: #8a5a0b;
-  --color-attention-tint: #fff4db;
+  /* Text: blue-tinted near-black, never #000 */
+  --color-ink: #0c1424;
+  --color-ink-soft: #566176;
+  --color-ink-faint: #8b94a6;
+
+  /* States */
+  --color-success: #157f4c;
+  --color-success-tint: #e7f5ed;
+  /* "Needs a person": a true orange, opposite cobalt on the colour wheel, so it
+     stands out without muddying into brown (a darkened yellow does). */
+  --color-attention: #b54708;
+  --color-attention-tint: #fff4ea;
   --color-danger: #c42b2b;
+  --color-danger-tint: #fdeeee;
 
-  /* Concentric shapes: panels 14px, controls 10px, chips fully round. */
-  --radius-panel: 0.875rem;
-  --radius-control: 0.625rem;
+  /* Concentric shapes: panels 12px, controls 8px, chips fully round. */
+  --radius-panel: 0.75rem;
+  --radius-control: 0.5rem;
 
-  --shadow-float: 0 16px 40px -20px rgb(10 27 61 / 0.35);
+  /* Two elevations and no more: a lifted control, and a floating layer. */
+  --shadow-lift: 0 1px 2px rgb(12 20 36 / 0.06);
+  --shadow-float: 0 16px 40px -12px rgb(12 20 36 / 0.22), 0 2px 6px rgb(12 20 36 / 0.06);
 
   /* Exponential ease-out: motion settles rather than stopping. */
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
@@ -55,7 +69,7 @@
   }
 
   ::selection {
-    background-color: var(--color-brand-tint);
+    background-color: var(--color-brand-tint-strong);
     color: var(--color-ink);
   }
 
@@ -69,57 +83,174 @@
     caret-color: var(--color-brand);
   }
 
+  a {
+    text-underline-offset: 3px;
+  }
+
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-hairline) transparent;
+    scrollbar-color: var(--color-line-strong) transparent;
   }
 }
 
 @layer components {
-  /* One button vocabulary: 44px, 10px corners, sentence case, four intents.
-     The primary is large and filled so the one action that matters is found
-     first (Material 3 Expressive: key actions found up to 4x faster). */
+  /* One button vocabulary: 40px (44px on touch screens), 8px corners,
+     sentence case, four intents. One primary per screen. */
   .btn {
-    @apply inline-flex h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] px-5
-      text-sm font-semibold whitespace-nowrap transition-all duration-200
-      ease-[var(--ease-settle)] active:translate-y-px
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-control)] px-4
+      text-sm font-semibold whitespace-nowrap transition-[background-color,color,box-shadow,transform]
+      duration-200 ease-[var(--ease-settle)] active:translate-y-px
       disabled:pointer-events-none disabled:opacity-40;
   }
 
+  .btn-sm {
+    @apply h-8 px-3 text-[0.8125rem];
+  }
+
+  /* The cobalt button has a faint top highlight, so it reads as a pressable
+     object instead of a flat rectangle. */
   .btn-primary {
-    @apply bg-brand text-white hover:bg-brand-deep;
+    @apply bg-brand text-white hover:bg-brand-hover;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 40 100 / 0.24);
   }
 
   .btn-secondary {
-    @apply border border-hairline bg-surface text-ink hover:bg-wash;
+    @apply border border-line-strong bg-surface text-ink shadow-[var(--shadow-lift)] hover:bg-wash;
   }
 
   .btn-quiet {
-    @apply text-ink-soft hover:bg-wash hover:text-ink;
+    @apply text-ink-soft hover:bg-hover hover:text-ink;
   }
 
   .btn-danger {
     @apply bg-danger text-white hover:opacity-90;
   }
 
+  /* A square button holding only an icon. Always give it an aria-label. */
+  .btn-icon {
+    @apply w-10 px-0;
+  }
+
   /* One input shape. Labels sit above the field, never inside it. */
   .field {
-    @apply h-11 w-full rounded-[var(--radius-control)] border border-hairline bg-surface px-3.5
-      text-sm text-ink transition-colors duration-200 placeholder:text-ink-soft/70
-      hover:border-ink-soft/40 focus:border-brand focus:outline-none
-      focus:ring-2 focus:ring-brand/20;
+    @apply h-10 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3
+      text-sm text-ink shadow-[var(--shadow-lift)] transition-[border-color,box-shadow] duration-200
+      placeholder:text-ink-soft hover:border-ink-faint focus:border-brand focus:outline-none
+      focus:ring-3 focus:ring-brand/15;
+  }
+
+  textarea.field {
+    @apply h-auto py-2.5 leading-relaxed;
   }
 
   .field-invalid {
-    @apply border-danger focus:border-danger focus:ring-danger/20;
+    @apply border-danger focus:border-danger focus:ring-danger/15;
   }
 
   .label {
     @apply mb-1.5 block text-sm font-medium text-ink;
   }
 
+  .hint {
+    @apply mt-1.5 text-[0.8125rem] text-ink-soft;
+  }
+
+  .error-text {
+    @apply mt-1.5 text-[0.8125rem] text-danger;
+  }
+
   /* Status chips: fully round, always an icon plus a word (never colour alone). */
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap;
+  }
+
+  /* A count next to a label: "Inbox 3". */
+  .count {
+    @apply inline-grid h-5 min-w-5 place-items-center rounded-full bg-hover px-1.5 text-[0.6875rem]
+      font-semibold text-ink-soft;
+  }
+
+  .count-attention {
+    @apply bg-attention-tint text-attention;
+  }
+
+  /* Underlined tabs inside a page (Inbox jobs, Menu categories, Agent sections). */
+  .tabs {
+    @apply flex gap-6 overflow-x-auto border-b border-hairline;
+    scrollbar-width: none;
+  }
+
+  .tab {
+    @apply -mb-px inline-flex h-10 shrink-0 items-center gap-1.5 border-b-2 border-transparent
+      text-sm font-medium whitespace-nowrap text-ink-soft transition-colors duration-200 hover:text-ink;
+  }
+
+  .tab-active,
+  .tab-active:hover {
+    @apply border-brand text-ink;
+  }
+
+  /* A pill switch between two or three views ("All" / "Needs a person"). */
+  .segmented {
+    @apply inline-flex rounded-[var(--radius-control)] bg-hover p-0.5;
+  }
+
+  .segment {
+    @apply inline-flex h-8 items-center gap-1.5 rounded-[calc(var(--radius-control)-2px)] px-3
+      text-[0.8125rem] font-medium text-ink-soft transition-colors duration-200 hover:text-ink;
+  }
+
+  .segment-active,
+  .segment-active:hover {
+    @apply bg-surface text-ink shadow-[var(--shadow-lift)];
+  }
+
+  /* A bordered panel inside the work area: the setup guide, a form group.
+     Border is the elevation; panels never also carry a shadow. */
+  .panel {
+    @apply rounded-[var(--radius-panel)] border border-hairline bg-surface;
+  }
+
+  /* A list row: hairline below, wash on hover, cobalt tint when selected. */
+  .row {
+    @apply border-b border-hairline transition-colors duration-150 hover:bg-wash;
+  }
+
+  .row-selected,
+  .row-selected:hover {
+    @apply bg-brand-tint;
+  }
+
+  /* Loading placeholders in the shape of the content. */
+  .skeleton {
+    @apply rounded-md bg-hover;
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
+  /* A section heading inside a page ("Needs you", "Opening hours"). */
+  .section-title {
+    @apply text-base font-semibold tracking-[-0.01em] text-ink;
+  }
+
+  .link {
+    @apply font-semibold text-brand hover:underline;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
   }
 }

@@ -8,6 +8,12 @@ export function fetchChatAgent(publicKey) {
   return request(`/chat/${publicKey}`);
 }
 
+// What the team wrote from Telegram, oldest first (backend D43). The page asks
+// every few seconds and shows the ones it hasn't yet.
+export async function fetchTeamReplies(publicKey, conversationId) {
+  return (await request(`/chat/${publicKey}/${conversationId}/team`)).replies;
+}
+
 export async function streamChat(publicKey, message, conversationId, handlers) {
   const response = await fetch(`/api/chat/${publicKey}`, {
     method: 'POST',

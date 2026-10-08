@@ -1,7 +1,7 @@
 <template>
-  <div class="border-b border-hairline bg-wash px-5 py-5 sm:px-8">
+  <div class="border-y border-hairline bg-wash px-5 py-6 sm:px-8">
     <div class="max-w-2xl">
-      <h2 class="text-lg font-semibold tracking-tight">Import from a spreadsheet</h2>
+      <h2 class="section-title">Import from a spreadsheet</h2>
       <p class="mt-1 text-sm text-ink-soft">
         Upload a CSV with a header row. It replaces the whole list.
         <template v-if="noun === 'doctor'">

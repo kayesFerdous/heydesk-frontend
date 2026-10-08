@@ -33,12 +33,12 @@ export function groupByDay(items, field = 'created_at', timeZone = 'Asia/Dhaka')
 }
 
 // A fixed set of brand-family tints so a list has rhythm without photos. The
-// same name always gets the same tint.
+// same name always gets the same tint. No green or amber: those mean "live"
+// and "needs a person", never decoration.
 const AVATAR_TINTS = [
   'bg-brand-tint text-brand',
-  'bg-success-tint text-success',
-  'bg-wash text-navy',
-  'bg-attention-tint text-attention',
+  'bg-brand-tint-strong text-brand-hover',
+  'bg-hover text-ink-soft',
 ];
 
 export function avatarTint(name) {
@@ -50,4 +50,9 @@ export function avatarTint(name) {
 export function initials(name) {
   const parts = (name || '?').trim().split(/\s+/);
   return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+
+// Whether a moment falls on today's date where the business is.
+export function isToday(isoString, timeZone = 'Asia/Dhaka') {
+  return dayKey(isoString, timeZone) === dayKey(new Date().toISOString(), timeZone);
 }

@@ -32,31 +32,39 @@ in the backend repo, or use "Create your business account" on the sign-in page.
 |---|---|
 | [PRODUCT.md](PRODUCT.md) | who it is for, what they do, what is true of the API |
 | [docs/research.md](docs/research.md) | how Google, Apple, OpenAI, Meta and Stripe build product UI, and what we took |
-| [docs/design-direction.md](docs/design-direction.md) | v2 "Cobalt": palette, type, shape, shell, screen list |
+| [DESIGN.md](DESIGN.md) | v3 "Cobalt on paper": palette, type, shape, shell, signature details |
+| [docs/architecture.md](docs/architecture.md) | where a new feature goes: folders, recipes, rules |
 | [docs/image-prompts.md](docs/image-prompts.md) | 8 prompts to make the design references in ChatGPT |
 | [docs/reference-notes.md](docs/reference-notes.md) | the Gigalogy console screenshots: what to keep (brand) and what to fix |
 
 ```
 src/
   api/         one fetch helper (client.js), one module per resource
-  store/       Vuex: auth, inbox; each split into state/getters/mutations/actions
-  lib/         format.js (money, times), flows.js (record status steps)
-  components/  layout, ui, records
-  pages/       one per route
-  assets/      main.css: every colour, radius and easing as @theme tokens
+  store/       Vuex: auth, agent, inbox, ui; each split into state/getters/mutations/actions
+  lib/         plain functions: format, flows, navigation, setup, records, group...
+  mixins/      agentSection.js: load, save and leave-guard for Agent settings sections
+  components/  layout (sidebar, tab bar), ui (shared), and one folder per area
+  pages/       one folder per screen; Agent settings has three section child routes
+  assets/      main.css: every colour, radius and shadow as @theme tokens, shared classes
 ```
+
+See [docs/architecture.md](docs/architecture.md) for where a new feature goes.
 
 ## Status
 
 Every owner screen is built and wired to the API:
 
 - **Sign in / create account**, then **Setup** (choose a preset, your details, try it)
-- **Inbox**: orders and messages grouped by day, search, next-step button
+- **Home**: a five-step setup guide until the agent is complete, what needs
+  you now (hand-offs and new records), today in one sentence, the agent at a glance
+- **Inbox**: orders, appointments and messages grouped by day, search, next-step button
 - **Conversations**: list, transcript, the hand-off banner, the records it made
-- **Your agent**: sections for basics, business details (from the preset's
-  schema), opening hours, tone notes, FAQ and hand-off; live test chat
+- **Agent settings**: Profile, Hours and hand-off, Answers and tone; each saves
+  on its own with a sticky save bar; live test chat beside the form
 - **Menu** (or Services, Doctors): inline editing, availability, CSV import with a preview
-- **Talk to your agent**: a chat sheet available from the rail on every page
+- **Knowledge**: documents the agent searches
+- **Channels**: the website chat link and the Telegram bot
+- **Try your agent**: a chat sheet available from the sidebar on every page
 - **Admin** (platform admins only): businesses (suspend), owners (reset password), activity
 
 Not built yet: voice calls from the browser (the backend has `/api/voice/offer`,

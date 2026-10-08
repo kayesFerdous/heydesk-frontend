@@ -1,12 +1,12 @@
 <template>
-  <div class="flex items-start gap-3">
-    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-tint text-brand" aria-hidden="true">
+  <div class="flex items-start gap-4">
+    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
       <ph-telegram-logo :size="20"></ph-telegram-logo>
     </span>
 
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <p class="text-sm font-semibold">Telegram</p>
+        <h2 class="section-title">Telegram</h2>
         <span v-if="bot" class="chip bg-success-tint text-success">
           <ph-check-circle :size="14" weight="bold"></ph-check-circle>
           Connected
@@ -22,12 +22,12 @@
 
       <!-- Connected: share the link -->
       <div v-else-if="bot">
-        <p class="mt-0.5 text-sm text-ink-soft">
+        <p class="mt-1 text-sm text-ink-soft">
           Customers message <span class="font-semibold text-ink">@{{ bot.username }}</span> and your agent answers.
           Share the link on your page, receipts or a sign at the counter.
         </p>
-        <div class="mt-3">
-          <copy-field label="Telegram link" :value="bot.link"></copy-field>
+        <div class="mt-5">
+          <copy-field label="Telegram link" :value="bot.link" @copied="$emit('copied')"></copy-field>
         </div>
         <div class="mt-3 flex flex-wrap items-center gap-3">
           <a :href="bot.link" target="_blank" rel="noopener" class="btn btn-secondary">
@@ -50,14 +50,49 @@
           </span>
         </div>
         <p v-if="error" class="mt-2 text-sm text-danger" role="alert">{{ error }}</p>
+
+        <!-- Alerts for the owner, in their own chat with the bot -->
+        <div class="mt-5 border-t border-hairline pt-4">
+          <p class="flex items-center gap-2 text-sm font-semibold">
+            <ph-bell :size="16"></ph-bell>
+            Alerts for you
+          </p>
+          <p v-if="bot.owner_linked" class="mt-0.5 text-sm text-ink-soft">
+            New orders, messages and customers who want a person come to your Telegram. Reply to an alert to answer
+            that customer yourself; the agent waits until you reply /done.
+          </p>
+          <template v-else>
+            <p class="mt-0.5 text-sm text-ink-soft">
+              Get new orders, messages and customers who want a person in your own Telegram, and answer them from there.
+              Open this on a device with Telegram, then tap Start. Keep it to yourself.
+            </p>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <a :href="bot.owner_link" target="_blank" rel="noopener" class="btn btn-secondary">
+                <ph-arrow-square-out :size="18"></ph-arrow-square-out>
+                Get alerts in Telegram
+              </a>
+              <button type="button" class="text-sm font-semibold text-brand hover:underline" @click="load">
+                I've sent it
+              </button>
+            </div>
+            <p class="mt-4 text-sm text-ink-soft">
+              Nothing happens? That button needs the Telegram app on this device. Instead, open
+              <span class="font-semibold text-ink">@{{ bot.username }}</span> in Telegram on your phone, the web or
+              desktop, and send it this message:
+            </p>
+            <div class="mt-2">
+              <copy-field label="Message for your bot" :value="ownerCommand"></copy-field>
+            </div>
+          </template>
+        </div>
       </div>
 
       <!-- Not connected, steps closed -->
       <div v-else-if="!open">
-        <p class="mt-0.5 text-sm text-ink-soft">
+        <p class="mt-1 text-sm text-ink-soft">
           Let customers message your agent in Telegram, with your own bot. Takes about two minutes.
         </p>
-        <button type="button" class="btn btn-secondary mt-3" @click="open = true">Set up Telegram</button>
+        <button type="button" class="btn btn-secondary mt-4" @click="open = true">Set up Telegram</button>
       </div>
 
       <!-- Not connected: two steps -->
@@ -120,7 +155,7 @@
 </template>
 
 <script>
-import { PhArrowSquareOut, PhCheck, PhCheckCircle, PhCopy, PhTelegramLogo } from '@phosphor-icons/vue';
+import { PhArrowSquareOut, PhBell, PhCheck, PhCheckCircle, PhCopy, PhTelegramLogo } from '@phosphor-icons/vue';
 
 import CopyField from '../ui/CopyField.vue';
 import {
@@ -132,7 +167,8 @@ import {
 } from '../../api/telegram.js';
 
 export default {
-  components: { CopyField, PhArrowSquareOut, PhCheck, PhCheckCircle, PhCopy, PhTelegramLogo },
+  components: { CopyField, PhArrowSquareOut, PhBell, PhCheck, PhCheckCircle, PhCopy, PhTelegramLogo },
+  emits: ['copied'],
   props: {
     businessName: { type: String, default: '' },
   },
@@ -163,6 +199,10 @@ export default {
         { value: this.businessName || 'My business', hint: 'The name customers see' },
         { value: this.username, hint: 'Its username, ending in bot' },
       ];
+    },
+    // The same as the link: Telegram sends "/start <code>" when Start is tapped.
+    ownerCommand() {
+      return `/start ${new URL(this.bot.owner_link).searchParams.get('start')}`;
     },
     foundToken() {
       return findBotToken(this.pasted);
@@ -248,21 +288,4 @@ export default {
   background-color: var(--color-wash);
 }
 
-.skeleton {
-  border-radius: 0.375rem;
-  background-color: var(--color-wash);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
-}
 </style>

@@ -1,107 +1,91 @@
 <template>
   <section class="flex flex-col lg:h-full">
-    <header class="px-5 pt-6 sm:px-8 sm:pt-8">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 class="text-[1.75rem] font-semibold tracking-tight">Inbox</h1>
-          <p class="mt-1 text-ink-soft">What your agent took, waiting for you.</p>
-        </div>
-
-        <label class="relative block w-full sm:w-80">
-          <span class="sr-only">Search orders and customers</span>
+    <page-header title="Inbox" subtitle="What your agent took, waiting for you. Every item was confirmed by the customer.">
+      <template #actions>
+        <label class="relative block w-full sm:w-72">
+          <span class="sr-only">Search by name, phone or code</span>
           <ph-magnifying-glass
-            :size="18"
-            class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-soft"
+            :size="16"
+            class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"
           ></ph-magnifying-glass>
           <input
             v-model.trim="query"
-            class="field pl-10"
+            class="field pl-9"
             type="search"
-            placeholder="Search orders and customers"
+            placeholder="Search by name, phone or code"
             @input="searchSoon"
           />
         </label>
-      </div>
+      </template>
+      <template v-if="jobs.length > 1" #tabs>
+        <div class="tabs" role="tablist">
+          <button
+            v-for="job in jobs"
+            :key="job.job"
+            type="button"
+            role="tab"
+            :aria-selected="job.job === currentJob"
+            class="tab"
+            :class="{ 'tab-active': job.job === currentJob }"
+            @click="selectJob(job.job)"
+          >
+            {{ tabLabel(job) }}
+            <span v-if="job.waiting" class="count">{{ job.waiting }}</span>
+          </button>
+        </div>
+      </template>
+    </page-header>
 
-      <div
-        v-if="needsHuman > 0"
-        class="mt-5 flex items-center justify-between gap-4 rounded-[var(--radius-control)] bg-attention-tint px-4 py-3 text-sm text-attention"
-        role="status"
-      >
-        <span class="flex items-center gap-2 font-medium">
-          <ph-user-sound :size="18" weight="bold" class="shrink-0"></ph-user-sound>
-          {{ needsHuman }}
-          {{ needsHuman === 1 ? 'customer is' : 'customers are' }} waiting for a
-          person.
-        </span>
-        <router-link to="/conversations?filter=needs_human" class="font-semibold whitespace-nowrap underline">
-          Open chat
-        </router-link>
-      </div>
+    <router-link
+      v-if="needsHuman > 0"
+      to="/conversations?filter=needs_human"
+      class="mx-5 mb-4 flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-attention/20 bg-attention-tint px-4 py-3 text-sm text-attention transition-colors hover:bg-attention-tint/70 sm:mx-8"
+      :class="{ 'mt-4': jobs.length > 1 }"
+    >
+      <span class="flex items-center gap-2 font-medium">
+        <ph-user-sound :size="18" weight="bold" class="shrink-0"></ph-user-sound>
+        {{ needsHuman }} {{ needsHuman === 1 ? 'customer is' : 'customers are' }} waiting for a person.
+      </span>
+      <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
+        Open
+        <ph-arrow-right :size="14" weight="bold"></ph-arrow-right>
+      </span>
+    </router-link>
 
-      <div
-        v-if="jobs.length"
-        class="mt-6 flex gap-6 overflow-x-auto border-b border-hairline"
-        role="tablist"
-      >
-        <button
-          v-for="job in jobs"
-          :key="job.job"
-          type="button"
-          role="tab"
-          :aria-selected="job.job === currentJob"
-          class="tab-button"
-          :class="{ 'tab-button-active': job.job === currentJob }"
-          @click="selectJob(job.job)"
-        >
-          {{ tabLabel(job) }}
-          <span v-if="job.waiting" class="ml-1.5 text-xs font-semibold">{{ job.waiting }}</span>
-        </button>
-      </div>
-    </header>
+    <empty-state
+      v-if="noAgent"
+      :icon="icons.sparkle"
+      title="Let's set up your agent"
+      text="Pick a starting point, add your details, and try it out. It takes about five minutes. Orders and messages will show up here."
+    >
+      <router-link to="/setup" class="btn btn-primary">Set up your agent</router-link>
+    </empty-state>
 
-    <div v-if="noAgent" class="px-5 py-16 sm:px-8">
-      <div class="max-w-md">
-        <h2 class="text-xl font-semibold tracking-tight">Let's set up your agent</h2>
-        <p class="mt-2 text-ink-soft">
-          Pick a starting point, add your details, and try it out. It takes
-          about five minutes. Orders and messages will show up here.
-        </p>
-        <router-link to="/setup" class="btn btn-primary mt-6">Set up your agent</router-link>
-      </div>
-    </div>
+    <load-error v-else-if="error" :message="error" @retry="load"></load-error>
 
-    <p v-else-if="error" class="px-5 py-10 text-sm sm:px-8" role="alert">
-      <span class="text-danger">{{ error }}</span>
-      <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="load">
-        Try again
-      </button>
-    </p>
+    <skeleton-rows v-else-if="isLoading" :class="{ 'border-t border-hairline': jobs.length <= 1 }"></skeleton-rows>
 
-    <skeleton-rows v-else-if="isLoading" class="mt-2"></skeleton-rows>
-
-    <div v-else-if="records.length === 0" class="px-5 py-16 sm:px-8">
-      <div class="max-w-md">
-        <h2 class="text-xl font-semibold tracking-tight">
-          {{ query ? 'No matches' : 'Nothing here yet' }}
-        </h2>
-        <p class="mt-2 text-ink-soft">
-          {{
-            query
-              ? 'Try a customer name, a phone number or a code like A-104.'
-              : 'When a customer places an order or leaves a message, it shows up here. Share your chat link to get the first one.'
-          }}
-        </p>
-      </div>
-    </div>
+    <empty-state
+      v-else-if="records.length === 0"
+      :icon="query ? icons.search : icons.tray"
+      :title="query ? 'No matches' : 'Nothing here yet'"
+      :text="
+        query
+          ? 'Try a customer name, a phone number or a code like A-104.'
+          : 'When a customer orders, books or leaves a message, it shows up here. Share your chat link to get the first one.'
+      "
+    >
+      <router-link v-if="!query" to="/channels" class="btn btn-secondary">Share your chat link</router-link>
+    </empty-state>
 
     <div
       v-else
-      class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_25rem]"
+      class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_24rem]"
+      :class="{ 'border-t border-hairline': jobs.length <= 1 }"
     >
       <div class="lg:min-h-0 lg:overflow-y-auto">
         <div v-for="group in groups" :key="group.label">
-          <h2 class="px-5 pt-5 pb-2 text-sm font-semibold text-ink-soft sm:px-8">
+          <h2 class="sticky top-0 z-[1] border-b border-hairline bg-wash/95 px-5 py-1.5 text-xs font-semibold text-ink-soft backdrop-blur sm:px-8">
             {{ group.label }}
           </h2>
           <record-row
@@ -109,7 +93,7 @@
             :key="record.id"
             :record="record"
             :selected="record.id === selectedId"
-            @select="selectedId = record.id"
+            @select="select(record.id)"
           ></record-row>
         </div>
       </div>
@@ -130,34 +114,50 @@
 </template>
 
 <script>
-import { PhMagnifyingGlass, PhUserSound } from '@phosphor-icons/vue';
+import {
+  PhArrowRight,
+  PhMagnifyingGlass,
+  PhSparkle,
+  PhTray,
+  PhUserSound,
+} from '@phosphor-icons/vue';
 
+import PageHeader from '../../components/ui/PageHeader.vue';
+import EmptyState from '../../components/ui/EmptyState.vue';
+import LoadError from '../../components/ui/LoadError.vue';
 import RecordRow from '../../components/records/RecordRow.vue';
 import RecordDetail from '../../components/records/RecordDetail.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import { fetchRecords, setRecordStatus } from '../../api/records.js';
 import { groupByDay } from '../../lib/group.js';
+import { JOB_TABS } from '../../lib/records.js';
 
 export default {
   components: {
+    PageHeader,
+    EmptyState,
+    LoadError,
     RecordRow,
     RecordDetail,
     SkeletonRows,
+    PhArrowRight,
     PhMagnifyingGlass,
     PhUserSound,
   },
   data() {
     return {
-      currentJob: null,
+      // ?job=order&open=<id> opens one record straight away (links from Home).
+      currentJob: this.$route.query.job || null,
       query: '',
       searchTimer: null,
       records: [],
-      selectedId: null,
+      selectedId: this.$route.query.open || null,
       isLoading: true,
       isMoving: false,
       noAgent: false,
       error: null,
       moveError: null,
+      icons: { sparkle: PhSparkle, tray: PhTray, search: PhMagnifyingGlass },
     };
   },
   computed: {
@@ -181,10 +181,8 @@ export default {
     clearTimeout(this.searchTimer);
   },
   methods: {
-    // The API names a job in the singular ("Pickup order"); a tab holds many.
     tabLabel(job) {
-      const plural = { order: 'Orders', message: 'Messages' };
-      return plural[job.job] || job.title;
+      return JOB_TABS[job.job] || job.title;
     },
     async load() {
       this.isLoading = true;
@@ -193,7 +191,8 @@ export default {
       try {
         // The counts say which jobs exist; the first one is the default tab.
         await this.$store.dispatch('inbox/load');
-        if (!this.currentJob && this.jobs.length) {
+        const known = this.jobs.some((job) => job.job === this.currentJob);
+        if (!known && this.jobs.length) {
           this.currentJob = this.jobs[0].job;
         }
         await this.loadRecords();
@@ -213,7 +212,10 @@ export default {
         job: this.currentJob,
         q: this.query,
       });
-      this.selectedId = this.records.length ? this.records[0].id : null;
+      // Keep the record asked for in the link if it is in the list; else the newest.
+      if (!this.records.some((r) => r.id === this.selectedId)) {
+        this.selectedId = this.records.length ? this.records[0].id : null;
+      }
       this.moveError = null;
     },
     async reload() {
@@ -225,8 +227,13 @@ export default {
       }
       this.isLoading = false;
     },
+    select(id) {
+      this.selectedId = id;
+      this.moveError = null;
+    },
     selectJob(job) {
       this.currentJob = job;
+      this.selectedId = null;
       this.reload();
     },
     // Wait for a pause in typing before asking the server.
@@ -252,27 +259,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.tab-button {
-  flex-shrink: 0;
-  white-space: nowrap;
-  margin-bottom: -1px;
-  height: 2.75rem;
-  border-bottom: 2px solid transparent;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink-soft);
-  transition: color 0.2s var(--ease-settle),
-    border-color 0.2s var(--ease-settle);
-}
-
-.tab-button:hover {
-  color: var(--color-ink);
-}
-
-.tab-button-active {
-  color: var(--color-brand);
-  border-bottom-color: var(--color-brand);
-}
-</style>

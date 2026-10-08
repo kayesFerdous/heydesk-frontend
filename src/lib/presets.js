@@ -24,10 +24,12 @@ export function itemNoun(presetId) {
 }
 
 // Where a visitor opens the agent. The backend serves a plain chat page at
-// /?key=<public key>; the dev server forwards /demo/ to it (vue.config.js), so the
-// link uses whatever address this page was opened from: localhost or a tunnel.
+// /?key=<public key>; the dev server forwards /demo/ to it (vue.config.js). The
+// link is on PUBLIC_URL when scripts/dev.sh passes one, so a link copied on
+// localhost still opens on a customer's phone; else on this page's own address.
 export function chatLink(publicKey) {
-  return `${window.location.origin}/demo/?key=${publicKey}`;
+  const base = process.env.VUE_APP_PUBLIC_URL || window.location.origin;
+  return `${base.replace(/\/$/, '')}/demo/?key=${publicKey}`;
 }
 
 // The navigation link to a desk's own list: a restaurant's menu, a clinic's

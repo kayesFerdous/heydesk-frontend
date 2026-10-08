@@ -5,42 +5,44 @@
       class="flex min-h-0 flex-col border-hairline lg:w-[22rem] lg:shrink-0 lg:border-r"
       :class="selectedId ? 'hidden lg:flex' : 'flex flex-1'"
     >
-      <header class="px-5 pt-6 sm:px-8 lg:px-5 lg:pt-8">
-        <h1 class="text-[1.75rem] font-semibold tracking-tight">Conversations</h1>
-        <div class="mt-4 flex gap-2" role="group" aria-label="Filter">
-          <button type="button" class="filter" :class="{ 'filter-active': filter === 'all' }" @click="setFilter('all')">
+      <header class="px-5 pt-6 pb-4 sm:px-8 sm:pt-8 lg:px-5">
+        <h1 class="text-2xl font-semibold tracking-[-0.02em]">Conversations</h1>
+        <p class="mt-1 text-sm text-ink-soft">Every chat and call, word for word.</p>
+        <div class="segmented mt-4" role="group" aria-label="Filter">
+          <button type="button" class="segment" :class="{ 'segment-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
             All
           </button>
-          <button type="button" class="filter" :class="{ 'filter-active': filter === 'needs_human' }" @click="setFilter('needs_human')">
+          <button type="button" class="segment" :class="{ 'segment-active': filter === 'needs_human' }" :aria-pressed="filter === 'needs_human'" @click="setFilter('needs_human')">
             Needs a person
-            <span v-if="needsHuman" class="ml-1 text-xs font-semibold text-attention">{{ needsHuman }}</span>
+            <span v-if="needsHuman" class="count count-attention">{{ needsHuman }}</span>
           </button>
         </div>
       </header>
 
-      <p v-if="error" class="px-5 py-8 text-sm" role="alert">
-        <span class="text-danger">{{ error }}</span>
-        <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="load">Try again</button>
-      </p>
+      <load-error v-if="error" :message="error" @retry="load"></load-error>
 
-      <skeleton-rows v-else-if="!loaded" class="mt-4"></skeleton-rows>
+      <skeleton-rows v-else-if="!loaded" class="border-t border-hairline"></skeleton-rows>
 
-      <div v-else-if="!rows.length" class="px-5 py-12">
-        <h2 class="text-lg font-semibold tracking-tight">
-          {{ filter === 'needs_human' ? 'Nobody is waiting' : 'No conversations yet' }}
-        </h2>
-        <p class="mt-2 text-sm text-ink-soft">
-          {{
-            filter === 'needs_human'
-              ? 'When a customer asks for a person, they show up here.'
-              : 'Chats and calls with your agent appear here. Try it yourself with Talk to your agent.'
-          }}
-        </p>
-      </div>
+      <empty-state
+        v-else-if="!rows.length"
+        :icon="filter === 'needs_human' ? icons.check : icons.chats"
+        :title="filter === 'needs_human' ? 'Nobody is waiting' : 'No conversations yet'"
+        :text="
+          filter === 'needs_human'
+            ? 'When a customer asks for a person, they show up here and on Home.'
+            : 'Chats and calls with your agent appear here, word for word. Try it yourself to see your first one.'
+        "
+      >
+        <button v-if="filter !== 'needs_human'" type="button" class="btn btn-secondary" @click="openTestChat">
+          Try your agent
+        </button>
+      </empty-state>
 
-      <div v-else class="mt-3 min-h-0 flex-1 overflow-y-auto">
+      <div v-else class="min-h-0 flex-1 overflow-y-auto border-t border-hairline">
         <div v-for="group in groups" :key="group.label">
-          <h2 class="px-5 pt-4 pb-2 text-sm font-semibold text-ink-soft">{{ group.label }}</h2>
+          <h2 class="sticky top-0 z-[1] border-b border-hairline bg-wash/95 px-5 py-1.5 text-xs font-semibold text-ink-soft backdrop-blur">
+            {{ group.label }}
+          </h2>
           <conversation-row
             v-for="row in group.items"
             :key="row.id"
@@ -59,10 +61,15 @@
         :conversation="detail"
         @back="select(null)"
       ></conversation-transcript>
-      <p v-else-if="detailError" class="p-8 text-sm text-danger" role="alert">{{ detailError }}</p>
-      <div v-else-if="selectedId" class="p-8" aria-hidden="true"><div class="h-5 w-40 animate-pulse rounded bg-wash"></div></div>
-      <div v-else class="m-auto max-w-sm p-8 text-center">
-        <h2 class="text-lg font-semibold tracking-tight">Pick a conversation</h2>
+      <load-error v-else-if="detailError" :message="detailError" @retry="loadDetail(selectedId)"></load-error>
+      <div v-else-if="selectedId" class="p-8" aria-hidden="true">
+        <div class="skeleton h-5 w-40"></div>
+        <div class="skeleton mt-8 h-12 w-2/3"></div>
+        <div class="skeleton mt-3 ml-auto h-12 w-1/2"></div>
+      </div>
+      <div v-else class="m-auto max-w-xs p-8 text-center">
+        <ph-chats-circle :size="32" class="mx-auto text-ink-faint"></ph-chats-circle>
+        <h2 class="mt-3 text-base font-semibold">Pick a conversation</h2>
         <p class="mt-1 text-sm text-ink-soft">See exactly what your agent said, and what it took.</p>
       </div>
     </div>
@@ -70,9 +77,13 @@
 </template>
 
 <script>
+import { PhChatsCircle, PhCheckCircle } from '@phosphor-icons/vue';
+
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
+import EmptyState from '../../components/ui/EmptyState.vue';
+import LoadError from '../../components/ui/LoadError.vue';
 import { fetchConversations, fetchConversation } from '../../api/conversations.js';
 import { groupByDay } from '../../lib/group.js';
 
@@ -81,7 +92,7 @@ import { groupByDay } from '../../lib/group.js';
 const PREVIEW_LIMIT = 30;
 
 export default {
-  components: { ConversationRow, ConversationTranscript, SkeletonRows },
+  components: { ConversationRow, ConversationTranscript, SkeletonRows, EmptyState, LoadError, PhChatsCircle },
   data() {
     return {
       rows: [],
@@ -89,6 +100,7 @@ export default {
       loaded: false,
       error: null,
       detailError: null,
+      icons: { chats: PhChatsCircle, check: PhCheckCircle },
     };
   },
   computed: {
@@ -155,7 +167,11 @@ export default {
         }
       }
     },
+    openTestChat() {
+      this.$store.commit('ui/setTestSheet', true);
+    },
     async loadDetail(id) {
+      this.detailError = null;
       try {
         this.details[id] = await fetchConversation(this.$store.getters['auth/token'], id);
       } catch (error) {
@@ -175,27 +191,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.filter {
-  height: 2.25rem;
-  padding: 0 0.875rem;
-  border: 1px solid var(--color-hairline);
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink-soft);
-  transition: background-color 0.2s var(--ease-settle), color 0.2s var(--ease-settle);
-}
-
-.filter:hover {
-  background-color: var(--color-wash);
-}
-
-.filter-active,
-.filter-active:hover {
-  background-color: var(--color-brand-tint);
-  border-color: transparent;
-  color: var(--color-brand);
-}
-</style>

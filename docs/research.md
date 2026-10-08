@@ -3,7 +3,7 @@
 Done 4 Oct 2026 to replace the first HeyDesk theme (pale stone canvas, floating
 white panel, pill nav, green accent), which the owner rejected as "what most AI
 tools produce". This note is the evidence behind
-[design-direction.md](design-direction.md).
+[DESIGN.md](../DESIGN.md).
 
 ## What each company actually does
 

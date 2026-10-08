@@ -1,10 +1,10 @@
 <template>
-  <div class="grid min-h-dvh lg:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]">
+  <div class="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
     <div class="flex flex-col px-6 py-8 sm:px-12 lg:px-16">
       <brand-mark></brand-mark>
 
       <div class="my-auto w-full max-w-sm py-12">
-        <h1 class="text-[1.75rem] leading-tight font-semibold tracking-tight">
+        <h1 class="text-[1.75rem] leading-tight font-semibold tracking-[-0.025em]">
           {{ isSignup ? 'Create your business account' : 'Welcome back' }}
         </h1>
         <p class="mt-2 text-ink-soft">
@@ -53,12 +53,11 @@
               :autocomplete="isSignup ? 'new-password' : 'current-password'"
               @blur="passwordValid = true"
             />
-            <p v-if="isSignup" class="mt-1.5 text-xs text-ink-soft">
-              At least 8 characters.
-            </p>
+            <p v-if="isSignup" class="hint">At least 8 characters.</p>
           </div>
 
-          <p v-if="formError" class="text-sm text-danger" role="alert">
+          <p v-if="formError" class="flex items-start gap-2 text-sm text-danger" role="alert">
+            <ph-warning-circle :size="18" class="mt-px shrink-0"></ph-warning-circle>
             {{ formError }}
           </p>
 
@@ -69,35 +68,65 @@
 
         <p class="mt-6 text-sm text-ink-soft">
           {{ isSignup ? 'Already have an account?' : 'New to HeyDesk?' }}
-          <button
-            type="button"
-            class="font-semibold text-brand hover:underline"
-            @click="toggleMode"
-          >
+          <button type="button" class="link" @click="toggleMode">
             {{ isSignup ? 'Sign in' : 'Create your business account' }}
           </button>
         </p>
       </div>
     </div>
 
-    <!-- The brand panel: Gigalogy's constellation of connected dots, drawn as a
-         faint dot grid, with one plain sentence. Hidden on small screens. -->
-    <div class="node-panel relative hidden bg-rail text-white lg:flex lg:flex-col lg:justify-end">
-      <div class="relative max-w-lg p-16">
-        <p class="text-[1.75rem] leading-snug font-semibold tracking-tight">
+    <!-- The brand panel: one cobalt field showing the product doing its job.
+         An example conversation (not real data): the agent reads the order
+         back, the customer says yes, and only then does it reach the inbox. -->
+    <div class="relative hidden overflow-hidden bg-brand text-white lg:flex lg:flex-col lg:justify-center">
+      <div class="mx-auto w-full max-w-lg px-12 py-16">
+        <p class="text-xs font-medium text-white/60">An example conversation</p>
+
+        <div class="mt-4 flex flex-col gap-2.5 text-sm leading-relaxed">
+          <p class="step max-w-[85%] self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-white/12 px-4 py-2.5" style="--i: 0">
+            Two chicken biryani for pickup at 8, please.
+          </p>
+          <p class="step max-w-[85%] rounded-[var(--radius-panel)] rounded-tl-sm bg-white px-4 py-2.5 text-ink" style="--i: 1">
+            That is 2 Chicken Biryani, ৳900 in total, ready at 8:00 PM. Shall I place the order?
+          </p>
+          <p class="step self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-white/12 px-4 py-2.5" style="--i: 2">
+            Yes
+          </p>
+        </div>
+
+        <div class="step mt-6 rounded-[var(--radius-panel)] bg-white p-4 text-ink shadow-[var(--shadow-float)]" style="--i: 3">
+          <div class="flex items-center gap-3">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-semibold text-brand">TA</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-semibold">Tanvir Ahmed <span class="font-normal text-ink-soft">A-104</span></p>
+              <p class="text-sm text-ink-soft">2 Chicken Biryani, pickup 8:00 PM</p>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="text-sm font-semibold">৳900</span>
+              <status-chip status="new"></status-chip>
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-12 text-[1.625rem] leading-snug font-semibold tracking-[-0.02em] text-balance">
           Your front desk answers every customer, even when you are busy.
         </p>
-        <p class="mt-3 text-white/70">Orders and messages arrive in one inbox.</p>
+        <p class="mt-3 text-white/75">
+          Every order is read back and confirmed before it reaches your inbox.
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { PhWarningCircle } from '@phosphor-icons/vue';
+
 import BrandMark from '../../components/ui/BrandMark.vue';
+import StatusChip from '../../components/ui/StatusChip.vue';
 
 export default {
-  components: { BrandMark },
+  components: { BrandMark, StatusChip, PhWarningCircle },
   data() {
     return {
       mode: 'signin',
@@ -167,12 +196,19 @@ export default {
 </script>
 
 <style scoped>
-.node-panel {
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    rgb(127 176 255 / 0.28) 1.5px,
-    transparent 0
-  );
-  background-size: 36px 36px;
+/* The one authored moment on the front door: the example plays out once, a
+   beat apart, in the order it happens. Visible from the start without motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .step {
+    animation: arrive 0.5s var(--ease-settle) both;
+    animation-delay: calc(0.25s + var(--i) * 0.45s);
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 </style>

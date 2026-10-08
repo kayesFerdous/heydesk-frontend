@@ -7,7 +7,7 @@
     @click="$emit('select')"
   >
     <span
-      class="grid h-10 w-10 place-items-center rounded-full text-sm font-semibold"
+      class="grid h-9 w-9 place-items-center rounded-full text-xs font-semibold"
       :class="tint"
       aria-hidden="true"
     >
@@ -15,14 +15,14 @@
     </span>
 
     <span class="min-w-0">
-      <span class="block truncate text-sm font-semibold text-navy">{{ row.name }}</span>
+      <span class="block truncate text-sm font-semibold">{{ row.name }}</span>
       <span class="block truncate text-sm text-ink-soft">{{ row.preview || 'No messages yet' }}</span>
     </span>
 
     <span class="flex flex-col items-end gap-1">
       <span class="text-xs text-ink-soft">{{ time(row.updated_at) }}</span>
       <status-chip v-if="row.status === 'needs_human'" status="needs_human"></status-chip>
-      <span v-else class="chip bg-wash !font-medium text-ink-soft">
+      <span v-else class="chip bg-hover !font-medium text-ink-soft">
         <component :is="channel.icon" :size="14"></component>
         {{ channel.label }}
       </span>
@@ -57,19 +57,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.row {
-  border-bottom: 1px solid var(--color-hairline);
-  transition: background-color 0.2s var(--ease-settle);
-}
-
-.row:hover {
-  background-color: var(--color-wash);
-}
-
-.row-selected,
-.row-selected:hover {
-  background-color: var(--color-brand-tint);
-}
-</style>

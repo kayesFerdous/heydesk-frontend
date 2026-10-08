@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "serve"],
       "port": 8080
+    },
+    {
+      "name": "heydesk-backend",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "--directory", "../heydesk", "uvicorn", "heydesk.main:app", "--reload", "--app-dir", "src"],
+      "port": 8000
     }
   ]
 }

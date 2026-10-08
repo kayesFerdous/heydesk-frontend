@@ -2,22 +2,22 @@
   <teleport to="body">
     <transition name="sheet">
       <div v-if="open" class="fixed inset-0 z-40 flex justify-end">
-        <div class="absolute inset-0 bg-rail/40" @click="close"></div>
+        <div class="absolute inset-0 bg-ink/30" @click="close"></div>
 
         <section
-          class="relative flex h-full w-full max-w-md flex-col bg-surface shadow-[var(--shadow-float)]"
+          class="relative flex h-full w-full max-w-md flex-col bg-wash shadow-[var(--shadow-float)]"
           role="dialog"
           aria-modal="true"
-          aria-label="Talk to your agent"
+          aria-label="Try your agent"
         >
-          <header class="flex items-center justify-between border-b border-hairline px-5 py-4">
+          <header class="flex items-center justify-between border-b border-hairline bg-surface px-5 py-4">
             <div>
-              <h2 class="text-lg font-semibold tracking-tight">Talk to your agent</h2>
-              <p class="text-sm text-ink-soft">See what your customers see.</p>
+              <h2 class="text-base font-semibold">Try your agent</h2>
+              <p class="text-sm text-ink-soft">Exactly what a customer sees.</p>
             </div>
             <button
               type="button"
-              class="btn btn-quiet !h-10 !w-10 !px-0"
+              class="btn btn-quiet btn-icon"
               aria-label="Close"
               @click="close"
             >
