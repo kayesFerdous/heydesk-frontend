@@ -5,6 +5,7 @@ import store from './store/index.js';
 // Home is where the owner lands, so it ships in the main bundle. Everything
 // else is fetched the first time it is visited.
 import HomePage from './pages/home/HomePage.vue';
+const LandingPage = () => import('./pages/landing/LandingPage.vue');
 const SignIn = () => import('./pages/auth/SignIn.vue');
 const SetupPage = () => import('./pages/setup/SetupPage.vue');
 const InboxPage = () => import('./pages/inbox/InboxPage.vue');
@@ -26,10 +27,16 @@ const owner = { requiresAuth: true, requiresOwner: true };
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // Owners land on Home, platform admins on the business list.
+    // Visitors see the landing page; owners land on Home, platform admins on
+    // the business list.
     {
       path: '/',
-      redirect: () => (store.getters['auth/isAdmin'] ? '/admin' : '/home'),
+      component: LandingPage,
+      meta: { bare: true },
+      beforeEnter: () => {
+        if (!store.getters['auth/isAuthenticated']) return true;
+        return store.getters['auth/isAdmin'] ? '/admin' : '/home';
+      },
     },
     {
       path: '/sign-in',

@@ -129,7 +129,8 @@ export default {
   components: { BrandMark, StatusChip, PhWarningCircle },
   data() {
     return {
-      mode: 'signin',
+      // The landing page's "Get started" opens straight on the sign-up form.
+      mode: this.$route.query.mode === 'signup' ? 'signup' : 'signin',
       businessName: '',
       email: '',
       password: '',

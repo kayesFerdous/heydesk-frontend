@@ -136,11 +136,11 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   `config`, `jobs`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
   counts), `ui` (test chat sheet, phone drawer). Pages fetch lists (items,
   documents, records) themselves, they are not in the store.
-- `src/router.js`: `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /agent/{profile,hours,answers}
+- `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /agent/{profile,hours,answers}
   /menu /knowledge /channels` (owner), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
-- Pages: `pages/{home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat}`.
+- Pages: `pages/{landing,home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat}`.
   Shared pieces in `components/{ui,layout,records,conversations,menu,knowledge,agent,chat}`.
   Agent settings sections share `mixins/agentSection.js`; each PATCHes only its
   own fields (the API leaves the rest).

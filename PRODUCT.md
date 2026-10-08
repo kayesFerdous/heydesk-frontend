@@ -10,8 +10,10 @@ that answers customers by web chat or voice, then watch what it took.
 
 ## Register
 
-**Product (Operate).** The UI serves a task. There is no marketing site in this
-repo; the login page is the front door and is deliberately small.
+**Product (Operate).** The UI serves a task. The one exception is the landing
+page at `/` for visitors who are not signed in (Persuade): it proves the
+product with an example of it working, labelled as an example, and never with
+invented customers, logos, quotes or numbers.
 
 ## Who uses it
 

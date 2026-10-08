@@ -158,6 +158,40 @@ the document reader). Panels use a border, never also a shadow.
 6. **Proof line on every record**: "Read back to the customer and confirmed in
    chat", because the AI never invents an order.
 
+## The landing page (`/`, signed out)
+
+Same world as the app, not a separate marketing look: white desk, paper
+(`bg-sidebar`) bands between sections, Onest, cobalt only on the two
+"Create your business account" buttons and links. The headline is the one
+place type goes large (52-56px, -0.035em).
+
+- **Proof is the product.** `LandingDemo` plays the mechanism once: the
+  customer asks, the agent reads it back with the total (and a caption saying
+  where the number came from), the customer says yes, and only then does the
+  row land in the inbox, lit in cobalt tint for a beat. A segmented control
+  switches restaurant, clinic and front office. Labelled "An example, not real
+  customers". Under reduced motion it shows the finished story.
+- Sections are rows with hairlines, never feature cards. A number marks a step
+  only where the order means something (how it decides, setup).
+- No testimonials, logos or statistics until real ones exist.
+
+Landing motion (every piece explains something, all of it off under
+`prefers-reduced-motion`):
+
+- **Demo, the main moment.** The read-back streams in word by word with a
+  cobalt caret, like the real agent; the "new" count bumps when the order
+  lands. The demo cycles restaurant, clinic, front office on its own, with a
+  2px cobalt line filling under the active tab to show when it moves on. It
+  plays only while on screen, and stops cycling for good once the visitor
+  picks a tab or presses Play again.
+- **Opening** settles in once (headline, line, action, demo, 0.1s apart, 14px
+  up with a 4px blur clearing).
+- **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
+  row by row. In "How it decides" each number fills cobalt in turn while a
+  line draws to the next; in setup each number turns into a green check in
+  turn. Content below the fold is the only thing ever hidden first.
+- The header's hairline appears only once the page scrolls.
+
 ## Motion
 
 150-250ms, exponential ease-out (`--ease-settle`). Pages settle 4px upward on
