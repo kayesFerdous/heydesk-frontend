@@ -106,7 +106,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | `GET /chat/{public_key}` | `{name, greeting}`. 404 unknown, 404 `unavailable` if suspended |
 | `POST /chat/{public_key}` `{message, conversation_id?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `done{interrupted}`, `error{message}`. 409 `conversation_full` |
 | `POST/PATCH /voice/offer` | WebRTC voice. - |
-| `GET /` (backend) | Plain chat page at `/?key=<public_key>`; the dev server forwards `/demo/` to it, and `lib/presets.js chatLink` builds `<this origin>/demo/?key=…` |
+| `GET /` (backend) | Plain dev chat page at `/?key=<public_key>` (has the voice Call button); the dev server still forwards `/demo/` to it. The shared link is now the frontend's own page: `lib/presets.js chatLink` builds `<this origin>/chat/<public_key>` (`pages/chat/ChatPage.vue`) |
 
 ### Admin (`admin.js`, role admin only, under `/api/admin`)
 | Call | What it does |
@@ -134,11 +134,11 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   `config`, `jobs`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
   counts), `ui` (test chat sheet, phone drawer). Pages fetch lists (items,
   documents, records) themselves, they are not in the store.
-- `src/router.js`: `/home /inbox /conversations /agent/{profile,hours,answers}
+- `src/router.js`: `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /agent/{profile,hours,answers}
   /menu /knowledge /channels` (owner), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
-- Pages: `pages/{home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth}`.
+- Pages: `pages/{home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat}`.
   Shared pieces in `components/{ui,layout,records,conversations,menu,knowledge,agent,chat}`.
   Agent settings sections share `mixins/agentSection.js`; each PATCHes only its
   own fields (the API leaves the rest).

@@ -9,10 +9,10 @@
     <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface pb-24 md:border-l md:border-hairline md:pb-0">
       <p
         v-if="suspended"
-        class="flex items-center gap-2 border-b border-attention/20 bg-attention-tint px-5 py-3 text-sm font-medium text-attention sm:px-8"
+        class="flex items-center gap-2 border-b border-hairline bg-attention-tint px-5 py-3 text-sm font-medium text-ink sm:px-8"
         role="status"
       >
-        <ph-pause-circle :size="20" weight="bold" class="shrink-0"></ph-pause-circle>
+        <ph-pause-circle :size="20" weight="bold" class="shrink-0 text-attention"></ph-pause-circle>
         Your agent is paused by HeyDesk, so customers see that it is unavailable.
         Contact HeyDesk to turn it back on.
       </p>

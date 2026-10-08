@@ -38,7 +38,7 @@ job (like `TelegramConnect.vue` or `AgentChat.vue`).
 | `src/store/modules/<name>/` | State more than one page needs at the same time: `auth` (session), `agent` (config, presets), `inbox` (sidebar counts), `ui` (test chat sheet, phone drawer). Split into `state`, `getters`, `mutations`, `actions`. | Lists a single page shows (items, documents, records): the page fetches those itself. |
 | `src/lib/` | Plain functions and constants with no Vue in them: `format.js` (money, time, greeting), `group.js` (Today / Yesterday, avatars), `flows.js` (status buttons, mirrors backend `FLOWS`), `records.js` (one-line summaries), `navigation.js` (the menu), `setup.js` (Home checklist), `presets.js`, `channels.js`, `hours.js`, `slug.js`. | Components, or anything that calls the API. |
 | `src/mixins/` | Behaviour several components share, written in Options API: `agentSection.js` (load, dirty check, save, leave guard for an Agent settings section). | One-off helpers (use `lib/`). |
-| `src/assets/main.css` | Design tokens in `@theme`, and shared classes (`.btn`, `.field`, `.tabs`, `.row`, `.panel`, `.chip`, `.count`, `.segmented`, `.skeleton`). | Page-specific CSS (use `<style scoped>` in the component). |
+| `src/assets/main.css` | Design tokens in `@theme`, and shared classes (`.btn`, `.field`, `.tabs`, `.row`, `.panel`, `.notice`, `.chip`, `.count`, `.segmented`, `.skeleton`). | Page-specific CSS (use `<style scoped>` in the component). |
 | `docs/` | `api.md` (backend contract), `architecture.md` (this file), research notes. | Design tokens (those live in `DESIGN.md` at the root). |
 
 ## "I want to add..." (quick answers)
@@ -57,6 +57,7 @@ job (like `TelegramConnect.vue` or `AgentChat.vue`).
 | A shared visual piece (badge, banner, field) | `components/ui/` if it knows nothing about the business; a class in `main.css` if it is only styling | `components/ui/EmptyState.vue` |
 | A new colour, radius or shadow | `@theme` in `main.css`, and a line in `DESIGN.md`. Never a hex value inside a component. | `--color-attention` |
 | A formatting rule (dates, money, plurals) | `lib/format.js` | `formatAgo` |
+| A public page (no sign-in, no shell) | `pages/<area>/`, route meta `{ bare: true }` and no `requiresAuth` | `pages/chat/ChatPage.vue` |
 | An admin-only screen | `pages/admin/`, route meta `requiresAdmin`, the admin group in `lib/navigation.js` | `pages/admin/AdminPage.vue` |
 
 ## Recipes
@@ -144,5 +145,5 @@ next steps.
 - **Lists are rows** with hairlines, grouped Today / Yesterday (`groupByDay`),
   with a sticky day header.
 - **Shared classes before new CSS.** Reach for `.btn`, `.field`, `.label`,
-  `.hint`, `.tabs`, `.segmented`, `.row`, `.panel`, `.chip`, `.count` first.
+  `.hint`, `.tabs`, `.segmented`, `.row`, `.panel`, `.notice`, `.chip`, `.count` first.
 - Run `npm run lint` and `npm run build` before you commit.

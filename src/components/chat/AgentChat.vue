@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full min-h-0 flex-col">
     <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto px-5 py-5" aria-live="polite">
-      <div class="flex flex-col gap-3">
+      <div class="mx-auto flex max-w-2xl flex-col gap-3">
         <div
           v-for="(message, index) in messages"
           :key="index"
@@ -25,50 +25,52 @@
 
         <p v-if="status" class="text-xs text-ink-soft">{{ status }}</p>
 
-        <div
-          v-if="handoff"
-          class="rounded-[var(--radius-panel)] border border-attention/20 bg-attention-tint px-4 py-3 text-sm text-attention"
-          role="status"
-        >
-          <p class="flex items-center gap-2 font-semibold">
-            <ph-user-sound :size="18" weight="bold" class="shrink-0"></ph-user-sound>
-            Handed over to a person
-          </p>
-          <p class="mt-1">{{ handoff.message }}</p>
+        <div v-if="handoff" class="notice" role="status">
+          <ph-user-sound :size="20" weight="bold" class="shrink-0 text-attention"></ph-user-sound>
+          <div class="min-w-0">
+            <p class="font-semibold text-ink">Handed over to a person</p>
+            <p class="mt-0.5 text-ink-soft">{{ handoff.message }}</p>
+            <p v-if="handoff.phone || handoff.email" class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-medium">
+              <a v-if="handoff.phone" :href="`tel:${handoff.phone}`" class="link">{{ handoff.phone }}</a>
+              <a v-if="handoff.email" :href="`mailto:${handoff.email}`" class="link">{{ handoff.email }}</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
 
-    <p v-if="error" class="px-5 pb-2 text-sm text-danger" role="alert">{{ error }}</p>
+    <p v-if="error" class="mx-auto w-full max-w-2xl px-5 pb-2 text-sm text-danger" role="alert">{{ error }}</p>
 
     <div class="border-t border-hairline bg-surface p-4">
-      <form class="flex gap-2" @submit.prevent="send">
-        <label class="flex-1">
-          <span class="sr-only">Type a message</span>
-          <input
-            ref="input"
-            v-model="draft"
-            class="field !rounded-full !px-4"
-            type="text"
-            placeholder="Type a message"
-            autocomplete="off"
-            :disabled="sending"
-          />
-        </label>
-        <button
-          type="submit"
-          class="btn btn-primary btn-icon shrink-0 !rounded-full"
-          :disabled="sending || !draft.trim()"
-          aria-label="Send message"
-        >
-          <ph-paper-plane-tilt :size="18" weight="fill"></ph-paper-plane-tilt>
-        </button>
-      </form>
-      <div class="mt-2 flex items-center justify-between text-xs text-ink-soft">
-        <span>Test chats show up in Conversations like real ones.</span>
-        <button type="button" class="link" @click="restart">
-          Start over
-        </button>
+      <div class="mx-auto max-w-2xl">
+        <form class="flex gap-2" @submit.prevent="send">
+          <label class="flex-1">
+            <span class="sr-only">Type a message</span>
+            <input
+              ref="input"
+              v-model="draft"
+              class="field !rounded-full !px-4"
+              type="text"
+              placeholder="Type a message"
+              autocomplete="off"
+              :disabled="sending"
+            />
+          </label>
+          <button
+            type="submit"
+            class="btn btn-primary btn-icon shrink-0 !rounded-full"
+            :disabled="sending || !draft.trim()"
+            aria-label="Send message"
+          >
+            <ph-paper-plane-tilt :size="18" weight="fill"></ph-paper-plane-tilt>
+          </button>
+        </form>
+        <div class="mt-2 flex items-center justify-between text-xs text-ink-soft">
+          <span>{{ note }}</span>
+          <button type="button" class="link" @click="restart">
+            Start over
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -85,6 +87,9 @@ export default {
   components: { PhPaperPlaneTilt, PhUserSound },
   props: {
     publicKey: { type: String, required: true },
+    // The {name, greeting} a page already loaded; without it the chat asks itself.
+    agent: { type: Object, default: null },
+    note: { type: String, default: 'Test chats show up in Conversations like real ones.' },
   },
   data() {
     return {
@@ -122,7 +127,7 @@ export default {
       this.status = null;
       this.error = null;
       try {
-        const agent = await fetchChatAgent(this.publicKey);
+        const agent = this.agent || (await fetchChatAgent(this.publicKey));
         this.messages.push({ role: 'agent', text: agent.greeting });
       } catch (error) {
         this.error = error.message;

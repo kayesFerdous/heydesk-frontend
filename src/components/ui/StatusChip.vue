@@ -1,6 +1,6 @@
 <template>
   <span class="chip" :class="look.classes">
-    <component :is="look.icon" :size="13" weight="bold"></component>
+    <component :is="look.icon" :size="13" weight="bold" :class="look.iconClass"></component>
     {{ label }}
   </span>
 </template>
@@ -27,7 +27,7 @@ const LOOKS = {
   collected: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
   cancelled: { icon: PhXCircle, classes: 'bg-hover text-ink-soft' },
   archived: { icon: PhArchive, classes: 'bg-hover text-ink-soft' },
-  needs_human: { icon: PhUserSound, classes: 'bg-attention-tint text-attention' },
+  needs_human: { icon: PhUserSound, classes: 'bg-attention-tint text-ink', iconClass: 'text-attention' },
   active: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
 };
 

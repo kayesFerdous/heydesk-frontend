@@ -43,7 +43,7 @@ lit shops and offices; one theme done well beats two done halfway).
 | `--color-ink-soft` | `#566176` | Secondary text (about 6:1 on white) |
 | `--color-ink-faint` | `#8B94A6` | Icons only, never text |
 | `--color-success` / `-tint` | `#157F4C` / `#E7F5ED` | Live, confirmed, ready |
-| `--color-attention` / `-tint` | `#B54708` / `#FFF4EA` | "Needs a person", things left to fill in (5.0:1 on its tint) |
+| `--color-attention` / `-tint` | `#B54708` / `#F1F3F6` | "Needs a person", things left to fill in. The colour goes on the icon, the dot and solid counts; the tint is the neutral grey behind the chip and icon circles |
 | `--color-danger` / `-tint` | `#C42B2B` / `#FDEEEE` | Destructive actions and failed saves |
 
 Why orange for attention: orange sits opposite cobalt on the colour wheel, so a
@@ -51,6 +51,15 @@ waiting customer is the second thing the eye finds after the action. The v2
 value (`#8A5A0B`) was a darkened yellow, which reads as brown and muddy next to
 cool blue-greys. The hue is kept near 22 degrees so it never passes for the red
 of `--color-danger`.
+
+Why a notice is a white panel, not a tinted box: a peach box with orange text
+is the stock "warning" of every UI kit and reads as generated, and a grey box
+looks like one more chat bubble. Google, Stripe and Apple put a notice on the
+page's own white, with a firmer border and a slight lift, so it reads as the
+product talking. HeyDesk does the same with `.notice`: white, `line-strong`
+border, `shadow-lift`, a title in `text-ink` semibold, one line of detail in
+`text-ink-soft`, and the orange carried by the icon alone. `bg-attention-tint`
+stays for the chip and small icon circles only.
 
 Rules: cobalt means "act here" or "selected", nothing else. Green, amber and red
 are states, never decoration (so avatars use only brand-family tints). No

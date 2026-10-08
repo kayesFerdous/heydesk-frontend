@@ -39,14 +39,17 @@
     <router-link
       v-if="needsHuman > 0"
       to="/conversations?filter=needs_human"
-      class="mx-5 mb-4 flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-attention/20 bg-attention-tint px-4 py-3 text-sm text-attention transition-colors hover:bg-attention-tint/70 sm:mx-8"
+      class="notice mx-5 mb-4 items-center transition-colors hover:bg-wash sm:mx-8"
       :class="{ 'mt-4': jobs.length > 1 }"
     >
-      <span class="flex items-center gap-2 font-medium">
-        <ph-user-sound :size="18" weight="bold" class="shrink-0"></ph-user-sound>
-        {{ needsHuman }} {{ needsHuman === 1 ? 'customer is' : 'customers are' }} waiting for a person.
+      <ph-user-sound :size="20" weight="bold" class="shrink-0 text-attention"></ph-user-sound>
+      <span class="min-w-0 flex-1">
+        <span class="block font-semibold text-ink">
+          {{ needsHuman }} {{ needsHuman === 1 ? 'customer is' : 'customers are' }} waiting for a person
+        </span>
+        <span class="mt-0.5 block text-ink-soft">Your agent handed these chats over. Read them, then call back.</span>
       </span>
-      <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
+      <span class="flex items-center gap-1 font-semibold whitespace-nowrap text-brand">
         Open
         <ph-arrow-right :size="14" weight="bold"></ph-arrow-right>
       </span>

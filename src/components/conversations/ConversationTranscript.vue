@@ -17,13 +17,17 @@
     <div class="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8">
       <div
         v-if="conversation.status === 'needs_human'"
-        class="mx-auto mb-6 flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-attention/20 bg-attention-tint px-4 py-3 text-sm text-attention"
+        class="notice mx-auto mb-6 max-w-2xl flex-wrap items-center"
         role="status"
       >
-        <span class="flex items-center gap-2 font-medium">
-          <ph-user-sound :size="18" weight="bold" class="shrink-0"></ph-user-sound>
-          {{ name }} asked for a person.<template v-if="phone"> Their number is {{ phone }}.</template>
-        </span>
+        <ph-user-sound :size="20" weight="bold" class="shrink-0 text-attention"></ph-user-sound>
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold text-ink">{{ name }} asked for a person</p>
+          <p class="mt-0.5 text-ink-soft">
+            <template v-if="phone">Call {{ phone }} to pick up where your agent left off.</template>
+            <template v-else>Read the chat below, then reach out to them.</template>
+          </p>
+        </div>
         <a v-if="phone" :href="`tel:${phone}`" class="btn btn-primary">
           <ph-phone :size="16"></ph-phone>
           Call back

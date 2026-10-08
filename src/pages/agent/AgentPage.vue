@@ -46,12 +46,12 @@
         <div class="max-w-2xl">
           <div
             v-if="missing.length"
-            class="mb-8 flex gap-3 rounded-[var(--radius-panel)] border border-attention/20 bg-attention-tint px-4 py-3 text-sm"
+            class="notice mb-8"
             role="status"
           >
             <ph-list-checks :size="20" class="mt-px shrink-0 text-attention"></ph-list-checks>
             <div>
-              <p class="font-semibold text-attention">
+              <p class="font-semibold text-ink">
                 {{ missing.length }} {{ missing.length === 1 ? 'thing' : 'things' }} left before your agent can answer everything
               </p>
               <ul class="mt-1 flex flex-col gap-0.5">

@@ -37,7 +37,7 @@
   /* "Needs a person": a true orange, opposite cobalt on the colour wheel, so it
      stands out without muddying into brown (a darkened yellow does). */
   --color-attention: #b54708;
-  --color-attention-tint: #fff4ea;
+  --color-attention-tint: #f1f3f6;
   --color-danger: #c42b2b;
   --color-danger-tint: #fdeeee;
 
@@ -171,7 +171,7 @@
   }
 
   .count-attention {
-    @apply bg-attention-tint text-attention;
+    @apply bg-attention text-white;
   }
 
   /* Underlined tabs inside a page (Inbox jobs, Menu categories, Agent sections). */
@@ -209,6 +209,14 @@
      Border is the elevation; panels never also carry a shadow. */
   .panel {
     @apply rounded-[var(--radius-panel)] border border-hairline bg-surface;
+  }
+
+  /* A notice that needs the owner ("asked for a person", "things left to fill
+     in"): a white panel with a slight lift, so it never passes for a grey chat
+     bubble. Title in ink, detail in ink-soft, one orange icon carries the
+     meaning. Same build as a Google or Stripe console notice. */
+  .notice {
+    @apply flex gap-3 rounded-[var(--radius-panel)] border border-line-strong bg-surface px-4 py-3.5 text-sm shadow-[var(--shadow-lift)];
   }
 
   /* A list row: hairline below, wash on hover, cobalt tint when selected. */

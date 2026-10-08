@@ -16,6 +16,7 @@ const AnswersSection = () => import('./pages/agent/AnswersSection.vue');
 const MenuPage = () => import('./pages/menu/MenuPage.vue');
 const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
 const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
+const ChatPage = () => import('./pages/chat/ChatPage.vue');
 const AdminPage = () => import('./pages/admin/AdminPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
@@ -35,6 +36,8 @@ const router = createRouter({
       component: SignIn,
       meta: { requiresUnauth: true, bare: true },
     },
+    // The customer's chat page: public, the key in the link is the credential.
+    { path: '/chat/:key', component: ChatPage, meta: { bare: true } },
     { path: '/setup', component: SetupPage, meta: { ...owner, bare: true } },
 
     // Daily work
