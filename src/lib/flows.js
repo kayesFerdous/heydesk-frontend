@@ -5,12 +5,15 @@
 // `primary` is the usual next step, `others` are the rarer ones.
 export const FLOWS = {
   order: {
+    // Waiting for its delivery charge online; the owner can take it another way.
+    unpaid: { primary: { to: 'new', label: 'Mark as paid' }, others: [{ to: 'cancelled', label: 'Cancel order' }] },
     new: { primary: { to: 'ready', label: 'Mark as ready' }, others: [{ to: 'cancelled', label: 'Cancel order' }] },
     ready: { primary: { to: 'collected', label: 'Mark as collected' }, others: [{ to: 'cancelled', label: 'Cancel order' }] },
     collected: { primary: null, others: [] },
     cancelled: { primary: null, others: [] },
   },
   appointment: {
+    unpaid: { primary: { to: 'new', label: 'Mark as paid' }, others: [{ to: 'cancelled', label: 'Cancel appointment' }] },
     new: { primary: { to: 'confirmed', label: 'Mark as confirmed' }, others: [{ to: 'cancelled', label: 'Cancel appointment' }] },
     confirmed: { primary: { to: 'done', label: 'Mark as done' }, others: [{ to: 'cancelled', label: 'Cancel appointment' }] },
     done: { primary: null, others: [] },
@@ -23,6 +26,7 @@ export const FLOWS = {
 };
 
 export const STATUS_LABELS = {
+  unpaid: 'Waiting for payment',
   new: 'New',
   ready: 'Ready',
   collected: 'Collected',

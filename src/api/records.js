@@ -1,11 +1,12 @@
 import { request } from './client.js';
 import { agentKind } from './agent.js';
+import { formatMoney } from '../lib/format.js';
 
 // The backend keeps each kind of record in its own table (D41): a restaurant's
 // orders, a clinic's appointments, and the messages every agent takes. This file
 // turns them into one "record" shape, so the inbox pages stay the same.
 const JOBS = {
-  order: { title: 'Pickup orders', kind: 'order', path: '/orders', name: 'Order' },
+  order: { title: 'Orders', kind: 'order', path: '/orders', name: 'Order' },
   appointment: { title: 'Appointment requests', kind: 'request', path: '/appointments', name: 'Appointment' },
   message: { title: 'Messages', kind: 'request', path: '/messages', name: 'Message' },
 };
@@ -39,7 +40,10 @@ function toRecord(job, row) {
     note: row.note || '',
   };
   if (job === 'order') record.due_at = row.pickup_at;
-  if (job === 'appointment') record.details = { doctor: row.doctor_name, time: when(row.at) };
+  if (job === 'appointment') {
+    record.details = { doctor: row.doctor_name, time: when(row.at) };
+    if (row.paid) record.details['deposit paid online'] = formatMoney(row.paid);
+  }
   if (job === 'message') {
     record.details = { message: row.body };
     if (row.best_time) record.details['best time'] = row.best_time;

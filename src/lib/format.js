@@ -21,6 +21,15 @@ export function formatDay(isoString, timeZone = 'Asia/Dhaka') {
   });
 }
 
+// A message split into plain text and web links, so a page can make the links
+// clickable without v-html: [{ text }, { text, url }, …]. Trailing punctuation
+// stays text: "Pay here: https://x/pay/1." links https://x/pay/1.
+export function linkParts(text) {
+  return text.split(/(https?:\/\/[^\s]+[^\s.,;:!?)])/).filter(Boolean).map((part) =>
+    /^https?:\/\//.test(part) ? { text: part, url: part } : { text: part },
+  );
+}
+
 // "Good morning" by the clock where the business is, not where the browser is.
 export function greeting(timeZone = 'Asia/Dhaka') {
   const hour = Number(

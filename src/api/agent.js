@@ -10,7 +10,7 @@ const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'gre
 const ITEMS_LABEL = { restaurant: 'Menu', clinic: 'Doctors', receptionist: 'Services' };
 const JOBS = {
   restaurant: [
-    { id: 'order', label: 'pickup order', description: 'Customers order from your menu and pick it up. The agent adds up the total and reads it back before saving.' },
+    { id: 'order', label: 'order', description: 'Customers order from your menu, for pickup or (if you deliver) delivery. The agent adds up the total and reads it back before saving.' },
     { id: 'message', label: 'message for the team', description: 'Customers leave a message or ask for a call back.' },
   ],
   clinic: [

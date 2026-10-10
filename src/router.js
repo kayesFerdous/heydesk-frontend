@@ -14,6 +14,7 @@ const AgentPage = () => import('./pages/agent/AgentPage.vue');
 const ProfileSection = () => import('./pages/agent/ProfileSection.vue');
 const HoursSection = () => import('./pages/agent/HoursSection.vue');
 const AnswersSection = () => import('./pages/agent/AnswersSection.vue');
+const PaymentsSection = () => import('./pages/agent/PaymentsSection.vue');
 const MenuPage = () => import('./pages/menu/MenuPage.vue');
 const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
 const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
@@ -52,7 +53,7 @@ const router = createRouter({
     { path: '/inbox', component: InboxPage, meta: owner },
     { path: '/conversations', component: ConversationsPage, meta: owner },
 
-    // Your agent. The settings are three sections with one page around them
+    // Your agent. The settings are sections with one page around them
     // (title, section tabs, the test chat); each section saves on its own.
     {
       path: '/agent',
@@ -63,6 +64,7 @@ const router = createRouter({
         { path: 'profile', component: ProfileSection, meta: owner },
         { path: 'hours', component: HoursSection, meta: owner },
         { path: 'answers', component: AnswersSection, meta: owner },
+        { path: 'payments', component: PaymentsSection, meta: owner },
       ],
     },
     { path: '/menu', component: MenuPage, meta: owner },

@@ -74,6 +74,9 @@ import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
 import agentSection from '../../mixins/agentSection.js';
 
+// Edited on the Payments section, not here.
+const PAYMENT_FIELDS = ['delivers', 'delivery_charge', 'deposit', 'pay_first'];
+
 // Friendlier words than the schema's field names, for a desk's own details.
 const FIELD_WORDS = {
   address: { label: 'Address' },
@@ -101,7 +104,7 @@ export default {
     fields() {
       const properties = (this.preset && this.preset.knowledge_schema.properties) || {};
       return Object.keys(properties)
-        .filter((key) => key !== 'hours')
+        .filter((key) => key !== 'hours' && !PAYMENT_FIELDS.includes(key))
         .map((key) => {
           const words = FIELD_WORDS[key] || {};
           return {

@@ -16,7 +16,7 @@
                 : 'rounded-tl-sm bg-surface text-ink shadow-[var(--shadow-lift)] ring-1 ring-hairline'
             "
           >
-            <span v-if="message.text">{{ message.text }}</span>
+            <span v-if="message.text"><template v-for="(part, i) in linkParts(message.text)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="break-all underline">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></span>
             <span v-else class="inline-flex gap-1 py-1" aria-label="Typing">
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </span>
@@ -80,6 +80,7 @@
 import { PhPaperPlaneTilt, PhUserSound } from '@phosphor-icons/vue';
 
 import { fetchChatAgent, fetchTeamReplies, streamChat } from '../../api/chat.js';
+import { linkParts } from '../../lib/format.js';
 
 const TEAM_CHECK_MS = 4000;
 
@@ -116,6 +117,7 @@ export default {
     },
   },
   methods: {
+    linkParts,
     // The greeting is shown on load; the first turn stores it (backend D8).
     async start() {
       this.messages = [];

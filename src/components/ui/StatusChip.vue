@@ -13,12 +13,14 @@ import {
   PhXCircle,
   PhArchive,
   PhUserSound,
+  PhHourglass,
 } from '@phosphor-icons/vue';
 
 import { STATUS_LABELS } from '../../lib/flows.js';
 
 // Status is always an icon plus a word, never colour alone.
 const LOOKS = {
+  unpaid: { icon: PhHourglass, classes: 'bg-attention-tint text-ink', iconClass: 'text-attention' },
   new: { icon: PhClock, classes: 'bg-brand-tint text-brand' },
   ready: { icon: PhCheckCircle, classes: 'bg-success-tint text-success' },
   confirmed: { icon: PhCheckCircle, classes: 'bg-success-tint text-success' },

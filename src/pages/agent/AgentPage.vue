@@ -101,14 +101,22 @@ export default {
     return {
       loadError: null,
       chatKey: 0,
-      sections: [
-        { to: '/agent/profile', label: 'Profile' },
-        { to: '/agent/hours', label: 'Hours and hand-off' },
-        { to: '/agent/answers', label: 'Answers and tone' },
-      ],
     };
   },
   computed: {
+    sections() {
+      const sections = [
+        { to: '/agent/profile', label: 'Profile' },
+        { to: '/agent/hours', label: 'Hours and hand-off' },
+        { to: '/agent/answers', label: 'Answers and tone' },
+      ];
+      // A receptionist takes no orders or appointments, so nothing to pay for.
+      const kind = this.config && this.config.preset;
+      if (['restaurant', 'clinic', 'shop'].includes(kind)) {
+        sections.push({ to: '/agent/payments', label: 'Payments' });
+      }
+      return sections;
+    },
     config() {
       return this.$store.getters['agent/config'];
     },
