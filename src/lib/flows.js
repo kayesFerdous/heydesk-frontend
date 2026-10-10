@@ -12,6 +12,16 @@ export const FLOWS = {
     collected: { primary: null, others: [] },
     cancelled: { primary: null, others: [] },
   },
+  // A shop's order: the shop phones to confirm, then a courier takes it (backend D45).
+  shop_order: {
+    unpaid: { primary: { to: 'new', label: 'Mark as paid' }, others: [{ to: 'cancelled', label: 'Cancel order' }] },
+    new: { primary: { to: 'confirmed', label: 'Mark as confirmed' }, others: [{ to: 'cancelled', label: 'Cancel order' }] },
+    confirmed: { primary: { to: 'shipped', label: 'Mark as shipped' }, others: [{ to: 'cancelled', label: 'Cancel order' }] },
+    shipped: { primary: { to: 'delivered', label: 'Mark as delivered' }, others: [{ to: 'returned', label: 'Mark as returned' }] },
+    delivered: { primary: null, others: [] },
+    returned: { primary: null, others: [] },
+    cancelled: { primary: null, others: [] },
+  },
   appointment: {
     unpaid: { primary: { to: 'new', label: 'Mark as paid' }, others: [{ to: 'cancelled', label: 'Cancel appointment' }] },
     new: { primary: { to: 'confirmed', label: 'Mark as confirmed' }, others: [{ to: 'cancelled', label: 'Cancel appointment' }] },
@@ -34,11 +44,14 @@ export const STATUS_LABELS = {
   handled: 'Handled',
   confirmed: 'Confirmed',
   done: 'Done',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  returned: 'Returned',
   needs_human: 'Needs a person',
   active: 'Active',
 };
 
 export function nextSteps(record) {
-  const kind = FLOWS[record.job];
+  const kind = FLOWS[record.flow || record.job];
   return (kind && kind[record.status]) || { primary: null, others: [] };
 }

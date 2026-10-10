@@ -8,6 +8,10 @@
           Columns: name, speciality, fee, days (like "sat; sun"), hours (like 17:00-21:00), and
           optionally languages, description, available.
         </template>
+        <template v-else-if="noun === 'product'">
+          Columns: name, price, and optionally category, description, sizes (like "M; L; XL"),
+          colours (like "White; Navy"), stock (empty: not counted), code.
+        </template>
         <template v-else>
           Columns: name, price, and optionally category, description, tags (like "spicy; popular"),
           available.

@@ -1,4 +1,4 @@
-import { PhForkKnife, PhPhone, PhFirstAid, PhSparkle, PhStethoscope } from '@phosphor-icons/vue';
+import { PhForkKnife, PhPhone, PhFirstAid, PhSparkle, PhStethoscope, PhStorefront, PhTShirt } from '@phosphor-icons/vue';
 
 // Icons are the frontend's; the words come from the API. An unknown preset
 // still renders, with a neutral icon.
@@ -6,6 +6,7 @@ const ICONS = {
   restaurant: PhForkKnife,
   receptionist: PhPhone,
   clinic: PhFirstAid,
+  shop: PhStorefront,
 };
 
 export function presetIcon(id) {
@@ -17,6 +18,7 @@ const NOUNS = {
   restaurant: 'dish',
   receptionist: 'service',
   clinic: 'doctor',
+  shop: 'product',
 };
 
 export function itemNoun(presetId) {
@@ -33,10 +35,11 @@ export function chatLink(publicKey) {
 }
 
 // The navigation link to a desk's own list: a restaurant's menu, a clinic's
-// doctors. A receptionist has none (its services are on the Agent page).
+// doctors, a shop's products. A receptionist has none (its services are on the Agent page).
 const LISTS = {
   restaurant: { label: 'Menu', icon: PhForkKnife },
   clinic: { label: 'Doctors', icon: PhStethoscope },
+  shop: { label: 'Products', icon: PhTShirt },
 };
 
 export function listLinks(presetId) {

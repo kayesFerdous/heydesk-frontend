@@ -112,8 +112,9 @@ export default {
       ];
       // A receptionist takes no orders or appointments, so nothing to pay for.
       const kind = this.config && this.config.preset;
-      if (['restaurant', 'clinic', 'shop'].includes(kind)) {
-        sections.push({ to: '/agent/payments', label: 'Payments' });
+      if (kind === 'clinic') sections.push({ to: '/agent/payments', label: 'Payments' });
+      if (['restaurant', 'shop'].includes(kind)) {
+        sections.push({ to: '/agent/payments', label: 'Delivery and payments' });
       }
       return sections;
     },

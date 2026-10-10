@@ -3,8 +3,9 @@ import { agentKind } from './agent.js';
 import { formatMoney } from '../lib/format.js';
 
 // The backend keeps each kind of record in its own table (D41): a restaurant's
-// orders, a clinic's appointments, and the messages every agent takes. This file
-// turns them into one "record" shape, so the inbox pages stay the same.
+// orders, a shop's orders, a clinic's appointments, and the messages every agent
+// takes. This file turns them into one "record" shape, so the inbox pages stay the
+// same. A shop's orders are "order" records too: only their path and steps differ.
 const JOBS = {
   order: { title: 'Orders', kind: 'order', path: '/orders', name: 'Order' },
   appointment: { title: 'Appointment requests', kind: 'request', path: '/appointments', name: 'Appointment' },
@@ -16,9 +17,14 @@ const JOBS_FOR = {
   restaurant: ['order', 'message'],
   clinic: ['appointment', 'message'],
   receptionist: ['message'],
+  shop: ['order', 'message'],
 };
 
-const jobOfId = {}; // record id → job, so a status change knows which table to use
+// Where a job's records are, when it isn't JOBS[job].path for this kind of business.
+const PATHS = { shop: { order: '/shop/orders' } };
+
+const pathOfId = {}; // record id → its path, so a status change knows which table to use
+const jobOfId = {};
 
 function when(iso) {
   return new Date(iso).toLocaleString(undefined, {
@@ -26,8 +32,9 @@ function when(iso) {
   });
 }
 
-function toRecord(job, row) {
+function toRecord(job, row, path) {
   jobOfId[row.id] = job;
+  pathOfId[row.id] = path;
   const record = {
     ...row,
     job,
@@ -39,7 +46,13 @@ function toRecord(job, row) {
     details: {},
     note: row.note || '',
   };
-  if (job === 'order') record.due_at = row.pickup_at;
+  if (job === 'order' && row.zone !== undefined) {
+    // A shop's order: delivered by a courier, with its own steps (lib/flows.js).
+    record.flow = 'shop_order';
+    record.address = `${row.address} (${row.zone})`;
+  } else if (job === 'order') {
+    record.due_at = row.pickup_at;
+  }
   if (job === 'appointment') {
     record.details = { doctor: row.doctor_name, time: when(row.at) };
     if (row.paid) record.details['deposit paid online'] = formatMoney(row.paid);
@@ -55,6 +68,10 @@ async function jobsOf(token) {
   return JOBS_FOR[await agentKind(token)] || ['message'];
 }
 
+async function pathOf(token, job) {
+  return (PATHS[await agentKind(token)] || {})[job] || JOBS[job].path;
+}
+
 // One page, newest first: up to `limit` records made before `before` (the last
 // record's created_at). The server's page is at most 100.
 async function fetchJob(token, job, { status, q, limit, before } = {}) {
@@ -64,8 +81,9 @@ async function fetchJob(token, job, { status, q, limit, before } = {}) {
   if (limit) params.set('limit', limit);
   if (before) params.set('before', before);
   const query = params.toString();
-  const rows = await request(JOBS[job].path + (query ? `?${query}` : ''), { token });
-  return rows.map((row) => toRecord(job, row));
+  const path = await pathOf(token, job);
+  const rows = await request(path + (query ? `?${query}` : ''), { token });
+  return rows.map((row) => toRecord(job, row, path));
 }
 
 // The sidebar numbers: each job the agent does, with how many are waiting.
@@ -92,13 +110,16 @@ export async function fetchRecords(token, { job, status, q, limit, before } = {}
 
 // One record, for a link that names a record older than the first page.
 export async function fetchRecord(token, job, recordId) {
-  return toRecord(job, await request(`${JOBS[job].path}/${recordId}`, { token }));
+  const path = await pathOf(token, job);
+  return toRecord(job, await request(`${path}/${recordId}`, { token }), path);
 }
 
-export async function setRecordStatus(token, recordId, status) {
+// `extra` goes with the status: a shop order's courier, { tracking: "Steadfast 1234" }.
+export async function setRecordStatus(token, recordId, status, extra = {}) {
   const job = jobOfId[recordId] || 'message';
-  const row = await request(`${JOBS[job].path}/${recordId}`, { method: 'PATCH', body: { status }, token });
-  return toRecord(job, row);
+  const path = pathOfId[recordId] || JOBS[job].path;
+  const row = await request(`${path}/${recordId}`, { method: 'PATCH', body: { status, ...extra }, token });
+  return toRecord(job, row, path);
 }
 
 // The records each conversation made, by conversation id. The backend's

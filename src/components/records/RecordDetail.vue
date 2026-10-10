@@ -21,11 +21,14 @@
     <template v-if="record.kind === 'order'">
       <ul class="mt-6 flex flex-col gap-2.5 border-t border-hairline pt-5 text-sm">
         <li
-          v-for="line in record.lines"
-          :key="line.code"
+          v-for="(line, index) in record.lines"
+          :key="index"
           class="flex justify-between gap-4"
         >
-          <span><span class="text-ink-soft">{{ line.quantity }} x</span> {{ line.name }}</span>
+          <span>
+            <span class="text-ink-soft">{{ line.quantity }} x</span> {{ line.name }}
+            <span v-if="choices(line)" class="text-ink-soft">({{ choices(line) }})</span>
+          </span>
           <span class="font-medium">{{ money(line.price * line.quantity) }}</span>
         </li>
       </ul>
@@ -56,6 +59,18 @@
         <ph-map-pin :size="16" class="mt-0.5 shrink-0 text-ink-soft"></ph-map-pin>
         {{ record.address }}
       </p>
+      <p v-if="record.tracking" class="mt-2 flex items-start gap-2 text-sm">
+        <ph-truck :size="16" class="mt-0.5 shrink-0 text-ink-soft"></ph-truck>
+        {{ record.tracking }}
+      </p>
+      <p v-if="record.note" class="mt-2 text-sm text-ink-soft">Note: {{ record.note }}</p>
+
+      <!-- A shop order goes to a courier: its name and parcel id, for the buyer's tracking. -->
+      <div v-if="record.flow === 'shop_order' && record.status === 'confirmed'" class="mt-5">
+        <label class="label" for="tracking">Courier and parcel id</label>
+        <input id="tracking" v-model.trim="tracking" class="field" type="text" placeholder="Steadfast 12345678" />
+        <p class="hint">Your agent tells the buyer this when they ask where their order is.</p>
+      </div>
     </template>
 
     <template v-else>
@@ -84,7 +99,7 @@
         type="button"
         class="btn btn-primary w-full"
         :disabled="busy"
-        @click="$emit('move', steps.primary.to)"
+        @click="moveOn(steps.primary.to)"
       >
         {{ steps.primary.label }}
       </button>
@@ -109,20 +124,23 @@
 </template>
 
 <script>
-import { PhClock, PhMapPin, PhPhone, PhSealCheck } from '@phosphor-icons/vue';
+import { PhClock, PhMapPin, PhPhone, PhSealCheck, PhTruck } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
 import { formatMoney, formatTime, formatDay } from '../../lib/format.js';
 import { nextSteps } from '../../lib/flows.js';
 
 export default {
-  components: { StatusChip, PhClock, PhMapPin, PhPhone, PhSealCheck },
+  components: { StatusChip, PhClock, PhMapPin, PhPhone, PhSealCheck, PhTruck },
   props: {
     record: { type: Object, required: true },
     busy: { type: Boolean, default: false },
     error: { type: String, default: null },
   },
   emits: ['move'],
+  data() {
+    return { tracking: '' };
+  },
   computed: {
     steps() {
       return nextSteps(this.record);
@@ -134,6 +152,15 @@ export default {
     day: formatDay,
     capitalize(text) {
       return text.charAt(0).toUpperCase() + text.slice(1);
+    },
+    // A shop line's size and colour: "M, Black".
+    choices(line) {
+      return [line.size, line.colour].filter(Boolean).join(', ');
+    },
+    // Shipping a shop order sends its courier along with the status.
+    moveOn(status) {
+      const extra = status === 'shipped' && this.tracking ? { tracking: this.tracking } : {};
+      this.$emit('move', status, extra);
     },
   },
 };

@@ -14,6 +14,8 @@ import {
   PhArchive,
   PhUserSound,
   PhHourglass,
+  PhTruck,
+  PhArrowUUpLeft,
 } from '@phosphor-icons/vue';
 
 import { STATUS_LABELS } from '../../lib/flows.js';
@@ -27,6 +29,9 @@ const LOOKS = {
   done: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
   handled: { icon: PhCheckCircle, classes: 'bg-success-tint text-success' },
   collected: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
+  shipped: { icon: PhTruck, classes: 'bg-brand-tint text-brand' },
+  delivered: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
+  returned: { icon: PhArrowUUpLeft, classes: 'bg-hover text-ink-soft' },
   cancelled: { icon: PhXCircle, classes: 'bg-hover text-ink-soft' },
   archived: { icon: PhArchive, classes: 'bg-hover text-ink-soft' },
   needs_human: { icon: PhUserSound, classes: 'bg-attention-tint text-ink', iconClass: 'text-attention' },

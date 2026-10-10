@@ -312,12 +312,12 @@ export default {
         this.error = error.message;
       }
     },
-    async move(status) {
+    async move(status, extra) {
       this.isMoving = true;
       this.moveError = null;
       try {
         const token = this.$store.getters['auth/token'];
-        const updated = await setRecordStatus(token, this.selectedId, status);
+        const updated = await setRecordStatus(token, this.selectedId, status, extra);
         const index = this.records.findIndex((r) => r.id === updated.id);
         if (index === -1) this.linked = updated;
         else this.records.splice(index, 1, updated);

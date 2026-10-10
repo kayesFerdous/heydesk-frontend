@@ -62,7 +62,24 @@
         <label class="label" :for="`d-${uid}`">Description</label>
         <input :id="`d-${uid}`" v-model="draft.description" class="field" type="text" />
       </div>
-      <div class="sm:col-span-2">
+      <template v-if="noun === 'product'">
+        <div>
+          <label class="label" :for="`sz-${uid}`">Sizes</label>
+          <input :id="`sz-${uid}`" v-model="sizesText" class="field" type="text" placeholder="M, L, XL" />
+          <p class="hint">Separate with commas. Leave empty if it has none.</p>
+        </div>
+        <div>
+          <label class="label" :for="`cl-${uid}`">Colours</label>
+          <input :id="`cl-${uid}`" v-model="coloursText" class="field" type="text" placeholder="White, Navy" />
+        </div>
+        <div>
+          <label class="label" :for="`st-${uid}`">In stock</label>
+          <input :id="`st-${uid}`" v-model.trim="stockText" class="field" :class="{ 'field-invalid': errors.stock }" type="text" inputmode="numeric" placeholder="Not counted" />
+          <p v-if="errors.stock" class="error-text">{{ errors.stock }}</p>
+          <p v-else class="hint">Empty: not counted. Each order takes from it; 0 is sold out.</p>
+        </div>
+      </template>
+      <div v-else class="sm:col-span-2">
         <label class="label" :for="`t-${uid}`">Tags</label>
         <input :id="`t-${uid}`" v-model="tagsText" class="field" type="text" placeholder="popular, spicy, vegetarian" />
         <p class="hint">Separate with commas. Your agent uses tags to recommend.</p>
@@ -89,7 +106,7 @@
 </template>
 
 <script>
-import { PhCalendarBlank, PhClock, PhInfo, PhTranslate } from '@phosphor-icons/vue';
+import { PhCalendarBlank, PhClock, PhInfo, PhPalette, PhPackage, PhRuler, PhTranslate } from '@phosphor-icons/vue';
 
 import ToggleSwitch from '../ui/ToggleSwitch.vue';
 import { formatMoney } from '../../lib/format.js';
@@ -102,6 +119,14 @@ const FACTS = {
   hours: { icon: PhClock },
   languages: { icon: PhTranslate },
 };
+
+// "M, L , XL" -> ["M", "L", "XL"]
+function list(text) {
+  return text
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
 
 function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -124,6 +149,7 @@ export default {
       draft: { ...this.item },
       priceText: this.item.price ? String(this.item.price / 100) : '',
       tagsText: this.item.tags.join(', '),
+      ...this.productTexts(),
       errors: {},
       confirming: false,
     };
@@ -132,6 +158,14 @@ export default {
     // A business's own facts (a doctor's days, hours and languages) are shown
     // but edited through the CSV import.
     facts() {
+      if (this.noun === 'product') {
+        const item = this.item;
+        const facts = [];
+        if (item.sizes && item.sizes.length) facts.push({ key: 'sizes', icon: PhRuler, text: item.sizes.join(', ') });
+        if (item.colours && item.colours.length) facts.push({ key: 'colours', icon: PhPalette, text: item.colours.join(', ') });
+        if (item.stock > 0) facts.push({ key: 'stock', icon: PhPackage, text: `${item.stock} in stock` });
+        return facts;
+      }
       const attributes = this.item.attributes || {};
       return Object.keys(attributes)
         .filter((key) => [].concat(attributes[key]).length)
@@ -151,6 +185,7 @@ export default {
         this.draft = { ...this.item };
         this.priceText = this.item.price ? String(this.item.price / 100) : '';
         this.tagsText = this.item.tags.join(', ');
+        Object.assign(this, this.productTexts());
         this.errors = {};
         this.confirming = false;
         this.$nextTick(() => this.$refs.name && this.$refs.name.focus());
@@ -162,9 +197,21 @@ export default {
   },
   methods: {
     money: formatMoney,
+    productTexts() {
+      const item = this.item;
+      return {
+        sizesText: (item.sizes || []).join(', '),
+        coloursText: (item.colours || []).join(', '),
+        stockText: item.stock === null || item.stock === undefined ? '' : String(item.stock),
+      };
+    },
     submit() {
       this.errors = {};
       const price = Number(this.priceText);
+      const stock = this.stockText === '' ? null : Number(this.stockText);
+      if (this.noun === 'product' && stock !== null && !(Number.isInteger(stock) && stock >= 0)) {
+        this.errors.stock = 'Enter a whole number, or leave it empty.';
+      }
       if (!this.draft.name) this.errors.name = 'Enter a name.';
       if (this.priceText === '' || Number.isNaN(price) || price < 0) {
         this.errors.price = 'Enter a price, like 450.';
@@ -172,8 +219,13 @@ export default {
       if (!this.draft.category) this.errors.category = 'Enter a category.';
       if (Object.keys(this.errors).length) return;
 
+      const product =
+        this.noun === 'product'
+          ? { sizes: list(this.sizesText), colours: list(this.coloursText), stock, available: stock !== 0 }
+          : {};
       this.$emit('save', {
         ...this.item,
+        ...product,
         name: this.draft.name,
         description: this.draft.description,
         category: this.draft.category,

@@ -184,7 +184,7 @@ export default {
   computed: {
     // Most common first; a preset the frontend has not heard of goes last.
     presets() {
-      const order = ['restaurant', 'receptionist', 'clinic'];
+      const order = ['restaurant', 'shop', 'receptionist', 'clinic'];
       const rank = (p) => (order.includes(p.id) ? order.indexOf(p.id) : order.length);
       return [...this.$store.getters['agent/presets']].sort((a, b) => rank(a) - rank(b));
     },

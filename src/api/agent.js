@@ -7,7 +7,7 @@ import { request } from './client.js';
 
 // Fields every agent has; anything else in a desk's schema is its own.
 const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff'];
-const ITEMS_LABEL = { restaurant: 'Menu', clinic: 'Doctors', receptionist: 'Services' };
+const ITEMS_LABEL = { restaurant: 'Menu', clinic: 'Doctors', receptionist: 'Services', shop: 'Products' };
 const JOBS = {
   restaurant: [
     { id: 'order', label: 'order', description: 'Customers order from your menu, for pickup or (if you deliver) delivery. The agent adds up the total and reads it back before saving.' },
@@ -19,6 +19,10 @@ const JOBS = {
   ],
   receptionist: [
     { id: 'message', label: 'message for the team', description: 'Visitors leave a message or ask for a call back.' },
+  ],
+  shop: [
+    { id: 'order', label: 'cash-on-delivery order', description: 'Buyers order your products with their size and colour. The agent works out the delivery charge, reads it all back and takes the items out of stock.' },
+    { id: 'message', label: 'message for the team', description: 'Buyers ask about returns, exchanges or anything else.' },
   ],
 };
 
@@ -133,10 +137,33 @@ function itemToDoctor(item) {
   };
 }
 
+// A shop's product as an item, and back. A product has no on/off switch: stock 0 is
+// sold out. Switching one off makes it 0; switching it on stops counting it.
+function productToItem(p) {
+  return { ...p, tags: [], available: p.stock !== 0, attributes: {} };
+}
+
+function itemToProduct(item) {
+  let stock = item.stock === undefined ? null : item.stock;
+  if (!item.available) stock = 0;
+  else if (stock === 0) stock = null;
+  return {
+    code: item.code,
+    name: item.name,
+    description: item.description || '',
+    price: item.price,
+    category: item.category,
+    sizes: item.sizes || [],
+    colours: item.colours || [],
+    stock,
+  };
+}
+
 export async function fetchItems(token) {
   const kind = await agentKind(token);
   if (kind === 'restaurant') return request('/menu', { token });
   if (kind === 'clinic') return (await request('/doctors', { token })).map(doctorToItem);
+  if (kind === 'shop') return (await request('/products', { token })).map(productToItem);
   return []; // a receptionist lists its services in its details
 }
 
@@ -148,16 +175,21 @@ export async function replaceItems(token, items) {
     const saved = await request('/doctors', { method: 'PUT', body: items.map(itemToDoctor), token });
     return saved.map(doctorToItem);
   }
+  if (kind === 'shop') {
+    const saved = await request('/products', { method: 'PUT', body: items.map(itemToProduct), token });
+    return saved.map(productToItem);
+  }
   throw Object.assign(new Error('A receptionist lists its services on the Agent page.'), { status: 400 });
 }
 
 // A CSV replaces the menu or the doctors. dryRun checks it and shows what would be saved.
 export async function importItems(token, csv, dryRun) {
   const kind = await agentKind(token);
-  const path = { restaurant: '/menu/import', clinic: '/doctors/import' }[kind];
+  const path = { restaurant: '/menu/import', clinic: '/doctors/import', shop: '/products/import' }[kind];
   if (!path) throw Object.assign(new Error('A receptionist has no list to import.'), { status: 400 });
   const result = await request(path, { method: 'POST', body: { csv, dry_run: dryRun }, token });
-  const preview = kind === 'clinic' ? result.preview.map(doctorToItem) : result.preview;
+  const toItem = { clinic: doctorToItem, shop: productToItem }[kind];
+  const preview = toItem ? result.preview.map(toItem) : result.preview;
   return { ...result, preview, attributes: [] };
 }
 

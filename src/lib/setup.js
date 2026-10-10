@@ -4,13 +4,14 @@
 // whereToFix() sends each one to the screen that fills it in.
 export function whereToFix(item) {
   const text = item.toLowerCase();
+  if (text.includes('sslcommerz') || text.includes('delivery')) return '/agent/payments';
   if (text.includes('hours')) return '/agent/hours';
   if (text.includes('phone') || text.includes('email') || text.includes('person')) return '/agent/hours';
-  if (text.includes('menu') || text.includes('doctor')) return '/menu';
+  if (text.includes('menu') || text.includes('doctor') || text.includes('product')) return '/menu';
   return '/agent/profile'; // address, services and anything new
 }
 
-const LIST_WORDS = ['menu', 'doctor', 'service'];
+const LIST_WORDS = ['menu', 'doctor', 'service', 'product'];
 
 function isAboutList(item) {
   const text = item.toLowerCase();

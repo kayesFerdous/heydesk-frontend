@@ -182,7 +182,8 @@ export default {
           (!query ||
             item.name.toLowerCase().includes(query) ||
             item.description.toLowerCase().includes(query) ||
-            item.tags.some((tag) => tag.toLowerCase().includes(query)))
+            item.tags.some((tag) => tag.toLowerCase().includes(query)) ||
+            (item.colours || []).some((colour) => colour.toLowerCase().includes(query)))
       );
     },
     shown() {
@@ -198,6 +199,9 @@ export default {
         tags: [],
         available: true,
         attributes: {},
+        sizes: [],
+        colours: [],
+        stock: null,
       };
     },
   },

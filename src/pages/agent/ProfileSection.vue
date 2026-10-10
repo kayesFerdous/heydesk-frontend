@@ -74,8 +74,8 @@ import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
 import agentSection from '../../mixins/agentSection.js';
 
-// Edited on the Payments section, not here.
-const PAYMENT_FIELDS = ['delivers', 'delivery_charge', 'deposit', 'pay_first'];
+// Edited on the Delivery and payments section, not here.
+const PAYMENT_FIELDS = ['delivers', 'delivery_charge', 'deposit', 'pay_first', 'delivery', 'free_delivery_over'];
 
 // Friendlier words than the schema's field names, for a desk's own details.
 const FIELD_WORDS = {
