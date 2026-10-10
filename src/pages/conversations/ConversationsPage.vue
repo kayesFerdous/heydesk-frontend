@@ -51,6 +51,7 @@
             @select="select(row.id)"
           ></conversation-row>
         </div>
+        <show-more v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></show-more>
       </div>
     </div>
 
@@ -77,30 +78,34 @@
 </template>
 
 <script>
+import { markRaw } from 'vue';
 import { PhChatsCircle, PhCheckCircle } from '@phosphor-icons/vue';
 
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
+import ShowMore from '../../components/ui/ShowMore.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import { fetchConversations, fetchConversation } from '../../api/conversations.js';
-import { groupByDay } from '../../lib/group.js';
-
-// The list endpoint has no names or previews, so the newest conversations are
-// opened once to fill them in. Older ones load when clicked.
-const PREVIEW_LIMIT = 30;
+import { fetchRecords, byConversation } from '../../api/records.js';
+import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 
 export default {
-  components: { ConversationRow, ConversationTranscript, SkeletonRows, EmptyState, LoadError, PhChatsCircle },
+  components: { ConversationRow, ConversationTranscript, SkeletonRows, ShowMore, EmptyState, LoadError, PhChatsCircle },
   data() {
     return {
-      rows: [],
-      details: {},
+      list: [], // the pages loaded so far, newest activity first
+      recordsOf: {}, // conversation id -> the records it made (for the name)
+      details: {}, // conversation id -> its transcript, once opened
+      hasMore: false, // the last page was full, so there may be older ones
+      loadingMore: false,
+      moreError: null,
       loaded: false,
       error: null,
       detailError: null,
-      icons: { chats: PhChatsCircle, check: PhCheckCircle },
+      // markRaw: components are fixed, so Vue need not watch them for changes.
+      icons: markRaw({ chats: PhChatsCircle, check: PhCheckCircle }),
     };
   },
   computed: {
@@ -113,11 +118,22 @@ export default {
     needsHuman() {
       return this.$store.getters['inbox/needsHuman'];
     },
+    // The list endpoint has no names or previews. The name comes from a record
+    // the conversation made; the preview from its transcript, once loaded.
+    rows() {
+      return this.list.map((c) => {
+        const detail = this.details[c.id];
+        const record = (this.recordsOf[c.id] || [])[0];
+        const last = detail && detail.messages.length ? detail.messages[detail.messages.length - 1] : null;
+        return { ...c, name: (record && record.customer_name) || 'Visitor', preview: last ? last.text : '' };
+      });
+    },
     groups() {
       return groupByDay(this.rows, 'updated_at');
     },
     detail() {
-      return this.selectedId ? this.details[this.selectedId] : null;
+      const detail = this.selectedId ? this.details[this.selectedId] : null;
+      return detail ? { ...detail, records: this.recordsOf[detail.id] || [] } : null;
     },
   },
   watch: {
@@ -148,19 +164,24 @@ export default {
     async load() {
       this.error = null;
       this.loaded = false;
+      this.moreError = null;
       const token = this.$store.getters['auth/token'];
       try {
-        const list = await fetchConversations(token, {
-          status: this.filter === 'needs_human' ? 'needs_human' : undefined,
-        });
-        list.sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
-        await Promise.allSettled(list.slice(0, PREVIEW_LIMIT).map((c) => this.loadDetail(c.id)));
-        this.rows = list.map((c) => this.toRow(c));
+        // The records are only for names: without them the rows say "Visitor".
+        // They are the newest 100 per kind, so a much older conversation says "Visitor".
+        const [list, records] = await Promise.all([
+          this.fetchPage(),
+          fetchRecords(token).catch(() => []),
+        ]);
+        this.list = list;
+        this.hasMore = list.length === PAGE_SIZE;
+        this.recordsOf = byConversation(records);
         this.loaded = true;
+        this.loadPreviews(list);
       } catch (error) {
         // No agent yet means no conversations: send them to set it up.
         if (error.status === 404) {
-          this.rows = [];
+          this.list = [];
           this.loaded = true;
         } else {
           this.error = error.message;
@@ -170,6 +191,7 @@ export default {
     openTestChat() {
       this.$store.commit('ui/setTestSheet', true);
     },
+    // The transcript on the right, when a conversation is opened.
     async loadDetail(id) {
       this.detailError = null;
       try {
@@ -178,15 +200,44 @@ export default {
         this.detailError = error.message;
       }
     },
-    toRow(conversation) {
-      const detail = this.details[conversation.id];
-      const record = detail && detail.records[0];
-      const last = detail && detail.messages.length ? detail.messages[detail.messages.length - 1] : null;
-      return {
-        ...conversation,
-        name: (record && record.customer_name) || 'Visitor',
-        preview: last ? last.text : '',
-      };
+    // One page of the list, newest activity first, older than `before` if given.
+    fetchPage(before) {
+      return fetchConversations(this.$store.getters['auth/token'], {
+        status: this.filter === 'needs_human' ? 'needs_human' : undefined,
+        limit: PAGE_SIZE,
+        before,
+      });
+    },
+    // Previews for one page of rows, filled in as they arrive. The list does
+    // not wait for them, and a missing preview is only an empty line.
+    loadPreviews(conversations) {
+      const token = this.$store.getters['auth/token'];
+      conversations.forEach(async (c) => {
+        if (this.details[c.id]) return;
+        try {
+          this.details[c.id] = await fetchConversation(token, c.id);
+        } catch (error) {
+          // Best effort: the row shows no preview.
+        }
+      });
+    },
+    // The next page: conversations quieter than the oldest one on screen.
+    async showMore() {
+      const filter = this.filter;
+      this.loadingMore = true;
+      this.moreError = null;
+      try {
+        const older = await this.fetchPage(this.list[this.list.length - 1].updated_at);
+        // The filter changed meanwhile: this page belongs to the old list.
+        if (filter === this.filter) {
+          this.list = [...this.list, ...older];
+          this.hasMore = older.length === PAGE_SIZE;
+          this.loadPreviews(older);
+        }
+      } catch (error) {
+        this.moreError = error.message;
+      }
+      this.loadingMore = false;
     },
   },
 };

@@ -22,9 +22,26 @@ const JOBS = {
   ],
 };
 
-// The business's desk: "restaurant", "clinic" or "receptionist".
-export async function agentKind(token) {
-  return (await request('/agent', { token })).kind;
+// The business's desk: "restaurant", "clinic" or "receptionist". A business
+// never changes its desk, so it is asked once per sign-in (per token) and the
+// answer is reused by every list call, instead of a GET /agent before each one.
+// The promise itself is kept, so calls made at the same moment share one request.
+let kindOf = { token: null, kind: null };
+
+export function agentKind(token) {
+  if (kindOf.token !== token) {
+    const kind = request('/agent', { token }).then((agent) => agent.kind);
+    kindOf = { token, kind };
+    // No agent yet (404) or the API is down: forget it, so the next call asks again.
+    kind.catch(() => {
+      if (kindOf.kind === kind) kindOf = { token: null, kind: null };
+    });
+  }
+  return kindOf.kind;
+}
+
+function rememberKind(token, kind) {
+  kindOf = { token, kind: Promise.resolve(kind) };
 }
 
 function ownSchema(schema) {
@@ -66,7 +83,9 @@ function flatten(patch) {
 
 // 404 not_found until the business has created its agent.
 export async function fetchAgent(token) {
-  return toInfo(await request('/agent', { token }));
+  const agent = await request('/agent', { token });
+  rememberKind(token, agent.kind);
+  return toInfo(agent);
 }
 
 export async function createAgent(token, body) {
@@ -75,6 +94,7 @@ export async function createAgent(token, body) {
     body: { kind: body.preset, config: flatten(body.config) },
     token,
   });
+  rememberKind(token, created.kind);
   return toInfo(created);
 }
 

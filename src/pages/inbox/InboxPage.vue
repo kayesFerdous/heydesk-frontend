@@ -99,6 +99,7 @@
             @select="select(record.id)"
           ></record-row>
         </div>
+        <show-more v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></show-more>
       </div>
 
       <aside
@@ -117,6 +118,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue';
 import {
   PhArrowRight,
   PhMagnifyingGlass,
@@ -131,8 +133,9 @@ import LoadError from '../../components/ui/LoadError.vue';
 import RecordRow from '../../components/records/RecordRow.vue';
 import RecordDetail from '../../components/records/RecordDetail.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
-import { fetchRecords, setRecordStatus } from '../../api/records.js';
-import { groupByDay } from '../../lib/group.js';
+import ShowMore from '../../components/ui/ShowMore.vue';
+import { fetchRecords, fetchRecord, setRecordStatus } from '../../api/records.js';
+import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { JOB_TABS } from '../../lib/records.js';
 
 export default {
@@ -143,6 +146,7 @@ export default {
     RecordRow,
     RecordDetail,
     SkeletonRows,
+    ShowMore,
     PhArrowRight,
     PhMagnifyingGlass,
     PhUserSound,
@@ -153,14 +157,20 @@ export default {
       currentJob: this.$route.query.job || null,
       query: '',
       searchTimer: null,
-      records: [],
+      lastAsk: 0, // numbers each records request, so only the newest one counts
+      records: [], // the pages loaded so far, newest first
+      linked: null, // the record a link asked for, when it is older than the first page
+      hasMore: false, // the last page was full, so there may be older records
+      loadingMore: false,
+      moreError: null,
       selectedId: this.$route.query.open || null,
       isLoading: true,
       isMoving: false,
       noAgent: false,
       error: null,
       moveError: null,
-      icons: { sparkle: PhSparkle, tray: PhTray, search: PhMagnifyingGlass },
+      // markRaw: components are fixed, so Vue need not watch them for changes.
+      icons: markRaw({ sparkle: PhSparkle, tray: PhTray, search: PhMagnifyingGlass }),
     };
   },
   computed: {
@@ -174,7 +184,9 @@ export default {
       return groupByDay(this.records);
     },
     selected() {
-      return this.records.find((record) => record.id === this.selectedId);
+      const inList = this.records.find((record) => record.id === this.selectedId);
+      if (inList) return inList;
+      return this.linked && this.linked.id === this.selectedId ? this.linked : null;
     },
   },
   created() {
@@ -199,6 +211,7 @@ export default {
           this.currentJob = this.jobs[0].job;
         }
         await this.loadRecords();
+        await this.openLinked();
       } catch (error) {
         // A new business has no agent yet: that is a first step, not a failure.
         if (error.status === 404 && error.code === 'not_found') {
@@ -211,10 +224,19 @@ export default {
     },
     async loadRecords() {
       const token = this.$store.getters['auth/token'];
-      this.records = await fetchRecords(token, {
+      // Typing "a1" then "a10" sends two searches, and the first can answer
+      // last. An answer to an older request is dropped, so it cannot replace
+      // the newer one on screen.
+      const ask = ++this.lastAsk;
+      const records = await fetchRecords(token, {
         job: this.currentJob,
         q: this.query,
+        limit: PAGE_SIZE,
       });
+      if (ask !== this.lastAsk) return;
+      this.records = records;
+      this.hasMore = records.length === PAGE_SIZE;
+      this.moreError = null;
       // Keep the record asked for in the link if it is in the list; else the newest.
       if (!this.records.some((r) => r.id === this.selectedId)) {
         this.selectedId = this.records.length ? this.records[0].id : null;
@@ -225,10 +247,46 @@ export default {
       this.isLoading = true;
       try {
         await this.loadRecords();
+        await this.openLinked();
       } catch (error) {
         this.error = error.message;
       }
       this.isLoading = false;
+    },
+    // A link from Home can name a waiting record older than the first page:
+    // fetch just that one for the detail pane. If it is gone, the newest stays open.
+    async openLinked() {
+      const id = this.$route.query.open;
+      if (!id || !this.currentJob || this.records.some((r) => r.id === id)) return;
+      try {
+        this.linked = await fetchRecord(this.$store.getters['auth/token'], this.currentJob, id);
+        this.selectedId = id;
+      } catch (error) {
+        // Not found: nothing to open.
+      }
+    },
+    // The next page: the records made before the oldest one on screen.
+    async showMore() {
+      const ask = this.lastAsk;
+      const oldest = this.records[this.records.length - 1];
+      this.loadingMore = true;
+      this.moreError = null;
+      try {
+        const older = await fetchRecords(this.$store.getters['auth/token'], {
+          job: this.currentJob,
+          q: this.query,
+          limit: PAGE_SIZE,
+          before: oldest.created_at,
+        });
+        // A new search or tab started meanwhile: this page belongs to the old list.
+        if (ask === this.lastAsk) {
+          this.records = [...this.records, ...older];
+          this.hasMore = older.length === PAGE_SIZE;
+        }
+      } catch (error) {
+        this.moreError = error.message;
+      }
+      this.loadingMore = false;
     },
     select(id) {
       this.selectedId = id;
@@ -239,10 +297,20 @@ export default {
       this.selectedId = null;
       this.reload();
     },
-    // Wait for a pause in typing before asking the server.
+    // Wait for a pause in typing before asking the server (debounce). The old
+    // results stay on screen until the new ones arrive, so the list does not
+    // flash a skeleton on every pause.
     searchSoon() {
       clearTimeout(this.searchTimer);
-      this.searchTimer = setTimeout(this.reload, 300);
+      this.searchTimer = setTimeout(this.search, 300);
+    },
+    async search() {
+      try {
+        await this.loadRecords();
+        await this.openLinked();
+      } catch (error) {
+        this.error = error.message;
+      }
     },
     async move(status) {
       this.isMoving = true;
@@ -251,7 +319,8 @@ export default {
         const token = this.$store.getters['auth/token'];
         const updated = await setRecordStatus(token, this.selectedId, status);
         const index = this.records.findIndex((r) => r.id === updated.id);
-        this.records.splice(index, 1, updated);
+        if (index === -1) this.linked = updated;
+        else this.records.splice(index, 1, updated);
         this.$store.dispatch('inbox/load').catch(() => {});
       } catch (error) {
         // e.g. 409: the status already changed elsewhere. Show the sentence.

@@ -109,6 +109,7 @@
           <p class="text-ink-soft">{{ time(event.at) }}</p>
         </div>
       </div>
+      <show-more v-if="auditHasMore" :loading="loadingMore" :error="moreError" @more="moreAudit"></show-more>
       <p v-if="!audit.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">Nothing has happened yet.</p>
     </div>
   </section>
@@ -119,6 +120,7 @@ import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import LiveStatus from '../../components/ui/LiveStatus.vue';
+import ShowMore from '../../components/ui/ShowMore.vue';
 import {
   fetchBusinesses,
   setBusinessStatus,
@@ -126,11 +128,11 @@ import {
   resetPassword,
   fetchAudit,
 } from '../../api/admin.js';
-import { groupByDay } from '../../lib/group.js';
+import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatTime } from '../../lib/format.js';
 
 export default {
-  components: { SkeletonRows, PageHeader, LoadError, LiveStatus },
+  components: { SkeletonRows, PageHeader, LoadError, LiveStatus, ShowMore },
   data() {
     return {
       tab: 'businesses',
@@ -141,7 +143,10 @@ export default {
       ],
       businesses: [],
       users: [],
-      audit: [],
+      audit: [], // the activity log only grows, so it comes a page at a time
+      auditHasMore: false,
+      loadingMore: false,
+      moreError: null,
       loaded: false,
       error: null,
       confirmingId: null,
@@ -163,15 +168,37 @@ export default {
       this.error = null;
       const token = this.$store.getters['auth/token'];
       try {
-        [this.businesses, this.users, this.audit] = await Promise.all([
+        [this.businesses, this.users] = await Promise.all([
           fetchBusinesses(token),
           fetchUsers(token),
-          fetchAudit(token),
+          this.loadAudit(),
         ]);
         this.loaded = true;
       } catch (error) {
         this.error = error.message;
       }
+    },
+    // The newest page of the activity log (again after an admin action adds to it).
+    async loadAudit() {
+      this.audit = await fetchAudit(this.$store.getters['auth/token'], { limit: PAGE_SIZE });
+      this.auditHasMore = this.audit.length === PAGE_SIZE;
+      this.moreError = null;
+    },
+    // The next page: what happened before the oldest event on screen.
+    async moreAudit() {
+      this.loadingMore = true;
+      this.moreError = null;
+      try {
+        const older = await fetchAudit(this.$store.getters['auth/token'], {
+          limit: PAGE_SIZE,
+          before: this.audit[this.audit.length - 1].at,
+        });
+        this.audit = [...this.audit, ...older];
+        this.auditHasMore = older.length === PAGE_SIZE;
+      } catch (error) {
+        this.moreError = error.message;
+      }
+      this.loadingMore = false;
     },
     async toggleStatus(business) {
       const next = business.status === 'active' ? 'suspended' : 'active';
@@ -179,7 +206,7 @@ export default {
         await setBusinessStatus(this.$store.getters['auth/token'], business.id, next);
         business.status = next;
         this.confirmingId = null;
-        this.audit = await fetchAudit(this.$store.getters['auth/token']);
+        await this.loadAudit();
       } catch (error) {
         this.error = error.message;
       }
@@ -189,7 +216,7 @@ export default {
       try {
         const { password } = await resetPassword(this.$store.getters['auth/token'], user.id);
         this.temporary = { email: user.email, password };
-        this.audit = await fetchAudit(this.$store.getters['auth/token']);
+        await this.loadAudit();
       } catch (error) {
         this.error = error.message;
       }

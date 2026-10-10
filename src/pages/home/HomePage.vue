@@ -208,8 +208,8 @@ import LoadError from '../../components/ui/LoadError.vue';
 import LiveStatus from '../../components/ui/LiveStatus.vue';
 import CopyField from '../../components/ui/CopyField.vue';
 import StatusChip from '../../components/ui/StatusChip.vue';
-import { fetchRecords } from '../../api/records.js';
-import { fetchConversations, fetchConversation } from '../../api/conversations.js';
+import { fetchRecords, byConversation } from '../../api/records.js';
+import { fetchConversations } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';
 import { fetchDocuments } from '../../api/agent.js';
 import { formatMoney, formatAgo, greeting } from '../../lib/format.js';
@@ -253,7 +253,6 @@ export default {
       error: null,
       records: [],
       conversations: [],
-      handoffs: [], // the full conversations of customers waiting for a person
       telegram: null,
       documentCount: 0,
       shared: false,
@@ -324,9 +323,15 @@ export default {
     waiting() {
       return this.records.filter((r) => r.status === 'new');
     },
+    // Customers waiting for a person. Their name comes from a record the
+    // conversation made, so no conversation has to be opened for it.
+    handoffs() {
+      return this.conversations.filter((c) => c.status === 'needs_human');
+    },
     attention() {
-      const handoffs = this.handoffs.map((c) => {
-        const record = c.records[0];
+      const recordsOf = byConversation(this.records);
+      const handoffs = this.handoffs.slice(0, ATTENTION_LIMIT).map((c) => {
+        const record = (recordsOf[c.id] || [])[0];
         const name = (record && record.customer_name) || 'A visitor';
         return {
           id: c.id,
@@ -394,11 +399,6 @@ export default {
         this.conversations = conversations;
         this.telegram = telegram;
         this.documentCount = documents.length;
-
-        // The list has no names; open the few waiting conversations to get them.
-        const waiting = conversations.filter((c) => c.status === 'needs_human').slice(0, ATTENTION_LIMIT);
-        const opened = await Promise.allSettled(waiting.map((c) => fetchConversation(token, c.id)));
-        this.handoffs = opened.filter((r) => r.status === 'fulfilled').map((r) => r.value);
 
         const business = this.$store.getters['auth/business'];
         this.shared = !!business && wasShared(business.id);

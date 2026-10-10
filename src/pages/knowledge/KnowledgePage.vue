@@ -76,6 +76,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue';
 import { PhBooks, PhPlus, PhWarningCircle, PhX } from '@phosphor-icons/vue';
 
 import AddDocumentPanel from '../../components/knowledge/AddDocumentPanel.vue';
@@ -109,7 +110,8 @@ export default {
       removingId: null,
       reading: null, // { title, text } while the full text is open
       limit: 30, // the backend's MAX_DOCUMENTS per business
-      icons: { books: PhBooks },
+      // markRaw: components are fixed, so Vue need not watch them for changes.
+      icons: markRaw({ books: PhBooks }),
     };
   },
   computed: {

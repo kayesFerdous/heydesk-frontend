@@ -150,7 +150,8 @@ export default {
     },
     async checkTeam() {
       const conversationId = this.conversationId;
-      if (!conversationId) return;
+      // Nobody is looking at a hidden tab: skip this check, the next visible one catches up.
+      if (!conversationId || document.hidden) return;
       try {
         const replies = await fetchTeamReplies(this.publicKey, conversationId);
         if (conversationId !== this.conversationId) return; // started over meanwhile

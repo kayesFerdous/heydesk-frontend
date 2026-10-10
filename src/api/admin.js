@@ -22,6 +22,11 @@ export function resetPassword(token, userId) {
   return request(`/admin/users/${userId}/password`, { method: 'POST', token });
 }
 
-export function fetchAudit(token) {
-  return request('/admin/audit', { token });
+// Newest first, one page: up to `limit` events before `before` (the last one's `at`).
+export function fetchAudit(token, { limit, before } = {}) {
+  const params = new URLSearchParams();
+  if (limit) params.set('limit', limit);
+  if (before) params.set('before', before);
+  const query = params.toString();
+  return request('/admin/audit' + (query ? `?${query}` : ''), { token });
 }

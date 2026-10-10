@@ -1,18 +1,18 @@
 import { request } from './client.js';
-import { fetchRecordsOf } from './records.js';
 
 // status is "active" or "needs_human"; leave it out for every conversation.
-export function fetchConversations(token, { status } = {}) {
-  return request('/conversations' + (status ? `?status=${status}` : ''), {
-    token,
-  });
+// Newest activity first, one page: up to `limit` before `before` (the last one's updated_at).
+export function fetchConversations(token, { status, limit, before } = {}) {
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (limit) params.set('limit', limit);
+  if (before) params.set('before', before);
+  const query = params.toString();
+  return request('/conversations' + (query ? `?${query}` : ''), { token });
 }
 
-// The transcript, plus the orders, appointments or messages that came out of it.
-export async function fetchConversation(token, conversationId) {
-  const [conversation, records] = await Promise.all([
-    request(`/conversations/${conversationId}`, { token }),
-    fetchRecordsOf(token, conversationId),
-  ]);
-  return { ...conversation, records };
+// The transcript only. The orders, appointments or messages that came out of
+// it come from the page's own records list (`byConversation` in records.js).
+export function fetchConversation(token, conversationId) {
+  return request(`/conversations/${conversationId}`, { token });
 }

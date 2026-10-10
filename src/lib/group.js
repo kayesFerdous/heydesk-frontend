@@ -1,5 +1,9 @@
 // Lists read as a timeline (Today, Yesterday, ...) rather than one long pile,
 // the way ChatGPT groups its history. Days are decided in the agent's timezone.
+
+// How many rows one page of a long list asks the server for ("Show more" asks for the next).
+export const PAGE_SIZE = 30;
+
 function dayKey(isoString, timeZone) {
   return new Date(isoString).toLocaleDateString('en-CA', { timeZone });
 }

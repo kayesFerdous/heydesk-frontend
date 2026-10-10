@@ -32,11 +32,11 @@ job (like `TelegramConnect.vue`, `AgentChat.vue` or `VoiceCall.vue`).
 |---|---|---|
 | `src/pages/<area>/` | One file per route, named `<Thing>Page.vue`. A page loads its data, shows loading / error / empty states, and lays out components. Sub-sections of one page (child routes) sit beside it, named `<Thing>Section.vue`. | Reusable rows or panels (those are components). |
 | `src/components/<area>/` | Pieces used by one area's pages: a row, a detail pane, an editor, an import panel. Folder named after the area (`records`, `menu`, `knowledge`, `agent`, `chat`, `conversations`). | Anything with its own route. |
-| `src/components/ui/` | Pieces with no business knowledge, used across areas: `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `FormProblems`, `StatusChip`, `LiveStatus`, `CopyField`, `ToggleSwitch`, `SkeletonRows`, `BrandMark`. | Anything that knows about orders, doctors or the API. |
+| `src/components/ui/` | Pieces with no business knowledge, used across areas: `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `FormProblems`, `StatusChip`, `LiveStatus`, `CopyField`, `ToggleSwitch`, `SkeletonRows`, `ShowMore`, `BrandMark`. | Anything that knows about orders, doctors or the API. |
 | `src/components/layout/` | The shell: `AppSidebar`, `AppTabBar`. | Page content. |
 | `src/api/` | One file per backend resource. Every call goes through `request()` in `client.js`. Shape conversion (doctor to item, desk to preset) happens here, so pages see one shape. | UI state, formatting for display. |
 | `src/store/modules/<name>/` | State more than one page needs at the same time: `auth` (session), `agent` (config, presets), `inbox` (sidebar counts), `ui` (test chat sheet, phone drawer). Split into `state`, `getters`, `mutations`, `actions`. | Lists a single page shows (items, documents, records): the page fetches those itself. |
-| `src/lib/` | Plain functions and constants with no Vue in them: `format.js` (money, time, greeting), `group.js` (Today / Yesterday, avatars), `flows.js` (status buttons, mirrors backend `FLOWS`), `records.js` (one-line summaries), `navigation.js` (the menu), `setup.js` (Home checklist), `presets.js`, `channels.js`, `hours.js`, `slug.js`. | Components, or anything that calls the API. |
+| `src/lib/` | Plain functions and constants with no Vue in them: `format.js` (money, time, greeting), `group.js` (Today / Yesterday, avatars, `PAGE_SIZE`: rows per server page), `flows.js` (status buttons, mirrors backend `FLOWS`), `records.js` (one-line summaries), `navigation.js` (the menu), `setup.js` (Home checklist), `presets.js`, `channels.js`, `hours.js`, `slug.js`. | Components, or anything that calls the API. |
 | `src/mixins/` | Behaviour several components share, written in Options API: `agentSection.js` (load, dirty check, save, leave guard for an Agent settings section). | One-off helpers (use `lib/`). |
 | `src/directives/` | Custom directives, registered where they are used (`directives: { reveal }`): `reveal.js` (an element settles in the first time it scrolls into view; CSS in `main.css`). | Anything with its own state or markup (use a component). |
 | `src/assets/main.css` | Design tokens in `@theme`, and shared classes (`.btn`, `.field`, `.tabs`, `.row`, `.panel`, `.notice`, `.chip`, `.count`, `.segmented`, `.skeleton`). | Page-specific CSS (use `<style scoped>` in the component). |
@@ -144,7 +144,13 @@ next steps.
 - **Sentence case**, no ALL CAPS, no em-dashes, no emoji, no labels above
   headings. Icons from `@phosphor-icons/vue` only.
 - **Lists are rows** with hairlines, grouped Today / Yesterday (`groupByDay`),
-  with a sticky day header.
+  with a sticky day header. A list that grows forever asks the server for
+  `PAGE_SIZE` rows (`limit`), and `ShowMore` asks for the next page
+  (`before` = the oldest row's time). Copy `showMore` in `pages/inbox/InboxPage.vue`.
+- **Fetch what the screen needs, once.** Read the agent from the store
+  (`agent/load` is cached), never fetch inside a loop over rows, debounce
+  search inputs and drop out-of-order answers (`lastAsk` in `InboxPage.vue`).
+  See [performance.md](performance.md).
 - **Shared classes before new CSS.** Reach for `.btn`, `.field`, `.label`,
   `.hint`, `.tabs`, `.segmented`, `.row`, `.panel`, `.notice`, `.chip`, `.count` first.
 - Run `npm run lint` and `npm run build` before you commit.

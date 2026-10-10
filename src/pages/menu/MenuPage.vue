@@ -76,7 +76,7 @@
       ></item-row>
 
       <item-row
-        v-for="item in filtered"
+        v-for="item in shown"
         :key="item.code"
         :item="item"
         :editing="editingCode === item.code"
@@ -88,6 +88,8 @@
         @save="saveEdit(item.code, $event)"
         @remove="remove(item.code)"
       ></item-row>
+
+      <show-more v-if="filtered.length > shown.length" @more="limit += PAGE_SIZE"></show-more>
 
       <empty-state
         v-if="!items.length && !adding"
@@ -108,6 +110,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue';
 import { PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets } from '@phosphor-icons/vue';
 
 import ItemRow from '../../components/menu/ItemRow.vue';
@@ -115,10 +118,16 @@ import ImportPanel from '../../components/menu/ImportPanel.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
+import ShowMore from '../../components/ui/ShowMore.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import { fetchItems, replaceItems } from '../../api/agent.js';
 import { makeCode } from '../../lib/slug.js';
 import { itemNoun } from '../../lib/presets.js';
+
+// The whole list comes in one request (the backend stores and saves it as one
+// list, at most 2000 from a CSV), so search is instant in the browser. Drawing
+// 2000 rows at once is what would be slow, so only this many are drawn.
+const PAGE_SIZE = 50;
 
 export default {
   components: {
@@ -127,6 +136,7 @@ export default {
     SkeletonRows,
     PageHeader,
     EmptyState,
+    ShowMore,
     LoadError,
     PhPlus,
     PhUploadSimple,
@@ -144,7 +154,10 @@ export default {
       editingCode: null,
       adding: false,
       importOpen: false,
-      icons: { list: PhListBullets },
+      limit: PAGE_SIZE,
+      PAGE_SIZE,
+      // markRaw: components are fixed, so Vue need not watch them for changes.
+      icons: markRaw({ list: PhListBullets }),
     };
   },
   computed: {
@@ -172,6 +185,9 @@ export default {
             item.tags.some((tag) => tag.toLowerCase().includes(query)))
       );
     },
+    shown() {
+      return this.filtered.slice(0, this.limit);
+    },
     blank() {
       return {
         code: '',
@@ -183,6 +199,15 @@ export default {
         available: true,
         attributes: {},
       };
+    },
+  },
+  watch: {
+    // A new search or category starts from the top again.
+    query() {
+      this.limit = PAGE_SIZE;
+    },
+    category() {
+      this.limit = PAGE_SIZE;
     },
   },
   created() {
@@ -216,7 +241,7 @@ export default {
       try {
         await replaceItems(this.$store.getters['auth/token'], next);
         // `missing` on the Your agent page depends on there being items.
-        this.$store.dispatch('agent/load').catch(() => {});
+        this.$store.dispatch('agent/load', { force: true }).catch(() => {});
         return true;
       } catch (error) {
         this.items = previous;
@@ -252,7 +277,7 @@ export default {
       this.importOpen = false;
       this.category = 'All';
       await this.load();
-      this.$store.dispatch('agent/load').catch(() => {});
+      this.$store.dispatch('agent/load', { force: true }).catch(() => {});
     },
   },
 };

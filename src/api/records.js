@@ -51,37 +51,44 @@ async function jobsOf(token) {
   return JOBS_FOR[await agentKind(token)] || ['message'];
 }
 
-async function fetchJob(token, job, { status, q } = {}) {
+// One page, newest first: up to `limit` records made before `before` (the last
+// record's created_at). The server's page is at most 100.
+async function fetchJob(token, job, { status, q, limit, before } = {}) {
   const params = new URLSearchParams();
   if (status) params.set('status', status);
   if (q) params.set('q', q);
+  if (limit) params.set('limit', limit);
+  if (before) params.set('before', before);
   const query = params.toString();
   const rows = await request(JOBS[job].path + (query ? `?${query}` : ''), { token });
   return rows.map((row) => toRecord(job, row));
 }
 
 // The sidebar numbers: each job the agent does, with how many are waiting.
+// Only the waiting ones are asked for (status=new), not the whole history.
 export async function fetchInbox(token) {
   const jobs = await jobsOf(token);
   return Promise.all(
-    jobs.map(async (job) => {
-      const records = await fetchJob(token, job);
-      return {
-        job,
-        title: JOBS[job].title,
-        kind: JOBS[job].kind,
-        waiting: records.filter((r) => r.status === 'new').length,
-        total: records.length,
-      };
-    }),
+    jobs.map(async (job) => ({
+      job,
+      title: JOBS[job].title,
+      kind: JOBS[job].kind,
+      waiting: (await fetchJob(token, job, { status: 'new' })).length,
+    })),
   );
 }
 
-// Newest first. `job` is "order", "appointment" or "message"; left out, all of them.
-export async function fetchRecords(token, { job, status, q } = {}) {
+// Newest first. `job` is "order", "appointment" or "message"; left out, all of
+// them (then `limit` is per job, so only page with one job).
+export async function fetchRecords(token, { job, status, q, limit, before } = {}) {
   const jobs = job ? [job] : await jobsOf(token);
-  const lists = await Promise.all(jobs.map((j) => fetchJob(token, j, { status, q })));
+  const lists = await Promise.all(jobs.map((j) => fetchJob(token, j, { status, q, limit, before })));
   return lists.flat().sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+// One record, for a link that names a record older than the first page.
+export async function fetchRecord(token, job, recordId) {
+  return toRecord(job, await request(`${JOBS[job].path}/${recordId}`, { token }));
 }
 
 export async function setRecordStatus(token, recordId, status) {
@@ -90,8 +97,11 @@ export async function setRecordStatus(token, recordId, status) {
   return toRecord(job, row);
 }
 
-// The records one conversation made (the backend's conversation no longer lists them).
-export async function fetchRecordsOf(token, conversationId) {
-  const all = await fetchRecords(token);
-  return all.filter((r) => r.conversation_id === conversationId);
+// The records each conversation made, by conversation id. The backend's
+// conversation no longer lists them, so a page fetches the records once and
+// looks them up here, instead of fetching every record again per conversation.
+export function byConversation(records) {
+  const map = {};
+  records.forEach((r) => (map[r.conversation_id] = map[r.conversation_id] || []).push(r));
+  return map;
 }

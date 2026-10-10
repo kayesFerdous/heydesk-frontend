@@ -1,8 +1,11 @@
 <template>
-  <!-- The frame around the three settings sections: title, section tabs, and on
-       wide screens the test chat beside the form, so a change can be tried at
-       once. Each section (a child route) has its own form and Save. -->
   <section class="flex flex-col lg:h-full">
+    <!-- The frame around the three settings sections: title, section tabs, and on
+         wide screens the test chat beside the form, so a change can be tried at
+         once. Each section (a child route) has its own form and Save.
+         This comment stays inside <section>: one placed before it makes a
+         second root node, and the page <transition> in App.vue can never
+         finish leaving such a page, so the next page stayed blank. -->
     <page-header
       title="Agent settings"
       subtitle="What your agent knows and how it talks. Changes go live on the next message."

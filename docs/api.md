@@ -3,9 +3,16 @@
 Read this instead of crawling `../heydesk`. Source of truth if it drifts:
 `../heydesk/src/heydesk/api/*.py` (routes, schemas), `runtime/config.py`
 (agent config), `errors.py` (error codes), `presets/jobs.yaml` (jobs).
-Last synced 4 Oct 2026 (after agent jobs + document ingest).
+Last synced 4 Oct 2026 (after agent jobs + document ingest); paging added 9 Oct 2026 (backend D46).
 
 ## Conventions
+
+- **Paging (D46).** Lists that grow (`/orders`, `/appointments`, `/shop/orders`,
+  `/messages`, `/conversations`, `/admin/audit`) take `?limit=` (1 to 100,
+  default 100) and `?before=<time>`: the last row's `created_at` (`updated_at`
+  for conversations, `at` for the audit log). Newest first, a plain list; fewer
+  rows than `limit` means the last page. `limit` out of range is 422
+  `invalid_request`. The frontend asks for `PAGE_SIZE` (30, `lib/group.js`).
 
 - Base `/api`, JSON, `Authorization: Bearer <token>`. The token carries the
   workspace, so there are no ids for the business in URLs.
@@ -87,7 +94,7 @@ and connects as soon as one is there. Conversations from Telegram have
 |---|---|
 | `GET /inbox` | `[{job, title, kind, waiting, total}]` for the sidebar badges |
 | `GET /records?job=&status=&q=` | Newest first. `q` matches code ("a104", "A-104", "a 104", "104"), name or phone |
-| `GET /records/{id}` | - |
+| `GET /records/{id}` | One record; really `/orders/{id}`, `/appointments/{id}`, `/messages/{id}`. `fetchRecord`, for an Inbox link older than the first page |
 | `PATCH /records/{id}` `{status}` | 409 `invalid_transition` if not legal. Legal moves mirrored in `lib/flows.js` |
 
 `Record`: `{id, conversation_id, job, kind: order/request, number, code ("A-104": job's first letter + number, not stored), status,
@@ -136,6 +143,13 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   `config`, `jobs`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
   counts), `ui` (test chat sheet, phone drawer). Pages fetch lists (items,
   documents, records) themselves, they are not in the store.
+- Request budget (see [performance.md](performance.md)): `agent/load` fetches
+  once per session (`{ force: true }` after a menu change); `agentKind` is
+  remembered per token; sidebar counts ask only `?status=new`; a conversation's
+  records come from one records list (`byConversation`), never one fetch per
+  conversation. Inbox, Conversations and the admin Activity log fetch one page
+  (`PAGE_SIZE`) and `ShowMore` fetches the next. A link to a record older than
+  the first page (`/inbox?job=&open=`) fetches that one record (`fetchRecord`).
 - `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /agent/{profile,hours,answers}
   /menu /knowledge /channels` (owner), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
@@ -154,4 +168,4 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ## Not built yet (backend supports it)
 
 Admin view of an owner's documents or jobs, import column `mapping`, voice
-channel UI, `GET /records/{id}` deep links.
+channel UI.
