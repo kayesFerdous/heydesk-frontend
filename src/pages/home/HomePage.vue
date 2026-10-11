@@ -1,28 +1,25 @@
 <template>
   <section>
-    <page-header :title="title">
+    <PageHeader :title="title">
       <template #subtitle>
-        <p v-if="ready && hasAgent" class="mt-1 max-w-2xl text-sm text-ink-soft">{{ todayLine }}</p>
+        <p v-if="ready && agent.hasAgent" class="mt-1 max-w-2xl text-sm text-ink-soft">{{ todayLine }}</p>
         <p v-else-if="!ready" class="skeleton mt-2 h-4 w-72" aria-hidden="true"></p>
       </template>
-    </page-header>
+    </PageHeader>
 
-    <load-error v-if="error" :message="error" @retry="load"></load-error>
+    <LoadError v-if="error" :message="error" @retry="load"></LoadError>
 
     <!-- First run: no agent yet, one clear way forward. -->
-    <div v-else-if="noAgent" class="px-5 pb-12 sm:px-8">
+    <div v-else-if="agent.noAgent" class="px-5 pb-12 sm:px-8">
       <div class="panel max-w-2xl p-6 sm:p-8">
         <span class="grid h-11 w-11 place-items-center rounded-[var(--radius-panel)] bg-brand text-white" aria-hidden="true">
-          <ph-sparkle :size="22" weight="fill"></ph-sparkle>
+          <PhSparkle :size="22" weight="fill"></PhSparkle>
         </span>
-        <h2 class="mt-5 text-xl font-semibold tracking-[-0.01em]">Let's set up your agent</h2>
-        <p class="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">
-          Pick what kind of business you run, add your details, and try it. It takes about five
-          minutes, and orders and messages start arriving here.
-        </p>
+        <h2 class="mt-5 text-xl font-semibold tracking-[-0.01em]">{{ t('common.letsSetUp') }}</h2>
+        <p class="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">{{ t('home.setUpText') }}</p>
         <router-link to="/setup" class="btn btn-primary mt-6">
-          Set up your agent
-          <ph-arrow-right :size="16" weight="bold"></ph-arrow-right>
+          {{ t('common.setUpYourAgent') }}
+          <PhArrowRight :size="16" weight="bold"></PhArrowRight>
         </router-link>
       </div>
     </div>
@@ -41,9 +38,9 @@
         <div v-if="!setupDone" class="panel mb-10 overflow-hidden">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4">
             <div>
-              <h2 class="section-title">Finish setting up</h2>
+              <h2 class="section-title">{{ t('setup.finish') }}</h2>
               <p class="mt-0.5 text-sm text-ink-soft">
-                {{ todo.length }} {{ todo.length === 1 ? 'step' : 'steps' }} left, {{ doneCount }} of {{ steps.length }} done.
+                {{ t('home.stepsLeft', { n: formatNumber(todo.length), done: formatNumber(doneCount), total: formatNumber(steps.length) }, todo.length) }}
               </p>
             </div>
             <div class="flex gap-1" aria-hidden="true">
@@ -67,7 +64,7 @@
                 :class="index === 0 ? 'bg-brand text-white' : 'bg-hover text-ink-soft'"
                 aria-hidden="true"
               >
-                {{ doneCount + index + 1 }}
+                {{ formatNumber(doneCount + index + 1) }}
               </span>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-semibold">{{ step.title }}</p>
@@ -78,7 +75,7 @@
                 type="button"
                 class="btn col-start-2 mt-3 justify-self-start sm:col-start-auto sm:mt-0"
                 :class="index === 0 ? 'btn-primary' : 'btn-secondary'"
-                @click="openTestChat"
+                @click="ui.testSheetOpen = true"
               >
                 {{ step.action }}
               </button>
@@ -96,15 +93,15 @@
 
         <!-- What needs a person now: hand-offs first, then new records. -->
         <div class="flex items-baseline justify-between gap-4">
-          <h2 class="section-title">Needs you</h2>
-          <router-link v-if="attention.length" to="/inbox" class="link text-sm">Open inbox</router-link>
+          <h2 class="section-title">{{ t('home.needsYou') }}</h2>
+          <router-link v-if="attention.length" to="/inbox" class="link text-sm">{{ t('home.openInbox') }}</router-link>
         </div>
 
         <div v-if="!attention.length" class="mt-3 flex items-center gap-3 rounded-[var(--radius-panel)] bg-wash px-5 py-5">
-          <ph-check-circle :size="22" class="shrink-0 text-success"></ph-check-circle>
+          <PhCheckCircle :size="22" class="shrink-0 text-success"></PhCheckCircle>
           <p class="text-sm">
-            <span class="font-semibold">Nothing is waiting for you.</span>
-            <span class="text-ink-soft"> New orders, bookings and customers who want a person show up here.</span>
+            <span class="font-semibold">{{ t('home.nothingWaiting') }}</span>
+            <span class="text-ink-soft"> {{ t('home.nothingWaitingText') }}</span>
           </p>
         </div>
 
@@ -116,7 +113,7 @@
                 :class="item.handoff ? 'bg-attention-tint text-attention' : item.tint"
                 aria-hidden="true"
               >
-                <ph-user-sound v-if="item.handoff" :size="18" weight="bold"></ph-user-sound>
+                <PhUserSound v-if="item.handoff" :size="18" weight="bold"></PhUserSound>
                 <template v-else>{{ item.initials }}</template>
               </span>
               <span class="min-w-0 flex-1">
@@ -130,66 +127,68 @@
                 <span v-if="item.amount" class="block text-sm font-semibold">{{ item.amount }}</span>
                 <span class="block text-xs text-ink-soft">{{ item.when }}</span>
               </span>
-              <status-chip :status="item.status" class="hidden shrink-0 sm:inline-flex"></status-chip>
-              <ph-caret-right :size="16" class="shrink-0 text-ink-faint"></ph-caret-right>
+              <StatusChip :status="item.status" class="hidden shrink-0 sm:inline-flex"></StatusChip>
+              <PhCaretRight :size="16" class="shrink-0 text-ink-faint"></PhCaretRight>
             </router-link>
           </li>
         </ul>
-        <p v-if="moreWaiting" class="mt-3 text-sm text-ink-soft">
-          And {{ moreWaiting }} more in your
-          <router-link to="/inbox" class="link">inbox</router-link>.
-        </p>
+        <i18n-t v-if="moreWaiting" keypath="home.moreWaiting" tag="p" class="mt-3 text-sm text-ink-soft" scope="global">
+          <template #n>{{ formatNumber(moreWaiting) }}</template>
+          <template #inbox><router-link to="/inbox" class="link">{{ t('home.inbox') }}</router-link></template>
+        </i18n-t>
       </div>
 
       <!-- The agent at a glance: is it on, where customers reach it. -->
       <aside class="xl:border-l xl:border-hairline xl:pl-10">
-        <h2 class="section-title">Your agent</h2>
+        <h2 class="section-title">{{ t('nav.yourAgent') }}</h2>
         <div class="mt-4 flex items-center gap-3">
           <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-tint text-brand" aria-hidden="true">
-            <ph-chat-circle-dots :size="20" weight="fill"></ph-chat-circle-dots>
+            <PhChatCircleDots :size="20" weight="fill"></PhChatCircleDots>
           </span>
           <div class="min-w-0">
-            <p class="truncate text-sm font-semibold">{{ config.name }}</p>
-            <live-status :paused="suspended"></live-status>
+            <p class="truncate text-sm font-semibold">{{ agent.config.name }}</p>
+            <LiveStatus :paused="auth.isSuspended"></LiveStatus>
           </div>
         </div>
 
         <dl class="mt-5 flex flex-col text-sm">
           <div class="flex items-center justify-between gap-3 border-t border-hairline py-3">
-            <dt class="flex items-center gap-2 text-ink-soft"><ph-globe :size="16"></ph-globe> Website chat</dt>
-            <dd class="font-medium">On</dd>
+            <dt class="flex items-center gap-2 text-ink-soft"><PhGlobe :size="16"></PhGlobe> {{ t('channelsPage.websiteChat') }}</dt>
+            <dd class="font-medium">{{ t('common.on') }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3 border-t border-hairline py-3">
-            <dt class="flex items-center gap-2 text-ink-soft"><ph-telegram-logo :size="16"></ph-telegram-logo> Telegram</dt>
+            <dt class="flex items-center gap-2 text-ink-soft"><PhTelegramLogo :size="16"></PhTelegramLogo> Telegram</dt>
             <dd>
               <span v-if="telegram" class="font-medium">@{{ telegram.username }}</span>
-              <router-link v-else to="/channels" class="link">Connect</router-link>
+              <router-link v-else to="/channels" class="link">{{ t('connect.connect') }}</router-link>
             </dd>
           </div>
           <div class="flex items-center justify-between gap-3 border-y border-hairline py-3">
-            <dt class="flex items-center gap-2 text-ink-soft"><ph-books :size="16"></ph-books> Knowledge</dt>
+            <dt class="flex items-center gap-2 text-ink-soft"><PhBooks :size="16"></PhBooks> {{ t('nav.knowledge') }}</dt>
             <dd>
               <router-link to="/knowledge" class="font-medium hover:underline">
-                {{ documentCount }} {{ documentCount === 1 ? 'document' : 'documents' }}
+                {{ t('home.documents', { n: formatNumber(documentCount) }, documentCount) }}
               </router-link>
             </dd>
           </div>
         </dl>
 
         <div class="mt-5">
-          <copy-field label="Chat link" :value="link" @copied="onCopied"></copy-field>
+          <CopyField :label="t('common.chatLink')" :value="link" @copied="onCopied"></CopyField>
         </div>
 
         <router-link to="/agent" class="btn btn-secondary mt-5 w-full">
-          <ph-sliders-horizontal :size="16"></ph-sliders-horizontal>
-          Edit settings
+          <PhSlidersHorizontal :size="16"></PhSlidersHorizontal>
+          {{ t('home.editSettings') }}
         </router-link>
       </aside>
     </div>
   </section>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   PhArrowRight,
   PhBooks,
@@ -212,210 +211,153 @@ import { fetchRecords, byConversation } from '../../api/records.js';
 import { fetchConversations } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';
 import { fetchDocuments } from '../../api/agent.js';
-import { formatMoney, formatAgo, greeting } from '../../lib/format.js';
+import { formatMoney, formatNumber, formatAgo, greeting } from '../../lib/format.js';
 import { isToday, avatarTint, initials } from '../../lib/group.js';
-import { chatLink } from '../../lib/presets.js';
+import { chatLink, itemsLabel } from '../../lib/presets.js';
 import { channelOf } from '../../lib/channels.js';
 import { summarize } from '../../lib/records.js';
 import { setupSteps, markShared, wasShared } from '../../lib/setup.js';
+import { useAuthStore } from '../../stores/auth.js';
+import { useAgentStore } from '../../stores/agent.js';
+import { useInboxStore } from '../../stores/inbox.js';
+import { useUiStore } from '../../stores/ui.js';
 
 // How many waiting things Home lists before pointing to the inbox.
 const ATTENTION_LIMIT = 6;
 
-// What one record is called in the "Today" sentence: [one, many].
-const NOUNS = {
-  order: ['order', 'orders'],
-  appointment: ['appointment request', 'appointment requests'],
-  message: ['message', 'messages'],
-};
+// The kinds of record the "Today" sentence counts, in its order.
+const JOBS = ['order', 'appointment', 'message'];
 
-export default {
-  components: {
-    PageHeader,
-    LoadError,
-    LiveStatus,
-    CopyField,
-    StatusChip,
-    PhArrowRight,
-    PhBooks,
-    PhCaretRight,
-    PhChatCircleDots,
-    PhCheckCircle,
-    PhGlobe,
-    PhSlidersHorizontal,
-    PhSparkle,
-    PhTelegramLogo,
-    PhUserSound,
-  },
-  data() {
+const { t } = useI18n();
+const auth = useAuthStore();
+const agent = useAgentStore();
+const inbox = useInboxStore();
+const ui = useUiStore();
+
+const ready = ref(false);
+const error = ref(null);
+const records = ref([]);
+const conversations = ref([]);
+const telegram = ref(null);
+const documentCount = ref(0);
+const shared = ref(false);
+
+const timezone = computed(() => agent.config?.timezone || 'Asia/Dhaka');
+const title = computed(() => greeting(timezone.value));
+const link = computed(() => chatLink(agent.publicKey));
+
+// "Today your agent had 14 conversations and took 3 orders worth ৳2,450."
+const todayLine = computed(() => {
+  const chats = conversations.value.filter((c) => isToday(c.created_at, timezone.value)).length;
+  if (!chats) return t('home.todayNone');
+
+  const today = records.value.filter((r) => isToday(r.created_at, timezone.value));
+  const taken = JOBS.map((job) => {
+    const ofJob = today.filter((r) => r.job === job);
+    if (!ofJob.length) return null;
+    const total = ofJob.reduce((sum, r) => sum + (r.total || 0), 0);
+    return t(`home.taken.${job}`, { n: formatNumber(ofJob.length), total: formatMoney(total) }, ofJob.length);
+  }).filter(Boolean);
+
+  const had = t('home.conversations', { n: formatNumber(chats) }, chats);
+  if (!taken.length) return t('home.todayHad', { had });
+  return t('home.todayHadTook', { had, took: taken.join(t('home.and')) });
+});
+
+const steps = computed(() =>
+  setupSteps({
+    missing: agent.missing,
+    itemsLabel: itemsLabel(agent.kind),
+    triedIt: conversations.value.length > 0,
+    shared: shared.value || !!telegram.value,
+  }),
+);
+const doneCount = computed(() => steps.value.filter((step) => step.done).length);
+const todo = computed(() => steps.value.filter((step) => !step.done));
+const setupDone = computed(() => todo.value.length === 0);
+const waiting = computed(() => records.value.filter((r) => r.status === 'new'));
+// Customers waiting for a person. Their name comes from a record the
+// conversation made, so no conversation has to be opened for it.
+const handoffs = computed(() => conversations.value.filter((c) => c.status === 'needs_human'));
+
+const attention = computed(() => {
+  const recordsOf = byConversation(records.value);
+  const people = handoffs.value.slice(0, ATTENTION_LIMIT).map((c) => {
+    const name = (recordsOf[c.id] || [])[0]?.customer_name || t('home.aVisitor');
     return {
-      ready: false,
-      error: null,
-      records: [],
-      conversations: [],
-      telegram: null,
-      documentCount: 0,
-      shared: false,
+      id: c.id,
+      handoff: true,
+      title: t('conversations.askedForPerson', { name }),
+      text: t('home.handoffText', { channel: channelOf(c.channel).long }),
+      when: formatAgo(c.updated_at, timezone.value),
+      status: 'needs_human',
+      to: `/conversations?open=${c.id}`,
     };
-  },
-  computed: {
-    config() {
-      return this.$store.getters['agent/config'];
-    },
-    hasAgent() {
-      return this.$store.getters['agent/hasAgent'];
-    },
-    noAgent() {
-      return this.$store.getters['agent/noAgent'];
-    },
-    suspended() {
-      return this.$store.getters['auth/isSuspended'];
-    },
-    timezone() {
-      return (this.config && this.config.timezone) || 'Asia/Dhaka';
-    },
-    title() {
-      return greeting(this.timezone);
-    },
-    link() {
-      return chatLink(this.$store.getters['agent/publicKey']);
-    },
-    // "Today your agent had 14 conversations and took 3 orders worth ৳2,450."
-    todayLine() {
-      const chats = this.conversations.filter((c) => isToday(c.created_at, this.timezone)).length;
-      if (!chats) return 'No customers yet today. Your agent is ready the moment one writes.';
+  });
+  const taken = waiting.value.map((r) => ({
+    id: r.id,
+    title: r.customer_name || t('records.customer'),
+    code: r.code,
+    text: summarize(r),
+    when: formatAgo(r.created_at, timezone.value),
+    amount: r.kind === 'order' ? formatMoney(r.total) : '',
+    status: r.status,
+    initials: initials(r.customer_name),
+    tint: avatarTint(r.customer_name),
+    to: `/inbox?job=${r.job}&open=${r.id}`,
+  }));
+  return [...people, ...taken].slice(0, ATTENTION_LIMIT);
+});
+const moreWaiting = computed(() => Math.max(0, handoffs.value.length + waiting.value.length - ATTENTION_LIMIT));
 
-      const today = this.records.filter((r) => isToday(r.created_at, this.timezone));
-      const taken = Object.keys(NOUNS)
-        .map((job) => {
-          const count = today.filter((r) => r.job === job).length;
-          if (!count) return null;
-          let words = `${count} ${NOUNS[job][count === 1 ? 0 : 1]}`;
-          if (job === 'order') {
-            const total = today.filter((r) => r.job === 'order').reduce((sum, r) => sum + (r.total || 0), 0);
-            words += ` worth ${formatMoney(total)}`;
-          }
-          return words;
-        })
-        .filter(Boolean);
+async function refreshConversations() {
+  try {
+    conversations.value = await fetchConversations();
+  } catch (err) {
+    // Best effort: the next visit loads it again.
+  }
+}
 
-      let line = `Today your agent had ${chats} ${chats === 1 ? 'conversation' : 'conversations'}`;
-      if (taken.length) line += ` and took ${taken.join(' and ')}`;
-      return line + '.';
-    },
-    steps() {
-      return setupSteps({
-        missing: this.$store.getters['agent/missing'],
-        itemsLabel: this.$store.getters['agent/itemsLabel'],
-        triedIt: this.conversations.length > 0,
-        shared: this.shared || !!this.telegram,
-      });
-    },
-    doneCount() {
-      return this.steps.filter((step) => step.done).length;
-    },
-    todo() {
-      return this.steps.filter((step) => !step.done);
-    },
-    setupDone() {
-      return this.todo.length === 0;
-    },
-    waiting() {
-      return this.records.filter((r) => r.status === 'new');
-    },
-    // Customers waiting for a person. Their name comes from a record the
-    // conversation made, so no conversation has to be opened for it.
-    handoffs() {
-      return this.conversations.filter((c) => c.status === 'needs_human');
-    },
-    attention() {
-      const recordsOf = byConversation(this.records);
-      const handoffs = this.handoffs.slice(0, ATTENTION_LIMIT).map((c) => {
-        const record = (recordsOf[c.id] || [])[0];
-        const name = (record && record.customer_name) || 'A visitor';
-        return {
-          id: c.id,
-          handoff: true,
-          title: `${name} asked for a person`,
-          text: `${channelOf(c.channel).long}. Read what was said, then call or reply.`,
-          when: formatAgo(c.updated_at, this.timezone),
-          status: 'needs_human',
-          to: `/conversations?open=${c.id}`,
-        };
-      });
-      const records = this.waiting.map((r) => ({
-        id: r.id,
-        title: r.customer_name || 'Customer',
-        code: r.code,
-        text: summarize(r),
-        when: formatAgo(r.created_at, this.timezone),
-        amount: r.kind === 'order' ? formatMoney(r.total) : '',
-        status: r.status,
-        initials: initials(r.customer_name),
-        tint: avatarTint(r.customer_name),
-        to: `/inbox?job=${r.job}&open=${r.id}`,
-      }));
-      return [...handoffs, ...records].slice(0, ATTENTION_LIMIT);
-    },
-    moreWaiting() {
-      return Math.max(0, this.handoffs.length + this.waiting.length - ATTENTION_LIMIT);
-    },
-  },
-  watch: {
-    // Closing the test chat may have finished "Try your agent": check again.
-    '$store.state.ui.testSheetOpen'(open) {
-      if (!open && this.hasAgent) this.refreshConversations();
-    },
-  },
-  created() {
-    this.load();
-  },
-  methods: {
-    async refreshConversations() {
-      try {
-        this.conversations = await fetchConversations(this.$store.getters['auth/token']);
-      } catch (error) {
-        // Best effort: the next visit loads it again.
-      }
-    },
-    async load() {
-      this.error = null;
-      this.ready = false;
-      const token = this.$store.getters['auth/token'];
-      try {
-        await this.$store.dispatch('agent/load');
-        if (this.noAgent) {
-          this.ready = true;
-          return;
-        }
-        await this.$store.dispatch('agent/loadPresets');
-        const [records, conversations, telegram, documents] = await Promise.all([
-          fetchRecords(token),
-          fetchConversations(token),
-          fetchTelegram(token).catch(() => null),
-          fetchDocuments(token).catch(() => []),
-        ]);
-        this.records = records;
-        this.conversations = conversations;
-        this.telegram = telegram;
-        this.documentCount = documents.length;
+async function load() {
+  error.value = null;
+  ready.value = false;
+  try {
+    await agent.load();
+    if (agent.noAgent) {
+      ready.value = true;
+      return;
+    }
+    await agent.loadPresets();
+    const [recordList, conversationList, bot, documents] = await Promise.all([
+      fetchRecords(),
+      fetchConversations(),
+      fetchTelegram().catch(() => null),
+      fetchDocuments().catch(() => []),
+    ]);
+    records.value = recordList;
+    conversations.value = conversationList;
+    telegram.value = bot;
+    documentCount.value = documents.length;
+    shared.value = !!auth.business && wasShared(auth.business.id);
+    inbox.load().catch(() => {});
+  } catch (err) {
+    error.value = err.message;
+  }
+  ready.value = true;
+}
 
-        const business = this.$store.getters['auth/business'];
-        this.shared = !!business && wasShared(business.id);
-        this.$store.dispatch('inbox/load').catch(() => {});
-      } catch (error) {
-        this.error = error.message;
-      }
-      this.ready = true;
-    },
-    openTestChat() {
-      this.$store.commit('ui/setTestSheet', true);
-    },
-    onCopied() {
-      const business = this.$store.getters['auth/business'];
-      if (business) markShared(business.id);
-      this.shared = true;
-    },
+function onCopied() {
+  if (auth.business) markShared(auth.business.id);
+  shared.value = true;
+}
+
+// Closing the test chat may have finished "Try your agent": check again.
+watch(
+  () => ui.testSheetOpen,
+  (open) => {
+    if (!open && agent.hasAgent) refreshConversations();
   },
-};
+);
+
+load();
 </script>

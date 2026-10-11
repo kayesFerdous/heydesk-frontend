@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import store from './store/index.js';
+import { useAuthStore } from './stores/auth.js';
 
 // Home is where the owner lands, so it ships in the main bundle. Everything
 // else is fetched the first time it is visited.
@@ -35,8 +35,9 @@ const router = createRouter({
       component: LandingPage,
       meta: { bare: true },
       beforeEnter: () => {
-        if (!store.getters['auth/isAuthenticated']) return true;
-        return store.getters['auth/isAdmin'] ? '/admin' : '/home';
+        const auth = useAuthStore();
+        if (!auth.isAuthenticated) return true;
+        return auth.isAdmin ? '/admin' : '/home';
       },
     },
     {
@@ -80,21 +81,13 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, _, next) => {
-  const signedIn = store.getters['auth/isAuthenticated'];
-  const isAdmin = store.getters['auth/isAdmin'];
-  if (to.meta.requiresAuth && !signedIn) {
-    next('/sign-in');
-  } else if (to.meta.requiresUnauth && signedIn) {
-    next('/');
-  } else if (to.meta.requiresAdmin && !isAdmin) {
-    next('/home');
-  } else if (to.meta.requiresOwner && isAdmin) {
-    // Admins have no business of their own, so the owner screens have no data.
-    next('/admin');
-  } else {
-    next();
-  }
+router.beforeEach((to) => {
+  const { isAuthenticated, isAdmin } = useAuthStore();
+  if (to.meta.requiresAuth && !isAuthenticated) return '/sign-in';
+  if (to.meta.requiresUnauth && isAuthenticated) return '/';
+  if (to.meta.requiresAdmin && !isAdmin) return '/home';
+  // Admins have no business of their own, so the owner screens have no data.
+  if (to.meta.requiresOwner && isAdmin) return '/admin';
 });
 
 export default router;

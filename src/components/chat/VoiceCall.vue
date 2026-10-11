@@ -5,145 +5,143 @@
     <p v-if="error" class="max-w-[11rem] text-right text-xs leading-snug text-danger" role="alert">{{ error }}</p>
 
     <button v-if="state === 'idle'" type="button" class="btn btn-secondary" @click="call">
-      <ph-phone :size="16" weight="bold"></ph-phone>
-      Call
+      <PhPhone :size="16" weight="bold"></PhPhone>
+      {{ t('voice.call') }}
     </button>
 
     <template v-else>
       <span class="text-xs font-medium text-ink-soft" role="status">
-        {{ state === 'connecting' ? 'Connecting' : clock }}
+        {{ state === 'connecting' ? t('voice.connecting') : clock }}
       </span>
       <button
         v-if="state === 'live'"
         type="button"
         class="btn btn-secondary btn-icon !rounded-full"
-        :aria-label="muted ? 'Unmute' : 'Mute'"
+        :aria-label="muted ? t('voice.unmute') : t('voice.mute')"
         :aria-pressed="muted ? 'true' : 'false'"
         @click="toggleMute"
       >
-        <ph-microphone-slash v-if="muted" :size="18" weight="bold" class="text-danger"></ph-microphone-slash>
-        <ph-microphone v-else :size="18" weight="bold"></ph-microphone>
+        <PhMicrophoneSlash v-if="muted" :size="18" weight="bold" class="text-danger"></PhMicrophoneSlash>
+        <PhMicrophone v-else :size="18" weight="bold"></PhMicrophone>
       </button>
       <button type="button" class="btn btn-danger" @click="hangUp()">
-        <ph-phone-x :size="16" weight="bold"></ph-phone-x>
-        End
+        <PhPhoneX :size="16" weight="bold"></PhPhoneX>
+        {{ t('voice.end') }}
       </button>
     </template>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PhMicrophone, PhMicrophoneSlash, PhPhone, PhPhoneX } from '@phosphor-icons/vue';
 
 import { fetchIceServers, sendOffer } from '../../api/voice.js';
+import { formatNumber } from '../../lib/format.js';
 
-export default {
-  components: { PhMicrophone, PhMicrophoneSlash, PhPhone, PhPhoneX },
-  props: {
-    publicKey: { type: String, required: true },
-  },
-  data() {
-    return {
-      state: 'idle', // idle, connecting, live
-      muted: false,
-      seconds: 0,
-      error: null,
+const props = defineProps({
+  publicKey: { type: String, required: true },
+});
+const { t } = useI18n();
+
+const state = ref('idle'); // idle, connecting, live
+const muted = ref(false);
+const seconds = ref(0);
+const error = ref(null);
+
+// The connection, microphone and timers are not shown on screen, so they are
+// plain variables that Vue does not watch.
+let pc = null;
+let mic = null;
+let speaker = null;
+let ping = null;
+let timer = null;
+
+const clock = computed(() => {
+  const minutes = formatNumber(Math.floor(seconds.value / 60));
+  const rest = formatNumber(seconds.value % 60).padStart(2, formatNumber(0));
+  return `${minutes}:${rest}`;
+});
+
+async function call() {
+  error.value = null;
+  state.value = 'connecting';
+  try {
+    mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    state.value = 'idle';
+    error.value = t('voice.allowMic');
+    return;
+  }
+
+  try {
+    const iceServers = await fetchIceServers();
+    const connection = new RTCPeerConnection({ iceServers });
+    pc = connection;
+
+    // The backend expects the microphone as the first transceiver.
+    connection.addTransceiver(mic.getAudioTracks()[0], { direction: 'sendrecv' });
+    speaker = new Audio();
+    speaker.autoplay = true;
+    connection.ontrack = (event) => {
+      speaker.srcObject = event.streams[0] || new MediaStream([event.track]);
     };
-  },
-  computed: {
-    clock() {
-      const minutes = Math.floor(this.seconds / 60);
-      const rest = String(this.seconds % 60).padStart(2, '0');
-      return `${minutes}:${rest}`;
-    },
-  },
-  created() {
-    // The connection, microphone and timers are not shown on screen, so they
-    // live outside data() and Vue does not watch them.
-    this.pc = null;
-    this.mic = null;
-    this.speaker = null;
-    this.ping = null;
-    this.timer = null;
-  },
-  beforeUnmount() {
-    this.hangUp();
-  },
-  methods: {
-    async call() {
-      this.error = null;
-      this.state = 'connecting';
-      try {
-        this.mic = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (error) {
-        this.state = 'idle';
-        this.error = 'Allow the microphone to call.';
-        return;
-      }
 
-      try {
-        const iceServers = await fetchIceServers();
-        const pc = new RTCPeerConnection({ iceServers });
-        this.pc = pc;
+    // A ping every second lets the server notice a closed tab.
+    const channel = connection.createDataChannel('chat');
+    ping = setInterval(() => channel.readyState === 'open' && channel.send('ping'), 1000);
 
-        // The backend expects the microphone as the first transceiver.
-        pc.addTransceiver(this.mic.getAudioTracks()[0], { direction: 'sendrecv' });
-        this.speaker = new Audio();
-        this.speaker.autoplay = true;
-        pc.ontrack = (event) => {
-          this.speaker.srcObject = event.streams[0] || new MediaStream([event.track]);
-        };
+    connection.onconnectionstatechange = () => {
+      const s = connection.connectionState;
+      if (s === 'connected') started();
+      if (s === 'failed') hangUp(t('voice.dropped'));
+      if (s === 'disconnected' || s === 'closed') hangUp();
+    };
 
-        // A ping every second lets the server notice a closed tab.
-        const channel = pc.createDataChannel('chat');
-        this.ping = setInterval(() => channel.readyState === 'open' && channel.send('ping'), 1000);
+    // Wait for every ICE candidate, so one offer carries them all.
+    await connection.setLocalDescription(await connection.createOffer());
+    await new Promise((done) => {
+      if (connection.iceGatheringState === 'complete') return done();
+      connection.onicegatheringstatechange = () => connection.iceGatheringState === 'complete' && done();
+    });
 
-        pc.onconnectionstatechange = () => {
-          if (pc.connectionState === 'connected') this.started();
-          if (pc.connectionState === 'failed') this.hangUp('The call dropped. Try again.');
-          if (pc.connectionState === 'disconnected' || pc.connectionState === 'closed') this.hangUp();
-        };
+    const answer = await sendOffer(props.publicKey, connection.localDescription);
+    if (pc !== connection) return; // ended while connecting
+    await connection.setRemoteDescription(answer);
+  } catch (err) {
+    hangUp(err.message || t('voice.couldNotConnect'));
+  }
+}
 
-        // Wait for every ICE candidate, so one offer carries them all.
-        await pc.setLocalDescription(await pc.createOffer());
-        await new Promise((done) => {
-          if (pc.iceGatheringState === 'complete') return done();
-          pc.onicegatheringstatechange = () => pc.iceGatheringState === 'complete' && done();
-        });
+function started() {
+  if (state.value === 'live') return;
+  state.value = 'live';
+  seconds.value = 0;
+  timer = setInterval(() => (seconds.value += 1), 1000);
+}
 
-        const answer = await sendOffer(this.publicKey, pc.localDescription);
-        if (this.pc !== pc) return; // ended while connecting
-        await pc.setRemoteDescription(answer);
-      } catch (error) {
-        this.hangUp(error.message || 'The call could not connect. Try again.');
-      }
-    },
-    started() {
-      if (this.state === 'live') return;
-      this.state = 'live';
-      this.seconds = 0;
-      this.timer = setInterval(() => (this.seconds += 1), 1000);
-    },
-    toggleMute() {
-      this.muted = !this.muted;
-      this.mic.getAudioTracks().forEach((track) => (track.enabled = !this.muted));
-    },
-    hangUp(error = null) {
-      clearInterval(this.ping);
-      clearInterval(this.timer);
-      if (this.mic) this.mic.getTracks().forEach((track) => track.stop());
-      if (this.pc) {
-        this.pc.onconnectionstatechange = null;
-        this.pc.close();
-      }
-      if (this.speaker) this.speaker.srcObject = null;
-      this.pc = null;
-      this.mic = null;
-      this.speaker = null;
-      this.state = 'idle';
-      this.muted = false;
-      this.error = error;
-    },
-  },
-};
+function toggleMute() {
+  muted.value = !muted.value;
+  mic.getAudioTracks().forEach((track) => (track.enabled = !muted.value));
+}
+
+function hangUp(message = null) {
+  clearInterval(ping);
+  clearInterval(timer);
+  if (mic) mic.getTracks().forEach((track) => track.stop());
+  if (pc) {
+    pc.onconnectionstatechange = null;
+    pc.close();
+  }
+  if (speaker) speaker.srcObject = null;
+  pc = null;
+  mic = null;
+  speaker = null;
+  state.value = 'idle';
+  muted.value = false;
+  error.value = message;
+}
+
+onBeforeUnmount(() => hangUp());
 </script>

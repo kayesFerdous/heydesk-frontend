@@ -24,10 +24,8 @@
   </span>
 </template>
 
-<script>
-export default {
-  props: {
-    markOnly: { type: Boolean, default: false },
-  },
-};
+<script setup>
+defineProps({
+  markOnly: { type: Boolean, default: false },
+});
 </script>

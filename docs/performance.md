@@ -45,7 +45,7 @@ A new sign-in has a new token, so it never sees the previous business's kind.
 
 **Benefit.** One `GET /agent` per session instead of one per list call.
 
-## 2. Load the agent once, share requests in flight (`store/modules/agent/actions.js`, `store/modules/inbox/actions.js`)
+## 2. Load the agent once, share requests in flight (`stores/agent.js`, `stores/inbox.js`)
 
 **Problem.** Opening a page fired the same request twice: the sidebar asks
 for the agent, the presets and the badge counts when it appears, and the

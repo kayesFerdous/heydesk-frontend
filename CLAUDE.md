@@ -12,11 +12,21 @@ session.
 
 ## Rules
 
-- **Vue 3 runtime, Options API only.** No `<script setup>`, no Composition API,
-  no TypeScript, no UI kit. Vuex 4, Vue Router 4, bare `fetch`. Same style as
-  `../../store-manager-vue`; the owner is learning and should be able to explain
-  every line. Keep it simple, build the normal path well.
-- Every request goes through `src/api/client.js`. The backend's error shape is
+- **Vue 3, Composition API with `<script setup>`.** No Options API, no
+  TypeScript, no UI kit. Pinia (setup stores in `src/stores/`), Vue Router 4,
+  vue-i18n, bare `fetch`. Shared behaviour is a composable in
+  `src/composables/`. The owner is learning and should be able to explain every
+  line. Keep it simple, build the normal path well.
+- **Two languages, English and Bangla.** No user-facing words in templates or
+  scripts: every string is a key in `src/i18n/en.js` with the same key in
+  `src/i18n/bn.js`. Components use `const { t } = useI18n()`; plain JS in
+  `lib/` and `api/` imports `t` from `src/i18n/index.js`. Numbers, money and
+  dates go through `lib/format.js` (Bangla digits in Bangla mode). The
+  backend's own sentences (errors, `missing`, the agent's replies) show as sent.
+- Imported components are written PascalCase in templates (`<LoadError>`), so
+  a ref with the same camelCase name (`loadError`) can never shadow them.
+- Every request goes through `src/api/client.js`, which also holds the session
+  token (API functions take no token). The backend's error shape is
   `{ error: { code, message, fields? } }`; show `message` as-is.
 - Money arrives in minor units (45000 = ৳450): always `formatMoney`. Times are
   UTC: always `formatTime` (agent timezone, default `Asia/Dhaka`).

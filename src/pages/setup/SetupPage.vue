@@ -1,17 +1,20 @@
 <template>
   <div class="flex min-h-dvh flex-col bg-surface">
     <header class="flex items-center justify-between border-b border-hairline px-5 py-4 sm:px-10">
-      <brand-mark></brand-mark>
-      <button type="button" class="btn btn-quiet btn-sm" @click="signOut">
-        Sign out
-      </button>
+      <BrandMark></BrandMark>
+      <div class="flex items-center gap-2">
+        <LanguageSwitch></LanguageSwitch>
+        <button type="button" class="btn btn-quiet btn-sm" @click="signOut">
+          {{ t('common.signOut') }}
+        </button>
+      </div>
     </header>
 
     <main class="mx-auto w-full max-w-3xl flex-1 px-5 pt-10 pb-16 sm:px-10">
-      <ol class="flex items-center gap-3 text-sm" aria-label="Progress">
+      <ol class="flex items-center gap-3 text-sm" :aria-label="t('setup.progress')">
         <li
           v-for="(label, index) in steps"
-          :key="label"
+          :key="index"
           class="flex items-center gap-3"
           :class="index > 0 ? 'flex-1' : ''"
         >
@@ -21,8 +24,8 @@
               class="grid h-7 w-7 place-items-center rounded-full text-xs font-semibold"
               :class="index <= step ? 'bg-brand text-white' : 'bg-hover text-ink-soft'"
             >
-              <ph-check v-if="index < step" :size="14" weight="bold"></ph-check>
-              <template v-else>{{ index + 1 }}</template>
+              <PhCheck v-if="index < step" :size="14" weight="bold"></PhCheck>
+              <template v-else>{{ formatNumber(index + 1) }}</template>
             </span>
             <span :class="index === step ? 'font-semibold' : 'text-ink-soft'">{{ label }}</span>
           </span>
@@ -31,17 +34,17 @@
 
       <!-- Step 1: choose -->
       <section v-if="step === 0" class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">What should your agent do?</h1>
-        <p class="mt-2 text-ink-soft">Pick a starting point. You can change everything later.</p>
+        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
+        <p class="mt-2 text-ink-soft">{{ t('setup.chooseText') }}</p>
 
         <p v-if="loadError" class="mt-8 text-sm text-danger" role="alert">
           {{ loadError }}
           <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="loadPresets">
-            Try again
+            {{ t('common.tryAgain') }}
           </button>
         </p>
 
-        <div v-else class="mt-8 grid gap-4 sm:grid-cols-3" role="radiogroup" aria-label="Preset">
+        <div v-else class="mt-8 grid gap-4 sm:grid-cols-3" role="radiogroup" :aria-label="t('setup.kind')">
           <button
             v-for="preset in presets"
             :key="preset.id"
@@ -53,35 +56,35 @@
             @click="presetId = preset.id"
           >
             <span class="grid h-11 w-11 place-items-center rounded-[var(--radius-panel)] bg-brand-tint text-brand">
-              <component :is="iconFor(preset.id)" :size="24"></component>
+              <component :is="presetIcon(preset.id)" :size="24"></component>
             </span>
-            <span class="mt-4 block text-base font-semibold">{{ preset.label }}</span>
-            <span class="mt-1 block text-sm leading-relaxed text-ink-soft">{{ preset.description }}</span>
-            <ph-check-circle
+            <span class="mt-4 block text-base font-semibold">{{ presetLabel(preset) }}</span>
+            <span class="mt-1 block text-sm leading-relaxed text-ink-soft">{{ presetDescription(preset) }}</span>
+            <PhCheckCircle
               v-if="preset.id === presetId"
               :size="22"
               weight="fill"
               class="absolute top-4 right-4 text-brand"
-            ></ph-check-circle>
+            ></PhCheckCircle>
           </button>
         </div>
 
         <div class="mt-10 flex items-center justify-between">
-          <p class="text-sm text-ink-soft">You will be live in about five minutes.</p>
+          <p class="text-sm text-ink-soft">{{ t('setup.liveSoon') }}</p>
           <button type="button" class="btn btn-primary" :disabled="!presetId" @click="step = 1">
-            Continue
+            {{ t('common.continue') }}
           </button>
         </div>
       </section>
 
       <!-- Step 2: details -->
       <section v-else-if="step === 1" class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">Tell us about your business</h1>
-        <p class="mt-2 text-ink-soft">Just the basics. Opening hours, menu and the rest come next.</p>
+        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">{{ t('setup.detailsTitle') }}</h1>
+        <p class="mt-2 text-ink-soft">{{ t('setup.detailsText') }}</p>
 
         <form class="mt-8 flex max-w-lg flex-col gap-5" novalidate @submit.prevent="create">
           <div>
-            <label class="label" for="business-name">Business name</label>
+            <label class="label" for="business-name">{{ t('common.businessName') }}</label>
             <input
               id="business-name"
               v-model.trim="businessName"
@@ -97,7 +100,7 @@
           </div>
 
           <div>
-            <label class="label" for="agent-name">What should customers call your agent?</label>
+            <label class="label" for="agent-name">{{ t('setup.agentName') }}</label>
             <input
               id="agent-name"
               v-model.trim="agentName"
@@ -110,16 +113,16 @@
           </div>
 
           <div>
-            <label class="label" for="address">Address <span class="font-normal text-ink-soft">(optional)</span></label>
+            <label class="label" for="address">{{ t('setup.address') }} <span class="font-normal text-ink-soft">{{ t('common.optional') }}</span></label>
             <input id="address" v-model.trim="address" class="field" type="text" autocomplete="street-address" />
           </div>
 
           <p v-if="formError" class="text-sm text-danger" role="alert">{{ formError }}</p>
 
           <div class="mt-2 flex items-center justify-between">
-            <button type="button" class="btn btn-quiet" :disabled="isCreating" @click="step = 0">Back</button>
+            <button type="button" class="btn btn-quiet" :disabled="isCreating" @click="step = 0">{{ t('common.back') }}</button>
             <button type="submit" class="btn btn-primary" :disabled="isCreating">
-              {{ isCreating ? 'Creating your agent...' : 'Create my agent' }}
+              {{ isCreating ? t('setup.creating') : t('setup.create') }}
             </button>
           </div>
         </form>
@@ -127,27 +130,25 @@
 
       <!-- Step 3: try it -->
       <section v-else class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">Your agent is ready. Try it.</h1>
-        <p class="mt-2 text-ink-soft">
-          Say hello, ask a question, or place a test order. This is what your customers will see.
-        </p>
+        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">{{ t('setup.readyTitle') }}</h1>
+        <p class="mt-2 text-ink-soft">{{ t('setup.readyText') }}</p>
 
         <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
           <div class="h-[28rem] overflow-hidden rounded-[var(--radius-panel)] border border-hairline bg-wash">
-            <agent-chat v-if="publicKey" :public-key="publicKey"></agent-chat>
+            <AgentChat v-if="agent.publicKey" :public-key="agent.publicKey"></AgentChat>
           </div>
 
           <div class="flex flex-col gap-6">
-            <copy-field v-if="publicKey" label="Chat link" :value="link"></copy-field>
-            <div v-if="missing.length" class="rounded-[var(--radius-panel)] border border-hairline bg-wash p-4 text-sm">
-              <p class="font-semibold">Still to fill in</p>
+            <CopyField v-if="agent.publicKey" :label="t('common.chatLink')" :value="link"></CopyField>
+            <div v-if="agent.missing.length" class="rounded-[var(--radius-panel)] border border-hairline bg-wash p-4 text-sm">
+              <p class="font-semibold">{{ t('setup.stillToFill') }}</p>
               <ul class="mt-2 list-disc pl-5 text-ink-soft">
-                <li v-for="item in missing" :key="item">{{ item }}</li>
+                <li v-for="item in agent.missing" :key="item">{{ item }}</li>
               </ul>
             </div>
             <div class="flex flex-col gap-2">
-              <router-link to="/agent" class="btn btn-primary">Finish setting up</router-link>
-              <router-link to="/home" class="btn btn-quiet">Go to Home</router-link>
+              <router-link to="/agent" class="btn btn-primary">{{ t('setup.finish') }}</router-link>
+              <router-link to="/home" class="btn btn-quiet">{{ t('common.goHome') }}</router-link>
             </div>
           </div>
         </div>
@@ -156,118 +157,117 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { PhCheck, PhCheckCircle } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
 import CopyField from '../../components/ui/CopyField.vue';
+import LanguageSwitch from '../../components/ui/LanguageSwitch.vue';
 import AgentChat from '../../components/chat/AgentChat.vue';
-import { presetIcon, chatLink } from '../../lib/presets.js';
+import { presetIcon, presetLabel, presetDescription, chatLink } from '../../lib/presets.js';
+import { formatNumber } from '../../lib/format.js';
+import { useAuthStore } from '../../stores/auth.js';
+import { useAgentStore } from '../../stores/agent.js';
 
-export default {
-  components: { BrandMark, CopyField, AgentChat, PhCheck, PhCheckCircle },
-  data() {
-    return {
-      step: 0,
-      steps: ['Choose', 'Your details', 'Try it'],
-      presetId: null,
-      businessName: '',
-      agentName: '',
-      agentNameEdited: false,
-      address: '',
-      fieldErrors: {},
-      formError: null,
-      loadError: null,
-      isCreating: false,
-    };
-  },
-  computed: {
-    // Most common first; a preset the frontend has not heard of goes last.
-    presets() {
-      const order = ['restaurant', 'shop', 'receptionist', 'clinic'];
-      const rank = (p) => (order.includes(p.id) ? order.indexOf(p.id) : order.length);
-      return [...this.$store.getters['agent/presets']].sort((a, b) => rank(a) - rank(b));
-    },
-    publicKey() {
-      return this.$store.getters['agent/publicKey'];
-    },
-    missing() {
-      return this.$store.getters['agent/missing'];
-    },
-    link() {
-      return chatLink(this.publicKey);
-    },
-  },
-  async created() {
-    // An agent already exists: this wizard is only for the first run.
-    try {
-      await this.$store.dispatch('agent/load');
-    } catch (error) {
-      this.loadError = error.message;
-      return;
-    }
-    if (this.$store.getters['agent/hasAgent']) {
-      this.$router.replace('/agent');
-      return;
-    }
+const router = useRouter();
+const { t } = useI18n();
+const auth = useAuthStore();
+const agent = useAgentStore();
 
-    const business = this.$store.getters['auth/business'];
-    this.businessName = business ? business.name : '';
-    this.agentName = this.suggestedName();
-    this.loadPresets();
-  },
-  methods: {
-    iconFor: presetIcon,
-    async loadPresets() {
-      this.loadError = null;
-      try {
-        await this.$store.dispatch('agent/loadPresets');
-      } catch (error) {
-        this.loadError = error.message;
-      }
-    },
-    suggestedName() {
-      return this.businessName ? `${this.businessName} assistant` : '';
-    },
-    // The agent's name follows the business name until the owner types their own.
-    onBusinessInput() {
-      if (!this.agentNameEdited) this.agentName = this.suggestedName();
-    },
-    async create() {
-      this.fieldErrors = {};
-      this.formError = null;
-      if (!this.businessName) {
-        this.fieldErrors = { business_name: 'Enter your business name.' };
-        return;
-      }
-      if (!this.agentName) {
-        this.fieldErrors = { name: 'Give your agent a name.' };
-        return;
-      }
+const step = ref(0);
+const presetId = ref(null);
+const businessName = ref('');
+const agentName = ref('');
+const agentNameEdited = ref(false);
+const address = ref('');
+const fieldErrors = ref({});
+const formError = ref(null);
+const loadError = ref(null);
+const isCreating = ref(false);
 
-      this.isCreating = true;
-      try {
-        await this.$store.dispatch('agent/create', {
-          preset: this.presetId,
-          config: {
-            business_name: this.businessName,
-            name: this.agentName,
-            knowledge: this.address ? { address: this.address } : {},
-          },
-        });
-        this.step = 2;
-      } catch (error) {
-        this.formError = error.message;
-        if (error.fields) this.fieldErrors = error.fields;
-      }
-      this.isCreating = false;
-    },
-    signOut() {
-      this.$store.dispatch('auth/logout');
-      this.$router.replace('/sign-in');
-    },
-  },
-};
+const steps = computed(() => [t('setup.stepChoose'), t('setup.stepDetails'), t('setup.stepTry')]);
+// Most common first; a preset the frontend has not heard of goes last.
+const presets = computed(() => {
+  const order = ['restaurant', 'shop', 'receptionist', 'clinic'];
+  const rank = (p) => (order.includes(p.id) ? order.indexOf(p.id) : order.length);
+  return [...agent.presets].sort((a, b) => rank(a) - rank(b));
+});
+const link = computed(() => chatLink(agent.publicKey));
+
+async function loadPresets() {
+  loadError.value = null;
+  try {
+    await agent.loadPresets();
+  } catch (error) {
+    loadError.value = error.message;
+  }
+}
+
+function suggestedName() {
+  return businessName.value ? t('setup.suggestedName', { name: businessName.value }) : '';
+}
+
+// The agent's name follows the business name until the owner types their own.
+function onBusinessInput() {
+  if (!agentNameEdited.value) agentName.value = suggestedName();
+}
+
+async function create() {
+  fieldErrors.value = {};
+  formError.value = null;
+  if (!businessName.value) {
+    fieldErrors.value = { business_name: t('setup.enterBusinessName') };
+    return;
+  }
+  if (!agentName.value) {
+    fieldErrors.value = { name: t('setup.enterAgentName') };
+    return;
+  }
+
+  isCreating.value = true;
+  try {
+    await agent.create({
+      preset: presetId.value,
+      config: {
+        business_name: businessName.value,
+        name: agentName.value,
+        knowledge: address.value ? { address: address.value } : {},
+      },
+    });
+    step.value = 2;
+  } catch (error) {
+    formError.value = error.message;
+    if (error.fields) fieldErrors.value = error.fields;
+  }
+  isCreating.value = false;
+}
+
+function signOut() {
+  auth.logout();
+  router.replace('/sign-in');
+}
+
+// An agent already exists: this wizard is only for the first run.
+async function start() {
+  try {
+    await agent.load();
+  } catch (error) {
+    loadError.value = error.message;
+    return;
+  }
+  if (agent.hasAgent) {
+    router.replace('/agent');
+    return;
+  }
+  businessName.value = auth.business?.name ?? '';
+  agentName.value = suggestedName();
+  loadPresets();
+}
+
+start();
 </script>
 
 <style scoped>

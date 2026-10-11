@@ -4,17 +4,16 @@
   <!-- The shell: a quiet paper sidebar and the white work area, edge to edge.
        No floating card, no outer margin, no top banner. -->
   <div v-else class="flex h-dvh bg-sidebar">
-    <app-sidebar class="hidden w-60 shrink-0 md:flex"></app-sidebar>
+    <AppSidebar class="hidden w-60 shrink-0 md:flex"></AppSidebar>
 
     <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface pb-24 md:border-l md:border-hairline md:pb-0">
       <p
-        v-if="suspended"
+        v-if="auth.isSuspended"
         class="flex items-center gap-2 border-b border-hairline bg-attention-tint px-5 py-3 text-sm font-medium text-ink sm:px-8"
         role="status"
       >
-        <ph-pause-circle :size="20" weight="bold" class="shrink-0 text-attention"></ph-pause-circle>
-        Your agent is paused by HeyDesk, so customers see that it is unavailable.
-        Contact HeyDesk to turn it back on.
+        <PhPauseCircle :size="20" weight="bold" class="shrink-0 text-attention"></PhPauseCircle>
+        {{ t('shell.paused') }}
       </p>
       <router-view v-slot="slotProps">
         <transition name="route" mode="out-in">
@@ -23,66 +22,56 @@
       </router-view>
     </main>
 
-    <app-tab-bar class="md:hidden"></app-tab-bar>
+    <AppTabBar class="md:hidden"></AppTabBar>
 
     <!-- On phones the sidebar slides in as a drawer from More. -->
     <transition name="drawer">
-      <div v-if="navOpen" class="fixed inset-0 z-40 md:hidden">
-        <div class="absolute inset-0 bg-ink/30" @click="closeNav"></div>
-        <app-sidebar class="drawer-panel relative flex h-full w-72 max-w-[85vw] shadow-[var(--shadow-float)]" @navigate="closeNav"></app-sidebar>
+      <div v-if="ui.navOpen" class="fixed inset-0 z-40 md:hidden">
+        <div class="absolute inset-0 bg-ink/30" @click="ui.navOpen = false"></div>
+        <AppSidebar class="drawer-panel relative flex h-full w-72 max-w-[85vw] shadow-[var(--shadow-float)]" @navigate="ui.navOpen = false"></AppSidebar>
       </div>
     </transition>
 
-    <test-chat-sheet></test-chat-sheet>
+    <TestChatSheet></TestChatSheet>
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, watch, onBeforeUnmount } from 'vue';
+import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { PhPauseCircle } from '@phosphor-icons/vue';
+
 import AppSidebar from './components/layout/AppSidebar.vue';
 import AppTabBar from './components/layout/AppTabBar.vue';
 import TestChatSheet from './components/chat/TestChatSheet.vue';
-import { PhPauseCircle } from '@phosphor-icons/vue';
+import { useAuthStore } from './stores/auth.js';
+import { useUiStore } from './stores/ui.js';
 
-export default {
-  components: {
-    AppSidebar,
-    AppTabBar,
-    TestChatSheet,
-    PhPauseCircle,
+const route = useRoute();
+const auth = useAuthStore();
+const ui = useUiStore();
+const { t } = useI18n();
+
+const isBare = computed(() => !!route.meta.bare);
+
+// Going somewhere closes the phone drawer; Escape does too.
+function onKey(event) {
+  if (event.key === 'Escape') ui.navOpen = false;
+}
+
+watch(
+  () => route.fullPath,
+  () => (ui.navOpen = false),
+);
+watch(
+  () => ui.navOpen,
+  (open) => {
+    if (open) document.addEventListener('keydown', onKey);
+    else document.removeEventListener('keydown', onKey);
   },
-  computed: {
-    suspended() {
-      return this.$store.getters['auth/isSuspended'];
-    },
-    isBare() {
-      return !!this.$route.meta.bare;
-    },
-    navOpen() {
-      return this.$store.getters['ui/navOpen'];
-    },
-  },
-  watch: {
-    // Going somewhere closes the phone drawer; Escape does too.
-    $route() {
-      this.closeNav();
-    },
-    navOpen(open) {
-      if (open) document.addEventListener('keydown', this.onKey);
-      else document.removeEventListener('keydown', this.onKey);
-    },
-  },
-  beforeUnmount() {
-    document.removeEventListener('keydown', this.onKey);
-  },
-  methods: {
-    closeNav() {
-      this.$store.commit('ui/setNav', false);
-    },
-    onKey(event) {
-      if (event.key === 'Escape') this.closeNav();
-    },
-  },
-};
+);
+onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
 </script>
 
 <style>

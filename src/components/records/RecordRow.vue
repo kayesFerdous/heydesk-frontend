@@ -11,13 +11,13 @@
       :class="tint"
       aria-hidden="true"
     >
-      {{ initialsOf(record.customer_name) }}
+      {{ initials(record.customer_name) }}
     </span>
 
     <span class="min-w-0">
       <span class="flex items-baseline gap-2">
         <span class="truncate text-sm font-semibold">
-          {{ record.customer_name || 'Customer' }}
+          {{ record.customer_name || t('records.customer') }}
         </span>
         <span class="shrink-0 text-xs text-ink-soft">{{ record.code }}</span>
       </span>
@@ -26,39 +26,30 @@
 
     <span class="flex flex-col items-end gap-1">
       <span class="flex items-center gap-2">
-        <span v-if="record.kind === 'order'" class="text-sm font-semibold">{{ money(record.total) }}</span>
-        <span v-else class="text-xs text-ink-soft">{{ time(record.created_at) }}</span>
+        <span v-if="record.kind === 'order'" class="text-sm font-semibold">{{ formatMoney(record.total) }}</span>
+        <span v-else class="text-xs text-ink-soft">{{ formatTime(record.created_at) }}</span>
       </span>
-      <status-chip :status="record.status"></status-chip>
+      <StatusChip :status="record.status"></StatusChip>
     </span>
   </button>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import StatusChip from '../ui/StatusChip.vue';
 import { formatMoney, formatTime } from '../../lib/format.js';
 import { avatarTint, initials } from '../../lib/group.js';
 import { summarize } from '../../lib/records.js';
 
-export default {
-  components: { StatusChip },
-  props: {
-    record: { type: Object, required: true },
-    selected: { type: Boolean, default: false },
-  },
-  emits: ['select'],
-  computed: {
-    summary() {
-      return summarize(this.record);
-    },
-    tint() {
-      return avatarTint(this.record.customer_name);
-    },
-  },
-  methods: {
-    money: formatMoney,
-    time: formatTime,
-    initialsOf: initials,
-  },
-};
+const props = defineProps({
+  record: { type: Object, required: true },
+  selected: { type: Boolean, default: false },
+});
+defineEmits(['select']);
+const { t } = useI18n();
+
+const summary = computed(() => summarize(props.record));
+const tint = computed(() => avatarTint(props.record.customer_name));
 </script>

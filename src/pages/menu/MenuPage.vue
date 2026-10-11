@@ -1,14 +1,14 @@
 <template>
   <section class="flex flex-col lg:h-full">
-    <page-header :title="label" :subtitle="`Your agent only offers what is listed here, at these prices. Changes are live right away.`">
+    <PageHeader :title="label" :subtitle="t('menu.subtitle')">
       <template v-if="loaded" #actions>
         <button type="button" class="btn btn-secondary" @click="importOpen = !importOpen">
-          <ph-upload-simple :size="16"></ph-upload-simple>
-          Import CSV
+          <PhUploadSimple :size="16"></PhUploadSimple>
+          {{ t('menu.importCsv') }}
         </button>
         <button type="button" class="btn btn-primary" @click="startAdd">
-          <ph-plus :size="16" weight="bold"></ph-plus>
-          Add {{ noun }}
+          <PhPlus :size="16" weight="bold"></PhPlus>
+          {{ t('menu.add', { noun }) }}
         </button>
       </template>
       <template v-if="loaded && items.length" #tabs>
@@ -16,101 +16,103 @@
           <div class="tabs !border-b-0" role="tablist">
             <button
               v-for="tab in tabs"
-              :key="tab"
+              :key="tab.value ?? 'all'"
               type="button"
               role="tab"
-              :aria-selected="tab === category"
+              :aria-selected="tab.value === category"
               class="tab"
-              :class="{ 'tab-active': tab === category }"
-              @click="category = tab"
+              :class="{ 'tab-active': tab.value === category }"
+              @click="category = tab.value"
             >
-              {{ tab }}
+              {{ tab.label }}
             </button>
           </div>
           <label class="relative mb-2 ml-auto block w-full sm:w-64">
-            <span class="sr-only">Search {{ label.toLowerCase() }}</span>
-            <ph-magnifying-glass :size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"></ph-magnifying-glass>
-            <input v-model.trim="query" class="field !h-9 pl-9" type="search" :placeholder="`Search ${label.toLowerCase()}`" />
+            <span class="sr-only">{{ t('menu.search', { list: label }) }}</span>
+            <PhMagnifyingGlass :size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"></PhMagnifyingGlass>
+            <input v-model.trim="query" class="field !h-9 pl-9" type="search" :placeholder="t('menu.search', { list: label })" />
           </label>
         </div>
       </template>
-    </page-header>
+    </PageHeader>
 
-    <import-panel
+    <ImportPanel
       v-if="importOpen"
-      :noun="noun"
+      :kind="agent.kind"
       :current-count="items.length"
       @close="importOpen = false"
       @imported="onImported"
-    ></import-panel>
+    ></ImportPanel>
 
     <p v-if="saveError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
-      <ph-warning-circle :size="16" class="shrink-0"></ph-warning-circle>
+      <PhWarningCircle :size="16" class="shrink-0"></PhWarningCircle>
       {{ saveError }}
     </p>
 
-    <load-error v-if="loadError" :message="loadError" @retry="load"></load-error>
+    <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
 
-    <skeleton-rows v-else-if="!loaded" class="border-t border-hairline"></skeleton-rows>
+    <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
 
     <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto" :class="{ 'border-t border-hairline': !items.length }">
       <div
         v-if="items.length || adding"
         class="sticky top-0 z-[1] hidden grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] gap-x-4 border-b border-hairline bg-wash/95 px-8 py-2 text-xs font-semibold text-ink-soft backdrop-blur sm:grid"
       >
-        <span>{{ noun[0].toUpperCase() + noun.slice(1) }}</span>
-        <span class="text-right">{{ noun === 'doctor' ? 'Fee' : 'Price' }}</span>
-        <span>Available</span>
+        <span>{{ capitalize(noun) }}</span>
+        <span class="text-right">{{ agent.kind === 'clinic' ? t('menu.fee') : t('menu.price') }}</span>
+        <span>{{ t('menu.available') }}</span>
         <span></span>
       </div>
 
-      <item-row
+      <ItemRow
         v-if="adding"
         :item="blank"
         :editing="true"
         :is-new="true"
         :categories="allCategories"
-        :noun="noun"
+        :kind="agent.kind"
         @save="saveNew"
         @cancel="adding = false"
-      ></item-row>
+      ></ItemRow>
 
-      <item-row
+      <ItemRow
         v-for="item in shown"
         :key="item.code"
         :item="item"
         :editing="editingCode === item.code"
         :categories="allCategories"
-        :noun="noun"
+        :kind="agent.kind"
         @toggle="toggle(item)"
         @edit="editingCode = item.code"
         @cancel="editingCode = null"
         @save="saveEdit(item.code, $event)"
         @remove="remove(item.code)"
-      ></item-row>
+      ></ItemRow>
 
-      <show-more v-if="filtered.length > shown.length" @more="limit += PAGE_SIZE"></show-more>
+      <ShowMore v-if="filtered.length > shown.length" @more="limit += PAGE_SIZE"></ShowMore>
 
-      <empty-state
+      <EmptyState
         v-if="!items.length && !adding"
-        :icon="icons.list"
-        :title="`No ${noun}s yet`"
-        :text="`Add them one at a time with Add ${noun}, or use Import CSV to bring in a whole spreadsheet at once. Your agent can only offer what is listed here.`"
-      ></empty-state>
+        :icon="PhListBullets"
+        :title="t('menu.emptyTitle', { nouns: itemNoun(agent.kind, 2) })"
+        :text="t('menu.emptyText', { noun })"
+      ></EmptyState>
 
       <p v-else-if="!filtered.length && !adding" class="px-5 py-10 text-sm text-ink-soft sm:px-8">
-        No {{ noun }}s match that.
+        {{ t('menu.noMatches', { nouns: itemNoun(agent.kind, 2) }) }}
       </p>
 
       <p v-if="items.length" class="px-5 py-4 text-sm text-ink-soft sm:px-8">
-        {{ items.length }} {{ items.length === 1 ? noun : noun + 's' }}
+        {{ formatNumber(items.length) }} {{ itemNoun(agent.kind, items.length) }}
       </p>
     </div>
   </section>
 </template>
 
-<script>
-import { markRaw } from 'vue';
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets } from '@phosphor-icons/vue';
 
 import ItemRow from '../../components/menu/ItemRow.vue';
@@ -122,167 +124,134 @@ import ShowMore from '../../components/ui/ShowMore.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import { fetchItems, replaceItems } from '../../api/agent.js';
 import { makeCode } from '../../lib/slug.js';
-import { itemNoun } from '../../lib/presets.js';
+import { formatNumber } from '../../lib/format.js';
+import { itemNoun, itemsLabel } from '../../lib/presets.js';
+import { useAgentStore } from '../../stores/agent.js';
 
 // The whole list comes in one request (the backend stores and saves it as one
 // list, at most 2000 from a CSV), so search is instant in the browser. Drawing
 // 2000 rows at once is what would be slow, so only this many are drawn.
 const PAGE_SIZE = 50;
 
-export default {
-  components: {
-    ItemRow,
-    ImportPanel,
-    SkeletonRows,
-    PageHeader,
-    EmptyState,
-    ShowMore,
-    LoadError,
-    PhPlus,
-    PhUploadSimple,
-    PhMagnifyingGlass,
-    PhWarningCircle,
-  },
-  data() {
-    return {
-      items: [],
-      loaded: false,
-      loadError: null,
-      saveError: null,
-      category: 'All',
-      query: '',
-      editingCode: null,
-      adding: false,
-      importOpen: false,
-      limit: PAGE_SIZE,
-      PAGE_SIZE,
-      // markRaw: components are fixed, so Vue need not watch them for changes.
-      icons: markRaw({ list: PhListBullets }),
-    };
-  },
-  computed: {
-    label() {
-      return this.$store.getters['agent/itemsLabel'];
-    },
-    noun() {
-      const config = this.$store.getters['agent/config'];
-      return itemNoun(config && config.preset);
-    },
-    allCategories() {
-      return [...new Set(this.items.map((item) => item.category))];
-    },
-    tabs() {
-      return ['All', ...this.allCategories];
-    },
-    filtered() {
-      const query = this.query.toLowerCase();
-      return this.items.filter(
-        (item) =>
-          (this.category === 'All' || item.category === this.category) &&
-          (!query ||
-            item.name.toLowerCase().includes(query) ||
-            item.description.toLowerCase().includes(query) ||
-            item.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-            (item.colours || []).some((colour) => colour.toLowerCase().includes(query)))
-      );
-    },
-    shown() {
-      return this.filtered.slice(0, this.limit);
-    },
-    blank() {
-      return {
-        code: '',
-        name: '',
-        description: '',
-        price: 0,
-        category: this.category === 'All' ? this.allCategories[0] || '' : this.category,
-        tags: [],
-        available: true,
-        attributes: {},
-        sizes: [],
-        colours: [],
-        stock: null,
-      };
-    },
-  },
-  watch: {
-    // A new search or category starts from the top again.
-    query() {
-      this.limit = PAGE_SIZE;
-    },
-    category() {
-      this.limit = PAGE_SIZE;
-    },
-  },
-  created() {
-    this.load();
-  },
-  methods: {
-    async load() {
-      this.loadError = null;
-      try {
-        // No agent yet: the items belong to it, so set it up first.
-        await Promise.all([
-          this.$store.dispatch('agent/load'),
-          this.$store.dispatch('agent/loadPresets'),
-        ]);
-        if (this.$store.getters['agent/noAgent']) {
-          this.$router.replace('/setup');
-          return;
-        }
-        this.items = await fetchItems(this.$store.getters['auth/token']);
-        this.loaded = true;
-      } catch (error) {
-        this.loadError = error.message;
-      }
-    },
-    // The API replaces the whole list, so every change sends all of it. The screen
-    // updates at once and goes back if the server says no.
-    async persist(next) {
-      const previous = this.items;
-      this.items = next;
-      this.saveError = null;
-      try {
-        await replaceItems(this.$store.getters['auth/token'], next);
-        // `missing` on the Your agent page depends on there being items.
-        this.$store.dispatch('agent/load', { force: true }).catch(() => {});
-        return true;
-      } catch (error) {
-        this.items = previous;
-        this.saveError = error.message;
-        return false;
-      }
-    },
-    startAdd() {
-      this.editingCode = null;
-      this.adding = true;
-      this.importOpen = false;
-    },
-    toggle(item) {
-      this.persist(this.items.map((i) => (i.code === item.code ? { ...i, available: !i.available } : i)));
-    },
-    async saveEdit(code, updated) {
-      if (await this.persist(this.items.map((i) => (i.code === code ? updated : i)))) {
-        this.editingCode = null;
-      }
-    },
-    async saveNew(draft) {
-      const code = makeCode(draft.name, this.items.map((i) => i.code));
-      if (await this.persist([...this.items, { ...draft, code }])) {
-        this.adding = false;
-      }
-    },
-    async remove(code) {
-      if (await this.persist(this.items.filter((i) => i.code !== code))) {
-        this.editingCode = null;
-      }
-    },
-    async onImported() {
-      this.importOpen = false;
-      this.category = 'All';
-      await this.load();
-      this.$store.dispatch('agent/load', { force: true }).catch(() => {});
-    },
-  },
-};
+const router = useRouter();
+const { t } = useI18n();
+const agent = useAgentStore();
+
+const items = ref([]);
+const loaded = ref(false);
+const loadError = ref(null);
+const saveError = ref(null);
+const category = ref(null); // null: every category
+const query = ref('');
+const editingCode = ref(null);
+const adding = ref(false);
+const importOpen = ref(false);
+const limit = ref(PAGE_SIZE);
+
+const label = computed(() => itemsLabel(agent.kind));
+const noun = computed(() => itemNoun(agent.kind));
+const allCategories = computed(() => [...new Set(items.value.map((item) => item.category))]);
+const tabs = computed(() => [
+  { value: null, label: t('menu.all') },
+  ...allCategories.value.map((c) => ({ value: c, label: c })),
+]);
+const filtered = computed(() => {
+  const q = query.value.toLowerCase();
+  return items.value.filter(
+    (item) =>
+      (category.value === null || item.category === category.value) &&
+      (!q ||
+        item.name.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        item.tags.some((tag) => tag.toLowerCase().includes(q)) ||
+        (item.colours || []).some((colour) => colour.toLowerCase().includes(q))),
+  );
+});
+const shown = computed(() => filtered.value.slice(0, limit.value));
+const blank = computed(() => ({
+  code: '',
+  name: '',
+  description: '',
+  price: 0,
+  category: category.value ?? allCategories.value[0] ?? '',
+  tags: [],
+  available: true,
+  attributes: {},
+  sizes: [],
+  colours: [],
+  stock: null,
+}));
+
+// A new search or category starts from the top again.
+watch([query, category], () => (limit.value = PAGE_SIZE));
+
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+async function load() {
+  loadError.value = null;
+  try {
+    // No agent yet: the items belong to it, so set it up first.
+    await Promise.all([agent.load(), agent.loadPresets()]);
+    if (agent.noAgent) {
+      router.replace('/setup');
+      return;
+    }
+    items.value = await fetchItems();
+    loaded.value = true;
+  } catch (error) {
+    loadError.value = error.message;
+  }
+}
+
+// The API replaces the whole list, so every change sends all of it. The screen
+// updates at once and goes back if the server says no.
+async function persist(next) {
+  const previous = items.value;
+  items.value = next;
+  saveError.value = null;
+  try {
+    await replaceItems(next);
+    // `missing` on the Your agent page depends on there being items.
+    agent.load({ force: true }).catch(() => {});
+    return true;
+  } catch (error) {
+    items.value = previous;
+    saveError.value = error.message;
+    return false;
+  }
+}
+
+function startAdd() {
+  editingCode.value = null;
+  adding.value = true;
+  importOpen.value = false;
+}
+
+function toggle(item) {
+  persist(items.value.map((i) => (i.code === item.code ? { ...i, available: !i.available } : i)));
+}
+
+async function saveEdit(code, updated) {
+  if (await persist(items.value.map((i) => (i.code === code ? updated : i)))) editingCode.value = null;
+}
+
+async function saveNew(draft) {
+  const code = makeCode(draft.name, items.value.map((i) => i.code));
+  if (await persist([...items.value, { ...draft, code }])) adding.value = false;
+}
+
+async function remove(code) {
+  if (await persist(items.value.filter((i) => i.code !== code))) editingCode.value = null;
+}
+
+async function onImported() {
+  importOpen.value = false;
+  category.value = null;
+  await load();
+  agent.load({ force: true }).catch(() => {});
+}
+
+load();
 </script>

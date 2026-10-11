@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 // The first-run checklist on Home, and where each gap in the agent is fixed.
 //
 // The backend's `missing` list is plain sentences ("Add your opening hours.").
@@ -21,7 +23,7 @@ function isAboutList(item) {
 // Five steps, the shortest road to a first real customer. Each one says what
 // it gets the owner, and how to do it from here.
 //   missing          the backend's list of gaps
-//   itemsLabel       "Menu", "Doctors" or "Services"
+//   itemsLabel       "Menu", "Doctors" or "Services", in the chosen language
 //   triedIt          the agent has had at least one conversation
 //   shared           Telegram is connected, or the chat link was copied
 export function setupSteps({ missing, itemsLabel, triedIt, shared }) {
@@ -32,43 +34,44 @@ export function setupSteps({ missing, itemsLabel, triedIt, shared }) {
   return [
     {
       id: 'create',
-      title: 'Create your agent',
-      text: 'It answers customers the moment they write.',
+      title: t('setupSteps.create.title'),
+      text: t('setupSteps.create.text'),
       done: true,
     },
     {
       id: 'details',
-      title: 'Add your business details',
+      title: t('setupSteps.details.title'),
+      // The backend's own sentences, as it wrote them.
       text: details.length
         ? details.map((item) => item.replace(/\.$/, '')).join('. ') + '.'
-        : 'Address, opening hours and a number for when someone needs a person.',
+        : t('setupSteps.details.text'),
       done: details.length === 0,
       to: details.length ? whereToFix(details[0]) : '/agent/profile',
-      action: 'Add details',
+      action: t('setupSteps.details.action'),
     },
     {
       id: 'list',
-      title: `Add your ${listName}`,
-      text: `Your agent only offers what is on your ${listName}, at the prices you set.`,
+      title: t('setupSteps.list.title', { list: listName }),
+      text: t('setupSteps.list.text', { list: listName }),
       done: list.length === 0,
       to: list.length ? whereToFix(list[0]) : '/menu',
-      action: `Add ${listName}`,
+      action: t('setupSteps.list.action', { list: listName }),
     },
     {
       id: 'try',
-      title: 'Try your agent',
-      text: 'Chat with it the way a customer would. Test chats show up like real ones.',
+      title: t('setupSteps.try.title'),
+      text: t('setupSteps.try.text'),
       done: triedIt,
       opensChat: true,
-      action: 'Try it now',
+      action: t('setupSteps.try.action'),
     },
     {
       id: 'share',
-      title: 'Share it with customers',
-      text: 'Put your chat link on your website or social pages, or connect Telegram.',
+      title: t('setupSteps.share.title'),
+      text: t('setupSteps.share.text'),
       done: shared,
       to: '/channels',
-      action: 'Open channels',
+      action: t('setupSteps.share.action'),
     },
   ];
 }

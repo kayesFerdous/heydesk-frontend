@@ -6,20 +6,21 @@
       <span v-if="!paused && breathe" class="pulse absolute inset-0 rounded-full bg-success"></span>
       <span class="relative h-2 w-2 rounded-full" :class="paused ? 'bg-attention' : 'bg-success'"></span>
     </span>
-    {{ paused ? pausedLabel : label }}
+    {{ paused ? pausedLabel || t('common.pausedByHeyDesk') : label || t('common.live') }}
   </span>
 </template>
 
-<script>
-export default {
-  props: {
-    paused: { type: Boolean, default: false },
-    label: { type: String, default: 'Live' },
-    pausedLabel: { type: String, default: 'Paused by HeyDesk' },
-    // One breathing dot per screen at most; lists of many keep theirs still.
-    breathe: { type: Boolean, default: true },
-  },
-};
+<script setup>
+import { useI18n } from 'vue-i18n';
+
+defineProps({
+  paused: { type: Boolean, default: false },
+  label: { type: String, default: '' }, // "Live" when left out
+  pausedLabel: { type: String, default: '' }, // "Paused by HeyDesk" when left out
+  // One breathing dot per screen at most; lists of many keep theirs still.
+  breathe: { type: Boolean, default: true },
+});
+const { t } = useI18n();
 </script>
 
 <style scoped>

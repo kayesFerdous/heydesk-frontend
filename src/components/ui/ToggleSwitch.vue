@@ -3,25 +3,22 @@
     type="button"
     role="switch"
     class="switch"
-    :class="{ 'switch-on': modelValue }"
-    :aria-checked="modelValue"
+    :class="{ 'switch-on': model }"
+    :aria-checked="model"
     :aria-label="label"
     :disabled="disabled"
-    @click="$emit('update:modelValue', !modelValue)"
+    @click="model = !model"
   >
     <span class="knob"></span>
   </button>
 </template>
 
-<script>
-export default {
-  props: {
-    modelValue: { type: Boolean, required: true },
-    label: { type: String, required: true },
-    disabled: { type: Boolean, default: false },
-  },
-  emits: ['update:modelValue'],
-};
+<script setup>
+const model = defineModel({ type: Boolean, required: true });
+defineProps({
+  label: { type: String, required: true },
+  disabled: { type: Boolean, default: false },
+});
 </script>
 
 <style scoped>

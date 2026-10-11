@@ -15,19 +15,16 @@
       <span class="text-xs text-ink-soft">
         {{ time }}<template v-if="row.amount"> · <span class="font-semibold text-ink">{{ row.amount }}</span></template>
       </span>
-      <status-chip :status="row.status"></status-chip>
+      <StatusChip :status="row.status"></StatusChip>
     </span>
   </div>
 </template>
 
-<script>
+<script setup>
 import StatusChip from '../ui/StatusChip.vue';
 
-export default {
-  components: { StatusChip },
-  props: {
-    row: { type: Object, required: true },
-    time: { type: String, default: '' },
-  },
-};
+defineProps({
+  row: { type: Object, required: true },
+  time: { type: String, default: '' },
+});
 </script>

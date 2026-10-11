@@ -6,19 +6,16 @@
          This comment stays inside <section>: one placed before it makes a
          second root node, and the page <transition> in App.vue can never
          finish leaving such a page, so the next page stayed blank. -->
-    <page-header
-      title="Agent settings"
-      subtitle="What your agent knows and how it talks. Changes go live on the next message."
-    >
+    <PageHeader :title="t('agent.title')" :subtitle="t('agent.subtitle')">
       <template #actions>
-        <live-status :paused="suspended"></live-status>
-        <button type="button" class="btn btn-secondary lg:hidden" @click="openTestChat">
-          <ph-chat-circle-dots :size="18" class="text-brand"></ph-chat-circle-dots>
-          Try your agent
+        <LiveStatus :paused="auth.isSuspended"></LiveStatus>
+        <button type="button" class="btn btn-secondary lg:hidden" @click="ui.testSheetOpen = true">
+          <PhChatCircleDots :size="18" class="text-brand"></PhChatCircleDots>
+          {{ t('common.tryYourAgent') }}
         </button>
       </template>
       <template #tabs>
-        <nav class="tabs" aria-label="Settings sections">
+        <nav class="tabs" :aria-label="t('agent.sections')">
           <router-link
             v-for="section in sections"
             :key="section.to"
@@ -27,17 +24,17 @@
             active-class="tab-active"
           >
             {{ section.label }}
-            <span v-if="gapsIn(section.to)" class="count count-attention" :aria-label="`${gapsIn(section.to)} to fill in`">
-              {{ gapsIn(section.to) }}
+            <span v-if="gapsIn(section.to)" class="count count-attention" :aria-label="t('agent.toFillIn', { n: formatNumber(gapsIn(section.to)) })">
+              {{ formatNumber(gapsIn(section.to)) }}
             </span>
           </router-link>
         </nav>
       </template>
-    </page-header>
+    </PageHeader>
 
-    <load-error v-if="loadError" :message="loadError" @retry="load"></load-error>
+    <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
 
-    <div v-else-if="!config" class="px-5 py-8 sm:px-8" aria-hidden="true">
+    <div v-else-if="!agent.config" class="px-5 py-8 sm:px-8" aria-hidden="true">
       <div class="skeleton h-5 w-40"></div>
       <div class="skeleton mt-5 h-10 w-full max-w-xl"></div>
       <div class="skeleton mt-4 h-10 w-full max-w-xl"></div>
@@ -48,18 +45,18 @@
       <div class="px-5 pt-6 sm:px-8 lg:min-h-0 lg:overflow-y-auto">
         <div class="max-w-2xl">
           <div
-            v-if="missing.length"
+            v-if="agent.missing.length"
             class="notice mb-8"
             role="status"
           >
-            <ph-list-checks :size="20" class="mt-px shrink-0 text-attention"></ph-list-checks>
+            <PhListChecks :size="20" class="mt-px shrink-0 text-attention"></PhListChecks>
             <div>
               <p class="font-semibold text-ink">
-                {{ missing.length }} {{ missing.length === 1 ? 'thing' : 'things' }} left before your agent can answer everything
+                {{ t('agent.thingsLeft', { n: formatNumber(agent.missing.length) }, agent.missing.length) }}
               </p>
               <ul class="mt-1 flex flex-col gap-0.5">
-                <li v-for="item in missing" :key="item">
-                  <router-link :to="fixLink(item)" class="text-ink hover:underline">{{ item }}</router-link>
+                <li v-for="item in agent.missing" :key="item">
+                  <router-link :to="whereToFix(item)" class="text-ink hover:underline">{{ item }}</router-link>
                 </li>
               </ul>
             </div>
@@ -74,19 +71,22 @@
       <aside class="hidden border-l border-hairline bg-wash lg:flex lg:min-h-0 lg:flex-col">
         <div class="flex items-center justify-between border-b border-hairline px-5 py-3.5">
           <div>
-            <h2 class="text-sm font-semibold">Try your agent</h2>
-            <p class="text-xs text-ink-soft">Exactly what a customer sees.</p>
+            <h2 class="text-sm font-semibold">{{ t('common.tryYourAgent') }}</h2>
+            <p class="text-xs text-ink-soft">{{ t('chat.whatCustomerSees') }}</p>
           </div>
         </div>
         <div class="min-h-0 flex-1">
-          <agent-chat v-if="publicKey" :key="chatKey" :public-key="publicKey"></agent-chat>
+          <AgentChat v-if="agent.publicKey" :key="chatKey" :public-key="agent.publicKey"></AgentChat>
         </div>
       </aside>
     </div>
   </section>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { PhChatCircleDots, PhListChecks } from '@phosphor-icons/vue';
 
 import PageHeader from '../../components/ui/PageHeader.vue';
@@ -94,76 +94,57 @@ import LiveStatus from '../../components/ui/LiveStatus.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import AgentChat from '../../components/chat/AgentChat.vue';
 import { whereToFix } from '../../lib/setup.js';
+import { formatNumber } from '../../lib/format.js';
+import { useAuthStore } from '../../stores/auth.js';
+import { useAgentStore } from '../../stores/agent.js';
+import { useUiStore } from '../../stores/ui.js';
 
-export default {
-  components: { PageHeader, LiveStatus, LoadError, AgentChat, PhChatCircleDots, PhListChecks },
-  data() {
-    return {
-      loadError: null,
-      chatKey: 0,
-    };
+const router = useRouter();
+const { t } = useI18n();
+const auth = useAuthStore();
+const agent = useAgentStore();
+const ui = useUiStore();
+
+const loadError = ref(null);
+const chatKey = ref(0);
+
+const sections = computed(() => {
+  const list = [
+    { to: '/agent/profile', label: t('agent.profile') },
+    { to: '/agent/hours', label: t('agent.hours') },
+    { to: '/agent/answers', label: t('agent.answers') },
+  ];
+  // A receptionist takes no orders or appointments, so nothing to pay for.
+  if (agent.kind === 'clinic') list.push({ to: '/agent/payments', label: t('agent.payments') });
+  if (['restaurant', 'shop'].includes(agent.kind)) {
+    list.push({ to: '/agent/payments', label: t('agent.deliveryAndPayments') });
+  }
+  return list;
+});
+
+// How many of the backend's gaps are filled in on this section.
+function gapsIn(path) {
+  return agent.missing.filter((item) => whereToFix(item) === path).length;
+}
+
+// A save changes the config: start a fresh test chat so it uses the new settings.
+watch(
+  () => agent.config,
+  (next, previous) => {
+    if (previous) chatKey.value += 1;
   },
-  computed: {
-    sections() {
-      const sections = [
-        { to: '/agent/profile', label: 'Profile' },
-        { to: '/agent/hours', label: 'Hours and hand-off' },
-        { to: '/agent/answers', label: 'Answers and tone' },
-      ];
-      // A receptionist takes no orders or appointments, so nothing to pay for.
-      const kind = this.config && this.config.preset;
-      if (kind === 'clinic') sections.push({ to: '/agent/payments', label: 'Payments' });
-      if (['restaurant', 'shop'].includes(kind)) {
-        sections.push({ to: '/agent/payments', label: 'Delivery and payments' });
-      }
-      return sections;
-    },
-    config() {
-      return this.$store.getters['agent/config'];
-    },
-    missing() {
-      return this.$store.getters['agent/missing'];
-    },
-    publicKey() {
-      return this.$store.getters['agent/publicKey'];
-    },
-    suspended() {
-      return this.$store.getters['auth/isSuspended'];
-    },
-  },
-  watch: {
-    // A save changes the config: start a fresh test chat so it uses the new settings.
-    config(next, previous) {
-      if (previous) this.chatKey += 1;
-    },
-  },
-  created() {
-    this.load();
-  },
-  methods: {
-    async load() {
-      this.loadError = null;
-      try {
-        await Promise.all([
-          this.$store.dispatch('agent/load'),
-          this.$store.dispatch('agent/loadPresets'),
-        ]);
-      } catch (error) {
-        this.loadError = error.message;
-        return;
-      }
-      if (this.$store.getters['agent/noAgent']) {
-        this.$router.replace('/setup');
-      }
-    },
-    fixLink: whereToFix,
-    // How many of the backend's gaps are filled in on this section.
-    gapsIn(path) {
-      return this.missing.filter((item) => whereToFix(item) === path).length;
-    },
-    openTestChat() {
-      this.$store.commit('ui/setTestSheet', true);
-    },
-  },
-};
+);
+
+async function load() {
+  loadError.value = null;
+  try {
+    await Promise.all([agent.load(), agent.loadPresets()]);
+  } catch (error) {
+    loadError.value = error.message;
+    return;
+  }
+  if (agent.noAgent) router.replace('/setup');
+}
+
+load();
 </script>

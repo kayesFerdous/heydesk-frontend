@@ -3,6 +3,7 @@
 //   open {conversation_id}  token {text}  status {label}
 //   handoff {message, phone, email}  done {interrupted}  error {message}
 import { request } from './client.js';
+import { t } from '../i18n/index.js';
 
 export function fetchChatAgent(publicKey) {
   return request(`/chat/${publicKey}`);
@@ -25,7 +26,7 @@ export async function streamChat(publicKey, message, conversationId, handlers) {
     const data = await response.json().catch(() => null);
     throw new Error(
       (data && data.error && data.error.message) ||
-        `Request failed with status ${response.status}.`
+        t('errors.requestFailed', { status: response.status })
     );
   }
 

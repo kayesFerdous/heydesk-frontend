@@ -2,20 +2,20 @@
   <div class="flex h-full flex-col p-6">
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <p class="text-xs font-medium text-ink-soft">{{ record.title }} {{ record.code }}</p>
+        <p class="text-xs font-medium text-ink-soft">{{ t(`records.name.${record.job}`) }} {{ record.code }}</p>
         <h2 class="mt-1 truncate text-xl font-semibold tracking-[-0.01em]">
-          {{ record.customer_name || 'Customer' }}
+          {{ record.customer_name || t('records.customer') }}
         </h2>
         <a
           v-if="record.customer_phone"
           :href="`tel:${record.customer_phone}`"
           class="mt-1 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-brand"
         >
-          <ph-phone :size="14"></ph-phone>
+          <PhPhone :size="14"></PhPhone>
           {{ record.customer_phone }}
         </a>
       </div>
-      <status-chip :status="record.status"></status-chip>
+      <StatusChip :status="record.status"></StatusChip>
     </div>
 
     <template v-if="record.kind === 'order'">
@@ -26,69 +26,69 @@
           class="flex justify-between gap-4"
         >
           <span>
-            <span class="text-ink-soft">{{ line.quantity }} x</span> {{ line.name }}
+            <span class="text-ink-soft">{{ formatNumber(line.quantity) }} x</span> {{ line.name }}
             <span v-if="choices(line)" class="text-ink-soft">({{ choices(line) }})</span>
           </span>
-          <span class="font-medium">{{ money(line.price * line.quantity) }}</span>
+          <span class="font-medium">{{ formatMoney(line.price * line.quantity) }}</span>
         </li>
       </ul>
       <p v-if="record.address" class="mt-2.5 flex justify-between gap-4 text-sm">
-        <span>Delivery</span>
-        <span class="font-medium">{{ record.delivery_charge ? money(record.delivery_charge) : 'Free' }}</span>
+        <span>{{ t('records.delivery') }}</span>
+        <span class="font-medium">{{ record.delivery_charge ? formatMoney(record.delivery_charge) : t('records.free') }}</span>
       </p>
       <div class="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
-        <span class="text-sm text-ink-soft">Total</span>
-        <span class="text-2xl font-semibold tracking-[-0.02em]">{{ money(record.total) }}</span>
+        <span class="text-sm text-ink-soft">{{ t('records.total') }}</span>
+        <span class="text-2xl font-semibold tracking-[-0.02em]">{{ formatMoney(record.total) }}</span>
       </div>
       <template v-if="record.paid">
         <p class="mt-2 flex justify-between gap-4 text-sm text-ink-soft">
-          <span>Paid online</span><span>{{ money(record.paid) }}</span>
+          <span>{{ t('records.paidOnline') }}</span><span>{{ formatMoney(record.paid) }}</span>
         </p>
         <p class="mt-1 flex justify-between gap-4 text-sm">
-          <span>To collect</span><span class="font-semibold">{{ money(record.total - record.paid) }}</span>
+          <span>{{ t('records.toCollect') }}</span><span class="font-semibold">{{ formatMoney(record.total - record.paid) }}</span>
         </p>
       </template>
       <p v-if="record.status === 'unpaid'" class="mt-4 text-sm text-ink-soft">
-        Waiting for the customer to pay the delivery charge online. It isn't an order until then.
+        {{ t('records.waitingForPayment') }}
       </p>
       <p v-if="record.due_at" class="mt-4 flex items-center gap-2 text-sm">
-        <ph-clock :size="16" class="text-ink-soft"></ph-clock>
-        {{ record.address ? 'Deliver at' : 'Pickup at' }} <span class="font-semibold">{{ time(record.due_at) }}</span>
+        <PhClock :size="16" class="text-ink-soft"></PhClock>
+        {{ record.address ? t('records.deliverAt') : t('records.pickupAt') }} <span class="font-semibold">{{ formatTime(record.due_at) }}</span>
       </p>
       <p v-if="record.address" class="mt-2 flex items-start gap-2 text-sm">
-        <ph-map-pin :size="16" class="mt-0.5 shrink-0 text-ink-soft"></ph-map-pin>
+        <PhMapPin :size="16" class="mt-0.5 shrink-0 text-ink-soft"></PhMapPin>
         {{ record.address }}
       </p>
       <p v-if="record.tracking" class="mt-2 flex items-start gap-2 text-sm">
-        <ph-truck :size="16" class="mt-0.5 shrink-0 text-ink-soft"></ph-truck>
+        <PhTruck :size="16" class="mt-0.5 shrink-0 text-ink-soft"></PhTruck>
         {{ record.tracking }}
       </p>
-      <p v-if="record.note" class="mt-2 text-sm text-ink-soft">Note: {{ record.note }}</p>
+      <p v-if="record.note" class="mt-2 text-sm text-ink-soft">{{ t('records.noteLine', { note: record.note }) }}</p>
 
       <!-- A shop order goes to a courier: its name and parcel id, for the buyer's tracking. -->
       <div v-if="record.flow === 'shop_order' && record.status === 'confirmed'" class="mt-5">
-        <label class="label" for="tracking">Courier and parcel id</label>
+        <label class="label" for="tracking">{{ t('records.tracking') }}</label>
         <input id="tracking" v-model.trim="tracking" class="field" type="text" placeholder="Steadfast 12345678" />
-        <p class="hint">Your agent tells the buyer this when they ask where their order is.</p>
+        <p class="hint">{{ t('records.trackingHint') }}</p>
       </div>
     </template>
 
     <template v-else>
       <dl class="mt-6 flex flex-col gap-4 border-t border-hairline pt-5 text-sm">
-        <div v-for="(value, label) in record.details" :key="label">
-          <dt class="text-xs font-medium text-ink-soft">{{ capitalize(label) }}</dt>
+        <div v-for="(value, key) in record.details" :key="key">
+          <dt class="text-xs font-medium text-ink-soft">{{ t(`records.details.${key}`) }}</dt>
           <dd class="mt-0.5 leading-relaxed whitespace-pre-wrap">{{ value }}</dd>
         </div>
         <div v-if="record.note">
-          <dt class="text-xs font-medium text-ink-soft">Note</dt>
+          <dt class="text-xs font-medium text-ink-soft">{{ t('records.note') }}</dt>
           <dd class="mt-0.5 leading-relaxed">{{ record.note }}</dd>
         </div>
       </dl>
     </template>
 
     <p class="mt-5 flex items-center gap-1.5 text-xs text-ink-soft">
-      <ph-seal-check :size="14" class="text-success"></ph-seal-check>
-      Read back to the customer and confirmed in chat, {{ day(record.created_at) }} at {{ time(record.created_at) }}
+      <PhSealCheck :size="14" class="text-success"></PhSealCheck>
+      {{ t('records.confirmedInChat', { day: formatDay(record.created_at), time: formatTime(record.created_at) }) }}
     </p>
 
     <p v-if="error" class="mt-4 text-sm text-danger" role="alert">{{ error }}</p>
@@ -107,7 +107,7 @@
         :to="`/conversations?open=${record.conversation_id}`"
         class="btn btn-secondary w-full"
       >
-        Read the conversation
+        {{ t('records.readConversation') }}
       </router-link>
       <button
         v-for="step in steps.others"
@@ -123,45 +123,34 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PhClock, PhMapPin, PhPhone, PhSealCheck, PhTruck } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
-import { formatMoney, formatTime, formatDay } from '../../lib/format.js';
+import { formatMoney, formatNumber, formatTime, formatDay } from '../../lib/format.js';
 import { nextSteps } from '../../lib/flows.js';
 
-export default {
-  components: { StatusChip, PhClock, PhMapPin, PhPhone, PhSealCheck, PhTruck },
-  props: {
-    record: { type: Object, required: true },
-    busy: { type: Boolean, default: false },
-    error: { type: String, default: null },
-  },
-  emits: ['move'],
-  data() {
-    return { tracking: '' };
-  },
-  computed: {
-    steps() {
-      return nextSteps(this.record);
-    },
-  },
-  methods: {
-    money: formatMoney,
-    time: formatTime,
-    day: formatDay,
-    capitalize(text) {
-      return text.charAt(0).toUpperCase() + text.slice(1);
-    },
-    // A shop line's size and colour: "M, Black".
-    choices(line) {
-      return [line.size, line.colour].filter(Boolean).join(', ');
-    },
-    // Shipping a shop order sends its courier along with the status.
-    moveOn(status) {
-      const extra = status === 'shipped' && this.tracking ? { tracking: this.tracking } : {};
-      this.$emit('move', status, extra);
-    },
-  },
-};
+const props = defineProps({
+  record: { type: Object, required: true },
+  busy: { type: Boolean, default: false },
+  error: { type: String, default: null },
+});
+const emit = defineEmits(['move']);
+const { t } = useI18n();
+
+const tracking = ref('');
+const steps = computed(() => nextSteps(props.record));
+
+// A shop line's size and colour: "M, Black".
+function choices(line) {
+  return [line.size, line.colour].filter(Boolean).join(', ');
+}
+
+// Shipping a shop order sends its courier along with the status.
+function moveOn(status) {
+  const extra = status === 'shipped' && tracking.value ? { tracking: tracking.value } : {};
+  emit('move', status, extra);
+}
 </script>

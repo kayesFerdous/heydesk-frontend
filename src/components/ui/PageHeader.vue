@@ -18,11 +18,9 @@
   </header>
 </template>
 
-<script>
-export default {
-  props: {
-    title: { type: String, required: true },
-    subtitle: { type: String, default: '' },
-  },
-};
+<script setup>
+defineProps({
+  title: { type: String, required: true },
+  subtitle: { type: String, default: '' },
+});
 </script>

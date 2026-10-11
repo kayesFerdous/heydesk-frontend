@@ -17,7 +17,7 @@
             "
           >
             <span v-if="message.text"><template v-for="(part, i) in linkParts(message.text)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="break-all underline">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></span>
-            <span v-else class="inline-flex gap-1 py-1" aria-label="Typing">
+            <span v-else class="inline-flex gap-1 py-1" :aria-label="t('chat.typing')">
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </span>
           </div>
@@ -26,9 +26,9 @@
         <p v-if="status" class="text-xs text-ink-soft">{{ status }}</p>
 
         <div v-if="handoff" class="notice" role="status">
-          <ph-user-sound :size="20" weight="bold" class="shrink-0 text-attention"></ph-user-sound>
+          <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
           <div class="min-w-0">
-            <p class="font-semibold text-ink">Handed over to a person</p>
+            <p class="font-semibold text-ink">{{ t('chat.handedOver') }}</p>
             <p class="mt-0.5 text-ink-soft">{{ handoff.message }}</p>
             <p v-if="handoff.phone || handoff.email" class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-medium">
               <a v-if="handoff.phone" :href="`tel:${handoff.phone}`" class="link">{{ handoff.phone }}</a>
@@ -45,13 +45,13 @@
       <div class="mx-auto max-w-2xl">
         <form class="flex gap-2" @submit.prevent="send">
           <label class="flex-1">
-            <span class="sr-only">Type a message</span>
+            <span class="sr-only">{{ t('chat.typeMessage') }}</span>
             <input
               ref="input"
               v-model="draft"
               class="field !rounded-full !px-4"
               type="text"
-              placeholder="Type a message"
+              :placeholder="t('chat.typeMessage')"
               autocomplete="off"
               :disabled="sending"
             />
@@ -60,15 +60,15 @@
             type="submit"
             class="btn btn-primary btn-icon shrink-0 !rounded-full"
             :disabled="sending || !draft.trim()"
-            aria-label="Send message"
+            :aria-label="t('chat.send')"
           >
-            <ph-paper-plane-tilt :size="18" weight="fill"></ph-paper-plane-tilt>
+            <PhPaperPlaneTilt :size="18" weight="fill"></PhPaperPlaneTilt>
           </button>
         </form>
         <div class="mt-2 flex items-center justify-between text-xs text-ink-soft">
-          <span>{{ note }}</span>
-          <button type="button" class="link" @click="restart">
-            Start over
+          <span>{{ note || t('chat.testNote') }}</span>
+          <button type="button" class="link shrink-0 whitespace-nowrap" @click="restart">
+            {{ t('chat.startOver') }}
           </button>
         </div>
       </div>
@@ -76,7 +76,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PhPaperPlaneTilt, PhUserSound } from '@phosphor-icons/vue';
 
 import { fetchChatAgent, fetchTeamReplies, streamChat } from '../../api/chat.js';
@@ -84,128 +86,118 @@ import { linkParts } from '../../lib/format.js';
 
 const TEAM_CHECK_MS = 4000;
 
-export default {
-  components: { PhPaperPlaneTilt, PhUserSound },
-  props: {
-    publicKey: { type: String, required: true },
-    // The {name, greeting} a page already loaded; without it the chat asks itself.
-    agent: { type: Object, default: null },
-    note: { type: String, default: 'Test chats show up in Conversations like real ones.' },
-  },
-  data() {
-    return {
-      messages: [],
-      conversationId: null,
-      draft: '',
-      sending: false,
-      status: null,
-      handoff: null,
-      error: null,
-      teamSeen: 0,
-      teamTimer: null,
-    };
-  },
-  created() {
-    this.start();
-  },
-  beforeUnmount() {
-    clearInterval(this.teamTimer);
-  },
-  watch: {
-    publicKey() {
-      this.start();
-    },
-  },
-  methods: {
-    linkParts,
-    // The greeting is shown on load; the first turn stores it (backend D8).
-    async start() {
-      this.messages = [];
-      this.conversationId = null;
-      this.teamSeen = 0;
-      clearInterval(this.teamTimer);
-      this.teamTimer = null;
-      this.handoff = null;
-      this.status = null;
-      this.error = null;
-      try {
-        const agent = this.agent || (await fetchChatAgent(this.publicKey));
-        this.messages.push({ role: 'agent', text: agent.greeting });
-      } catch (error) {
-        this.error = error.message;
-      }
-    },
-    restart() {
-      this.draft = '';
-      this.start();
-    },
-    scrollDown() {
-      this.$nextTick(() => {
-        const el = this.$refs.scroller;
-        if (el) el.scrollTop = el.scrollHeight;
-      });
-    },
-    // Someone from the business can answer from Telegram; their words show up here.
-    watchTeam() {
-      if (this.teamTimer) return;
-      this.teamTimer = setInterval(this.checkTeam, TEAM_CHECK_MS);
-    },
-    async checkTeam() {
-      const conversationId = this.conversationId;
-      // Nobody is looking at a hidden tab: skip this check, the next visible one catches up.
-      if (!conversationId || document.hidden) return;
-      try {
-        const replies = await fetchTeamReplies(this.publicKey, conversationId);
-        if (conversationId !== this.conversationId) return; // started over meanwhile
-        replies.slice(this.teamSeen).forEach((text) => this.messages.push({ role: 'agent', text }));
-        if (replies.length > this.teamSeen) this.scrollDown();
-        this.teamSeen = replies.length;
-      } catch (error) {
-        // A missed check is fine: the next one catches up.
-      }
-    },
-    async send() {
-      const text = this.draft.trim();
-      if (!text || this.sending) return;
+const props = defineProps({
+  publicKey: { type: String, required: true },
+  // The {name, greeting} a page already loaded; without it the chat asks itself.
+  agent: { type: Object, default: null },
+  // The line under the input; "Test chats show up in Conversations" when left out.
+  note: { type: String, default: '' },
+});
+const { t } = useI18n();
 
-      this.draft = '';
-      this.error = null;
-      this.sending = true;
-      this.messages.push({ role: 'user', text });
-      this.messages.push({ role: 'agent', text: '' });
-      const reply = this.messages[this.messages.length - 1];
-      this.scrollDown();
+const messages = ref([]);
+const conversationId = ref(null);
+const draft = ref('');
+const sending = ref(false);
+const status = ref(null);
+const handoff = ref(null);
+const error = ref(null);
+const scroller = ref(null);
+const input = ref(null);
+let teamSeen = 0;
+let teamTimer = null;
 
-      try {
-        await streamChat(this.publicKey, text, this.conversationId, {
-          open: (data) => {
-            this.conversationId = data.conversation_id;
-            this.watchTeam();
-          },
-          status: (data) => (this.status = data.label),
-          token: (data) => {
-            this.status = null;
-            reply.text += data.text;
-            this.scrollDown();
-          },
-          handoff: (data) => (this.handoff = data),
-          error: (data) => (this.error = data.message),
-        });
-      } catch (error) {
-        this.error = error.message;
-      }
+// The greeting is shown on load; the first turn stores it (backend D8).
+async function start() {
+  messages.value = [];
+  conversationId.value = null;
+  teamSeen = 0;
+  clearInterval(teamTimer);
+  teamTimer = null;
+  handoff.value = null;
+  status.value = null;
+  error.value = null;
+  try {
+    const agent = props.agent || (await fetchChatAgent(props.publicKey));
+    messages.value.push({ role: 'agent', text: agent.greeting });
+  } catch (err) {
+    error.value = err.message;
+  }
+}
 
-      // An empty reply bubble is worse than none.
-      if (!reply.text) {
-        this.messages.splice(this.messages.indexOf(reply), 1);
-      }
-      this.status = null;
-      this.sending = false;
-      this.scrollDown();
-      this.$nextTick(() => this.$refs.input && this.$refs.input.focus());
-    },
-  },
-};
+function restart() {
+  draft.value = '';
+  start();
+}
+
+function scrollDown() {
+  nextTick(() => {
+    if (scroller.value) scroller.value.scrollTop = scroller.value.scrollHeight;
+  });
+}
+
+// Someone from the business can answer from Telegram; their words show up here.
+function watchTeam() {
+  if (!teamTimer) teamTimer = setInterval(checkTeam, TEAM_CHECK_MS);
+}
+
+async function checkTeam() {
+  const id = conversationId.value;
+  // Nobody is looking at a hidden tab: skip this check, the next visible one catches up.
+  if (!id || document.hidden) return;
+  try {
+    const replies = await fetchTeamReplies(props.publicKey, id);
+    if (id !== conversationId.value) return; // started over meanwhile
+    replies.slice(teamSeen).forEach((text) => messages.value.push({ role: 'agent', text }));
+    if (replies.length > teamSeen) scrollDown();
+    teamSeen = replies.length;
+  } catch (err) {
+    // A missed check is fine: the next one catches up.
+  }
+}
+
+async function send() {
+  const text = draft.value.trim();
+  if (!text || sending.value) return;
+
+  draft.value = '';
+  error.value = null;
+  sending.value = true;
+  messages.value.push({ role: 'user', text });
+  messages.value.push({ role: 'agent', text: '' });
+  // The reactive copy, so streamed text shows up as it arrives.
+  const reply = messages.value[messages.value.length - 1];
+  scrollDown();
+
+  try {
+    await streamChat(props.publicKey, text, conversationId.value, {
+      open: (data) => {
+        conversationId.value = data.conversation_id;
+        watchTeam();
+      },
+      status: (data) => (status.value = data.label),
+      token: (data) => {
+        status.value = null;
+        reply.text += data.text;
+        scrollDown();
+      },
+      handoff: (data) => (handoff.value = data),
+      error: (data) => (error.value = data.message),
+    });
+  } catch (err) {
+    error.value = err.message;
+  }
+
+  // An empty reply bubble is worse than none.
+  if (!reply.text) messages.value.splice(messages.value.indexOf(reply), 1);
+  status.value = null;
+  sending.value = false;
+  scrollDown();
+  nextTick(() => input.value && input.value.focus());
+}
+
+watch(() => props.publicKey, start, { immediate: true });
+onBeforeUnmount(() => clearInterval(teamTimer));
 </script>
 
 <style scoped>

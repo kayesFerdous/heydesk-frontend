@@ -1,4 +1,5 @@
-import { request } from './client.js';
+import { request, getAuthToken } from './client.js';
+import { t } from '../i18n/index.js';
 
 // The backend has no presets any more (D41): each kind of business is a "desk"
 // with its own fields and tables. This file keeps the shapes the pages use:
@@ -7,23 +8,12 @@ import { request } from './client.js';
 
 // Fields every agent has; anything else in a desk's schema is its own.
 const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff'];
-const ITEMS_LABEL = { restaurant: 'Menu', clinic: 'Doctors', receptionist: 'Services', shop: 'Products' };
+// What each kind of agent does. The words are `jobs.<kind>.<job>` in the language files.
 const JOBS = {
-  restaurant: [
-    { id: 'order', label: 'order', description: 'Customers order from your menu, for pickup or (if you deliver) delivery. The agent adds up the total and reads it back before saving.' },
-    { id: 'message', label: 'message for the team', description: 'Customers leave a message or ask for a call back.' },
-  ],
-  clinic: [
-    { id: 'appointment', label: 'appointment request', description: "Patients ask to see a doctor on a day the doctor works. Your team calls to confirm." },
-    { id: 'message', label: 'message for the team', description: 'Patients leave a message or ask for a call back.' },
-  ],
-  receptionist: [
-    { id: 'message', label: 'message for the team', description: 'Visitors leave a message or ask for a call back.' },
-  ],
-  shop: [
-    { id: 'order', label: 'cash-on-delivery order', description: 'Buyers order your products with their size and colour. The agent works out the delivery charge, reads it all back and takes the items out of stock.' },
-    { id: 'message', label: 'message for the team', description: 'Buyers ask about returns, exchanges or anything else.' },
-  ],
+  restaurant: ['order', 'message'],
+  clinic: ['appointment', 'message'],
+  receptionist: ['message'],
+  shop: ['order', 'message'],
 };
 
 // The business's desk: "restaurant", "clinic" or "receptionist". A business
@@ -32,9 +22,10 @@ const JOBS = {
 // The promise itself is kept, so calls made at the same moment share one request.
 let kindOf = { token: null, kind: null };
 
-export function agentKind(token) {
+export function agentKind() {
+  const token = getAuthToken();
   if (kindOf.token !== token) {
-    const kind = request('/agent', { token }).then((agent) => agent.kind);
+    const kind = request('/agent').then((agent) => agent.kind);
     kindOf = { token, kind };
     // No agent yet (404) or the API is down: forget it, so the next call asks again.
     kind.catch(() => {
@@ -44,8 +35,8 @@ export function agentKind(token) {
   return kindOf.kind;
 }
 
-function rememberKind(token, kind) {
-  kindOf = { token, kind: Promise.resolve(kind) };
+function rememberKind(kind) {
+  kindOf = { token: getAuthToken(), kind: Promise.resolve(kind) };
 }
 
 function ownSchema(schema) {
@@ -63,7 +54,6 @@ export async function fetchPresets() {
     id: d.kind,
     label: d.label,
     description: d.description,
-    items_label: ITEMS_LABEL[d.kind] || 'Items',
     jobs: JOBS[d.kind] || [],
     knowledge_schema: ownSchema(d.config_schema),
   }));
@@ -86,24 +76,23 @@ function flatten(patch) {
 }
 
 // 404 not_found until the business has created its agent.
-export async function fetchAgent(token) {
-  const agent = await request('/agent', { token });
-  rememberKind(token, agent.kind);
+export async function fetchAgent() {
+  const agent = await request('/agent');
+  rememberKind(agent.kind);
   return toInfo(agent);
 }
 
-export async function createAgent(token, body) {
+export async function createAgent(body) {
   const created = await request('/agent', {
     method: 'POST',
     body: { kind: body.preset, config: flatten(body.config) },
-    token,
   });
-  rememberKind(token, created.kind);
+  rememberKind(created.kind);
   return toInfo(created);
 }
 
-export async function updateAgent(token, patch) {
-  return toInfo(await request('/agent', { method: 'PATCH', body: flatten(patch), token }));
+export async function updateAgent(patch) {
+  return toInfo(await request('/agent', { method: 'PATCH', body: flatten(patch) }));
 }
 
 // A clinic's doctor as an item, and back.
@@ -159,35 +148,35 @@ function itemToProduct(item) {
   };
 }
 
-export async function fetchItems(token) {
-  const kind = await agentKind(token);
-  if (kind === 'restaurant') return request('/menu', { token });
-  if (kind === 'clinic') return (await request('/doctors', { token })).map(doctorToItem);
-  if (kind === 'shop') return (await request('/products', { token })).map(productToItem);
+export async function fetchItems() {
+  const kind = await agentKind();
+  if (kind === 'restaurant') return request('/menu');
+  if (kind === 'clinic') return (await request('/doctors')).map(doctorToItem);
+  if (kind === 'shop') return (await request('/products')).map(productToItem);
   return []; // a receptionist lists its services in its details
 }
 
 // The agent's items become exactly this list, in this order.
-export async function replaceItems(token, items) {
-  const kind = await agentKind(token);
-  if (kind === 'restaurant') return request('/menu', { method: 'PUT', body: items, token });
+export async function replaceItems(items) {
+  const kind = await agentKind();
+  if (kind === 'restaurant') return request('/menu', { method: 'PUT', body: items });
   if (kind === 'clinic') {
-    const saved = await request('/doctors', { method: 'PUT', body: items.map(itemToDoctor), token });
+    const saved = await request('/doctors', { method: 'PUT', body: items.map(itemToDoctor) });
     return saved.map(doctorToItem);
   }
   if (kind === 'shop') {
-    const saved = await request('/products', { method: 'PUT', body: items.map(itemToProduct), token });
+    const saved = await request('/products', { method: 'PUT', body: items.map(itemToProduct) });
     return saved.map(productToItem);
   }
-  throw Object.assign(new Error('A receptionist lists its services on the Agent page.'), { status: 400 });
+  throw Object.assign(new Error(t('errors.noListToSave')), { status: 400 });
 }
 
 // A CSV replaces the menu or the doctors. dryRun checks it and shows what would be saved.
-export async function importItems(token, csv, dryRun) {
-  const kind = await agentKind(token);
+export async function importItems(csv, dryRun) {
+  const kind = await agentKind();
   const path = { restaurant: '/menu/import', clinic: '/doctors/import', shop: '/products/import' }[kind];
-  if (!path) throw Object.assign(new Error('A receptionist has no list to import.'), { status: 400 });
-  const result = await request(path, { method: 'POST', body: { csv, dry_run: dryRun }, token });
+  if (!path) throw Object.assign(new Error(t('errors.noListToImport')), { status: 400 });
+  const result = await request(path, { method: 'POST', body: { csv, dry_run: dryRun } });
   const toItem = { clinic: doctorToItem, shop: productToItem }[kind];
   const preview = toItem ? result.preview.map(toItem) : result.preview;
   return { ...result, preview, attributes: [] };
@@ -195,33 +184,32 @@ export async function importItems(token, csv, dryRun) {
 
 // The documents the agent reads when a question is not answered elsewhere.
 // Newest first. A document is searchable as soon as the call returns.
-export function fetchDocuments(token) {
-  return request('/agent/documents', { token });
+export function fetchDocuments() {
+  return request('/agent/documents');
 }
 
 // Pasted text. Markdown is fine.
-export function addTextDocument(token, title, text) {
+export function addTextDocument(title, text) {
   return request('/agent/documents', {
     method: 'POST',
     body: { title, text },
-    token,
   });
 }
 
 // A .txt, .md or .pdf file, up to 10 MB. `title` may be empty: the server
 // then uses the file name.
-export function addFileDocument(token, file, title) {
+export function addFileDocument(file, title) {
   const form = new FormData();
   form.append('file', file);
   form.append('title', title || '');
-  return request('/agent/documents/file', { method: 'POST', body: form, token });
+  return request('/agent/documents/file', { method: 'POST', body: form });
 }
 
 // The only call that returns the full text.
-export function fetchDocument(token, documentId) {
-  return request(`/agent/documents/${documentId}`, { token });
+export function fetchDocument(documentId) {
+  return request(`/agent/documents/${documentId}`);
 }
 
-export function deleteDocument(token, documentId) {
-  return request(`/agent/documents/${documentId}`, { method: 'DELETE', token });
+export function deleteDocument(documentId) {
+  return request(`/agent/documents/${documentId}`, { method: 'DELETE' });
 }

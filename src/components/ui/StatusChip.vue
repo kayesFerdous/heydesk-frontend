@@ -5,7 +5,8 @@
   </span>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
 import {
   PhClock,
   PhCheckCircle,
@@ -18,7 +19,7 @@ import {
   PhArrowUUpLeft,
 } from '@phosphor-icons/vue';
 
-import { STATUS_LABELS } from '../../lib/flows.js';
+import { statusLabel } from '../../lib/flows.js';
 
 // Status is always an icon plus a word, never colour alone.
 const LOOKS = {
@@ -38,17 +39,10 @@ const LOOKS = {
   active: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
 };
 
-export default {
-  props: {
-    status: { type: String, required: true },
-  },
-  computed: {
-    look() {
-      return LOOKS[this.status] || LOOKS.collected;
-    },
-    label() {
-      return STATUS_LABELS[this.status] || this.status;
-    },
-  },
-};
+const props = defineProps({
+  status: { type: String, required: true },
+});
+
+const look = computed(() => LOOKS[props.status] || LOOKS.collected);
+const label = computed(() => statusLabel(props.status));
 </script>

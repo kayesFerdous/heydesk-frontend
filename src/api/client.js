@@ -3,17 +3,30 @@
 //
 // The backend answers every failure as { error: { code, message, fields? } };
 // `fields` maps a config path to what is wrong with it (422 invalid_config).
+import i18n, { t } from '../i18n/index.js';
+
 const BASE_URL = '/api';
 
-// main.js registers what should happen when the token is rejected, so this file
-// does not have to import the store (the store imports this file).
+// The auth store hands over the session's token, and main.js registers what
+// should happen when it is rejected, so this file never imports a store (the
+// stores import this file).
+let authToken = null;
 let onUnauthorized = () => {};
+
+export function setAuthToken(token) {
+  authToken = token;
+}
+
+export function getAuthToken() {
+  return authToken;
+}
 
 export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler;
 }
 
-export async function request(path, { method = 'GET', body, token } = {}) {
+export async function request(path, { method = 'GET', body } = {}) {
+  const token = authToken;
   const headers = {};
 
   // A file upload is a FormData: the browser sets its own Content-Type (with
@@ -25,12 +38,20 @@ export async function request(path, { method = 'GET', body, token } = {}) {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
+  // The language the owner reads, should the backend learn to answer in it.
+  headers['Accept-Language'] = i18n.global.locale.value;
 
-  const response = await fetch(BASE_URL + path, {
-    method,
-    headers,
-    body: body && !isForm ? JSON.stringify(body) : body,
-  });
+  let response;
+  try {
+    response = await fetch(BASE_URL + path, {
+      method,
+      headers,
+      body: body && !isForm ? JSON.stringify(body) : body,
+    });
+  } catch (networkError) {
+    // Offline, or the server is not answering at all: one plain sentence.
+    throw new Error(t('errors.network'));
+  }
 
   // A failing proxy answers with HTML, and a 204 has no body at all, so
   // parsing has to be allowed to fail without hiding the status underneath.
@@ -39,8 +60,7 @@ export async function request(path, { method = 'GET', body, token } = {}) {
   if (!response.ok) {
     const detail = responseData && responseData.error;
     const error = new Error(
-      (detail && detail.message) ||
-        `Request failed with status ${response.status}.`
+      (detail && detail.message) || t('errors.requestFailed', { status: response.status })
     );
     error.status = response.status;
     error.code = detail && detail.code;

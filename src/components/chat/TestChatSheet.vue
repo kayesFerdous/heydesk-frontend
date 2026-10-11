@@ -1,36 +1,36 @@
 <template>
   <teleport to="body">
     <transition name="sheet">
-      <div v-if="open" class="fixed inset-0 z-40 flex justify-end">
+      <div v-if="ui.testSheetOpen" class="fixed inset-0 z-40 flex justify-end">
         <div class="absolute inset-0 bg-ink/30" @click="close"></div>
 
         <section
           class="relative flex h-full w-full max-w-md flex-col bg-wash shadow-[var(--shadow-float)]"
           role="dialog"
           aria-modal="true"
-          aria-label="Try your agent"
+          :aria-label="t('common.tryYourAgent')"
         >
           <header class="flex items-center justify-between border-b border-hairline bg-surface px-5 py-4">
             <div>
-              <h2 class="text-base font-semibold">Try your agent</h2>
-              <p class="text-sm text-ink-soft">Exactly what a customer sees.</p>
+              <h2 class="text-base font-semibold">{{ t('common.tryYourAgent') }}</h2>
+              <p class="text-sm text-ink-soft">{{ t('chat.whatCustomerSees') }}</p>
             </div>
             <button
               type="button"
               class="btn btn-quiet btn-icon"
-              aria-label="Close"
+              :aria-label="t('common.close')"
               @click="close"
             >
-              <ph-x :size="20"></ph-x>
+              <PhX :size="20"></PhX>
             </button>
           </header>
 
           <div class="min-h-0 flex-1">
-            <agent-chat v-if="publicKey" :public-key="publicKey"></agent-chat>
+            <AgentChat v-if="agent.publicKey" :public-key="agent.publicKey"></AgentChat>
             <div v-else class="p-6">
-              <p class="text-ink-soft">Create your agent first, then you can talk to it here.</p>
+              <p class="text-ink-soft">{{ t('chat.createFirst') }}</p>
               <router-link to="/setup" class="btn btn-primary mt-4" @click="close">
-                Set up your agent
+                {{ t('common.setUpYourAgent') }}
               </router-link>
             </div>
           </div>
@@ -40,44 +40,40 @@
   </teleport>
 </template>
 
-<script>
+<script setup>
+import { watch, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PhX } from '@phosphor-icons/vue';
 
 import AgentChat from './AgentChat.vue';
+import { useAgentStore } from '../../stores/agent.js';
+import { useUiStore } from '../../stores/ui.js';
 
-export default {
-  components: { AgentChat, PhX },
-  computed: {
-    open() {
-      return this.$store.getters['ui/testSheetOpen'];
-    },
-    publicKey() {
-      return this.$store.getters['agent/publicKey'];
-    },
+const { t } = useI18n();
+const agent = useAgentStore();
+const ui = useUiStore();
+
+function close() {
+  ui.testSheetOpen = false;
+}
+
+function onKey(event) {
+  if (event.key === 'Escape') close();
+}
+
+watch(
+  () => ui.testSheetOpen,
+  (open) => {
+    if (open) {
+      // The key is needed to talk to the agent; fetch it if no page has yet.
+      agent.load().catch(() => {});
+      document.addEventListener('keydown', onKey);
+    } else {
+      document.removeEventListener('keydown', onKey);
+    }
   },
-  watch: {
-    open(isOpen) {
-      if (isOpen) {
-        // The key is needed to talk to the agent; fetch it if no page has yet.
-        this.$store.dispatch('agent/load').catch(() => {});
-        document.addEventListener('keydown', this.onKey);
-      } else {
-        document.removeEventListener('keydown', this.onKey);
-      }
-    },
-  },
-  beforeUnmount() {
-    document.removeEventListener('keydown', this.onKey);
-  },
-  methods: {
-    close() {
-      this.$store.commit('ui/setTestSheet', false);
-    },
-    onKey(event) {
-      if (event.key === 'Escape') this.close();
-    },
-  },
-};
+);
+onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
 </script>
 
 <style scoped>

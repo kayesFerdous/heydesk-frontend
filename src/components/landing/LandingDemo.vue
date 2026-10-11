@@ -4,9 +4,9 @@
        then does it arrive in the owner's inbox. Example data, labelled so. -->
   <div ref="root">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="segmented" role="group" aria-label="Example business">
+      <div class="segmented" role="group" :aria-label="t('demo.exampleBusiness')">
         <button
-          v-for="(item, id) in scenes"
+          v-for="(item, id) in SCENES"
           :key="id"
           type="button"
           class="segment"
@@ -15,7 +15,7 @@
           @click="choose(id)"
         >
           <component :is="item.icon" :size="15" weight="bold"></component>
-          {{ item.kind }}
+          {{ t(`demo.${id}.kind`) }}
           <!-- While the demo plays on its own, a line shows when it moves on. -->
           <span
             v-if="autoplay && id === sceneId"
@@ -27,8 +27,8 @@
         </button>
       </div>
       <p class="text-[0.8125rem] text-ink-soft">
-        An example, not real customers.
-        <button type="button" class="link ml-1" @click="replay">Play again</button>
+        {{ t('demo.notReal') }}
+        <button type="button" class="link ml-1" @click="replay">{{ t('demo.playAgain') }}</button>
       </p>
     </div>
 
@@ -36,18 +36,18 @@
       class="mt-4 grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-[var(--radius-panel)] border border-line-strong bg-surface lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
     >
       <!-- The customer's side -->
-      <section class="flex min-h-[25rem] flex-col border-b border-hairline bg-wash lg:border-r lg:border-b-0" aria-label="The customer's chat">
+      <section class="flex min-h-[25rem] flex-col border-b border-hairline bg-wash lg:border-r lg:border-b-0" :aria-label="t('demo.customerChat')">
         <header class="flex items-center gap-3 border-b border-hairline bg-surface px-4 py-3">
           <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-semibold text-brand" aria-hidden="true">
             {{ scene.initials }}
           </span>
           <span class="min-w-0">
             <span class="block truncate text-sm font-semibold">{{ scene.business }}</span>
-            <live-status label="Online" class="mt-0.5"></live-status>
+            <LiveStatus :label="t('chat.online')" class="mt-0.5"></LiveStatus>
           </span>
           <span class="ml-auto hidden items-center gap-1.5 text-xs text-ink-soft sm:inline-flex">
-            <ph-globe :size="14"></ph-globe>
-            Website chat
+            <PhGlobe :size="14"></PhGlobe>
+            {{ t('channelsPage.websiteChat') }}
           </span>
         </header>
 
@@ -59,7 +59,7 @@
           <p
             v-if="step === 2"
             class="arrive inline-flex gap-1 self-start rounded-[var(--radius-panel)] rounded-tl-sm bg-surface px-4 py-3.5 text-ink-soft ring-1 ring-hairline"
-            aria-label="Typing"
+            :aria-label="t('chat.typing')"
           >
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
           </p>
@@ -70,7 +70,7 @@
               {{ streamed }}<span v-if="streaming" class="caret" aria-hidden="true"></span>
             </p>
             <p v-if="!streaming" class="arrive mt-1.5 flex items-center gap-1.5 px-1 text-xs text-ink-soft">
-              <ph-calculator :size="14" class="shrink-0 text-ink-faint"></ph-calculator>
+              <PhCalculator :size="14" class="shrink-0 text-ink-faint"></PhCalculator>
               {{ scene.source }}
             </p>
           </div>
@@ -82,38 +82,38 @@
 
         <div class="border-t border-hairline bg-surface p-3" aria-hidden="true">
           <div class="flex h-10 items-center rounded-full border border-line-strong px-4 text-sm text-ink-soft">
-            Type a message
+            {{ t('chat.typeMessage') }}
           </div>
         </div>
       </section>
 
       <!-- The owner's side -->
-      <section class="flex flex-col" aria-label="Your inbox">
+      <section class="flex flex-col" :aria-label="t('demo.yourInbox')">
         <header class="flex items-center justify-between gap-3 border-b border-hairline px-5 py-3.5">
           <span class="flex items-center gap-2 text-sm font-semibold">
-            <ph-tray :size="18" class="text-ink-faint"></ph-tray>
-            Inbox
+            <PhTray :size="18" class="text-ink-faint"></PhTray>
+            {{ t('inbox.title') }}
             <span class="font-normal text-ink-soft">{{ scene.list }}</span>
           </span>
-          <span :key="`n${run}${step >= 5}`" class="count" :class="{ 'count-new': step >= 5 }">{{ step >= 5 ? 1 : 0 }} new</span>
+          <span :key="`n${run}${step >= 5}`" class="count" :class="{ 'count-new': step >= 5 }">{{ t('demo.newCount', { n: formatNumber(step >= 5 ? 1 : 0) }) }}</span>
         </header>
 
-        <p class="border-b border-hairline bg-wash px-5 py-1.5 text-xs font-semibold text-ink-soft">Today</p>
+        <p class="border-b border-hairline bg-wash px-5 py-1.5 text-xs font-semibold text-ink-soft">{{ t('format.today') }}</p>
 
         <ul class="text-sm">
           <li v-if="step >= 5" :key="`r${run}`" class="landed border-b border-hairline px-5 py-3.5">
-            <inbox-row :row="scene.row" time="Just now"></inbox-row>
+            <InboxRow :row="scene.row" :time="t('format.justNow')"></InboxRow>
             <p class="mt-2 flex items-center gap-1.5 pl-12 text-xs font-medium text-success">
-              <ph-seal-check :size="15" weight="fill" class="shrink-0"></ph-seal-check>
-              Read back to the customer and confirmed in chat
+              <PhSealCheck :size="15" weight="fill" class="shrink-0"></PhSealCheck>
+              {{ t('demo.confirmed') }}
             </p>
           </li>
           <li v-else class="flex items-center gap-3 border-b border-hairline px-5 py-3.5 text-ink-soft">
             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-dashed border-line-strong" aria-hidden="true"></span>
-            <span>Nothing reaches you until the customer says yes.</span>
+            <span>{{ t('demo.nothingUntilYes') }}</span>
           </li>
           <li v-for="row in scene.earlier" :key="row.name" class="border-b border-hairline px-5 py-3.5">
-            <inbox-row :row="row" :time="row.time"></inbox-row>
+            <InboxRow :row="row" :time="row.time"></InboxRow>
           </li>
         </ul>
       </section>
@@ -121,7 +121,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   PhBuildings,
   PhCalculator,
@@ -134,55 +136,37 @@ import {
 
 import LiveStatus from '../ui/LiveStatus.vue';
 import InboxRow from './InboxRow.vue';
+import { formatMoney, formatNumber } from '../../lib/format.js';
 
-// Three example businesses, one per preset. Names and numbers are made up.
+// Three example businesses, one per preset. Names and numbers are made up; the
+// words are `demo.<scene>.*` in the language files (a row's summary and time
+// are `rows.<n>` and `times.<n>`, the new one is row 0).
 const SCENES = {
   restaurant: {
-    kind: 'Restaurant',
     icon: PhForkKnife,
-    business: 'Dhanmondi Kitchen',
     initials: 'DK',
-    list: 'Orders',
-    asks: 'Two chicken biryani for pickup at 8, please.',
-    readBack: 'That is 2 Chicken Biryani, ৳900 in total, ready at 8:00 PM. Shall I place the order?',
-    source: 'Price from your menu, added up by HeyDesk',
-    yes: 'Yes',
-    row: { initials: 'TA', name: 'Tanvir Ahmed', code: 'A-104', summary: '2 Chicken Biryani, pickup 8:00 PM', amount: '৳900', status: 'new' },
-    earlier: [
-      { initials: 'FI', name: 'Farhana Islam', code: 'A-103', summary: '1 Beef Tehari, pickup 7:30 PM', amount: '৳320', status: 'ready', time: '7:12 PM' },
-      { initials: 'IH', name: 'Imran Hossain', code: 'A-102', summary: '3 Chicken Biryani, 2 Borhani', amount: '৳1,550', status: 'collected', time: '6:40 PM' },
+    rows: [
+      { initials: 'TA', name: 'Tanvir Ahmed', code: 'A-104', amount: 90000, status: 'new' },
+      { initials: 'FI', name: 'Farhana Islam', code: 'A-103', amount: 32000, status: 'ready' },
+      { initials: 'IH', name: 'Imran Hossain', code: 'A-102', amount: 155000, status: 'collected' },
     ],
   },
   clinic: {
-    kind: 'Clinic',
     icon: PhStethoscope,
-    business: 'Lakeview Clinic',
     initials: 'LC',
-    list: 'Appointments',
-    asks: 'Can I see Dr. Nasrin Akter on Saturday evening? I am Nusrat Jahan.',
-    readBack: 'Dr. Nasrin Akter is free at 7:00 PM on Saturday, 10 Oct. Shall I request it for you?',
-    source: "Time from the doctor's hours, checked by HeyDesk",
-    yes: 'Yes, please',
-    row: { initials: 'NJ', name: 'Nusrat Jahan', code: 'A-101', summary: 'Dr. Nasrin Akter, Sat, Oct 10, 7:00 PM', status: 'new' },
-    earlier: [
-      { initials: 'RK', name: 'Rahim Khan', code: 'A-100', summary: 'Dr. Kamal Uddin, Fri, Oct 9, 5:30 PM', status: 'handled', time: '11:05 AM' },
-      { initials: 'SB', name: 'Sadia Begum', code: 'A-099', summary: 'Dr. Nasrin Akter, Thu, Oct 8, 6:00 PM', status: 'handled', time: '9:48 AM' },
+    rows: [
+      { initials: 'NJ', name: 'Nusrat Jahan', code: 'A-101', status: 'new' },
+      { initials: 'RK', name: 'Rahim Khan', code: 'A-100', status: 'handled' },
+      { initials: 'SB', name: 'Sadia Begum', code: 'A-099', status: 'handled' },
     ],
   },
   office: {
-    kind: 'Front office',
     icon: PhBuildings,
-    business: 'Northpoint Realty',
     initials: 'NR',
-    list: 'Messages',
-    asks: 'Can someone call me about renting an office in Banani? My number is 01712 345678.',
-    readBack: 'I will ask the team to call 01712 345678 about renting an office in Banani. Is that right?',
-    source: 'Read back word for word before it is saved',
-    yes: 'Yes, thanks',
-    row: { initials: 'RH', name: 'Rafiq Hasan', summary: 'Call back about renting an office in Banani', status: 'new' },
-    earlier: [
-      { initials: 'MA', name: 'Mitu Akter', summary: 'Wants the floor plan by email', status: 'handled', time: '2:30 PM' },
-      { initials: 'JU', name: 'Jamal Uddin', summary: 'Viewing next week, any weekday', status: 'handled', time: '12:15 PM' },
+    rows: [
+      { initials: 'RH', name: 'Rafiq Hasan', status: 'new' },
+      { initials: 'MA', name: 'Mitu Akter', status: 'handled' },
+      { initials: 'JU', name: 'Jamal Uddin', status: 'handled' },
     ],
   },
 };
@@ -193,117 +177,129 @@ const SCENES = {
 const BEAT = { ask: 500, think: 900, typing: 1100, word: 55, yes: 1100, inbox: 900, hold: 4200 };
 const ORDER = Object.keys(SCENES);
 
-export default {
-  components: { InboxRow, LiveStatus, PhCalculator, PhGlobe, PhSealCheck, PhTray },
-  data() {
-    return {
-      sceneId: 'restaurant',
-      step: 0,
-      words: 0,
-      run: 0,
-      // Cycles through the examples until the visitor picks one.
-      autoplay: true,
-    };
-  },
-  computed: {
-    scenes() {
-      return SCENES;
-    },
-    scene() {
-      return SCENES[this.sceneId];
-    },
-    readBackWords() {
-      return this.scene.readBack.split(' ');
-    },
-    streamed() {
-      return this.readBackWords.slice(0, this.words).join(' ');
-    },
-    streaming() {
-      return this.step === 3 && this.words < this.readBackWords.length;
-    },
-    // One scene from start to the move to the next, for the progress line.
-    sceneLength() {
-      const b = BEAT;
-      return b.ask + b.think + b.typing + b.word * this.readBackWords.length + b.yes + b.inbox + b.hold;
-    },
-  },
-  mounted() {
-    this.timers = [];
-    this.reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Play only while the demo is on screen; start again from the top on return.
-    this.observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) this.play();
-      else this.stop();
-    });
-    this.observer.observe(this.$refs.root);
-  },
-  beforeUnmount() {
-    this.stop();
-    this.observer.disconnect();
-  },
-  methods: {
-    choose(id) {
-      this.autoplay = false;
-      this.sceneId = id;
-      this.play();
-    },
-    replay() {
-      this.autoplay = false;
-      this.play();
-    },
-    stop() {
-      this.run += 1; // any sequence still waiting sees it is stale and gives up
-      this.timers.forEach(clearTimeout);
-      this.timers = [];
-    },
-    wait(ms) {
-      return new Promise((done) => this.timers.push(setTimeout(done, ms)));
-    },
-    async play() {
-      this.stop();
-      const run = this.run;
-      const stale = () => run !== this.run;
+const { t } = useI18n();
 
-      // Without motion, show the finished story at once and stay on it.
-      if (this.reduce) {
-        this.autoplay = false;
-        this.step = 5;
-        this.words = this.readBackWords.length;
-        return;
-      }
+const root = ref(null);
+const sceneId = ref('restaurant');
+const step = ref(0);
+const words = ref(0);
+const run = ref(0);
+// Cycles through the examples until the visitor picks one.
+const autoplay = ref(true);
 
-      this.step = 0;
-      this.words = 0;
-      const beats = [
-        [BEAT.ask, 1],
-        [BEAT.think, 2],
-        [BEAT.typing, 3],
-      ];
-      for (const [ms, step] of beats) {
-        await this.wait(ms);
-        if (stale()) return;
-        this.step = step;
-      }
-      while (this.words < this.readBackWords.length) {
-        await this.wait(BEAT.word);
-        if (stale()) return;
-        this.words += 1;
-      }
-      await this.wait(BEAT.yes);
-      if (stale()) return;
-      this.step = 4;
-      await this.wait(BEAT.inbox);
-      if (stale()) return;
-      this.step = 5;
+const scene = computed(() => {
+  const id = sceneId.value;
+  const say = (key) => t(`demo.${id}.${key}`);
+  const [first, ...earlier] = SCENES[id].rows.map((row, index) => ({
+    ...row,
+    summary: say(`rows.${index}`),
+    amount: row.amount ? formatMoney(row.amount) : '',
+    time: index ? say(`times.${index}`) : '',
+  }));
+  return {
+    initials: SCENES[id].initials,
+    business: say('business'),
+    list: say('list'),
+    asks: say('asks'),
+    readBack: say('readBack'),
+    source: say('source'),
+    yes: say('yes'),
+    row: first,
+    earlier,
+  };
+});
+const readBackWords = computed(() => scene.value.readBack.split(' '));
+const streamed = computed(() => readBackWords.value.slice(0, words.value).join(' '));
+const streaming = computed(() => step.value === 3 && words.value < readBackWords.value.length);
+// One scene from start to the move to the next, for the progress line.
+const sceneLength = computed(() => {
+  const b = BEAT;
+  return b.ask + b.think + b.typing + b.word * readBackWords.value.length + b.yes + b.inbox + b.hold;
+});
 
-      if (!this.autoplay) return;
-      await this.wait(BEAT.hold);
-      if (stale()) return;
-      this.sceneId = ORDER[(ORDER.indexOf(this.sceneId) + 1) % ORDER.length];
-      this.play();
-    },
-  },
-};
+let timers = [];
+let observer = null;
+let reduce = false;
+
+function stop() {
+  run.value += 1; // any sequence still waiting sees it is stale and gives up
+  timers.forEach(clearTimeout);
+  timers = [];
+}
+
+function wait(ms) {
+  return new Promise((done) => timers.push(setTimeout(done, ms)));
+}
+
+async function play() {
+  stop();
+  const mine = run.value;
+  const stale = () => mine !== run.value;
+
+  // Without motion, show the finished story at once and stay on it.
+  if (reduce) {
+    autoplay.value = false;
+    step.value = 5;
+    words.value = readBackWords.value.length;
+    return;
+  }
+
+  step.value = 0;
+  words.value = 0;
+  const beats = [
+    [BEAT.ask, 1],
+    [BEAT.think, 2],
+    [BEAT.typing, 3],
+  ];
+  for (const [ms, next] of beats) {
+    await wait(ms);
+    if (stale()) return;
+    step.value = next;
+  }
+  while (words.value < readBackWords.value.length) {
+    await wait(BEAT.word);
+    if (stale()) return;
+    words.value += 1;
+  }
+  await wait(BEAT.yes);
+  if (stale()) return;
+  step.value = 4;
+  await wait(BEAT.inbox);
+  if (stale()) return;
+  step.value = 5;
+
+  if (!autoplay.value) return;
+  await wait(BEAT.hold);
+  if (stale()) return;
+  sceneId.value = ORDER[(ORDER.indexOf(sceneId.value) + 1) % ORDER.length];
+  play();
+}
+
+function choose(id) {
+  autoplay.value = false;
+  sceneId.value = id;
+  play();
+}
+
+function replay() {
+  autoplay.value = false;
+  play();
+}
+
+onMounted(() => {
+  reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Play only while the demo is on screen; start again from the top on return.
+  observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) play();
+    else stop();
+  });
+  observer.observe(root.value);
+});
+
+onBeforeUnmount(() => {
+  stop();
+  observer.disconnect();
+});
 </script>
 
 <style scoped>

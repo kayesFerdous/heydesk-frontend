@@ -3,7 +3,7 @@
        (which opens the full sidebar as a drawer). -->
   <nav
     class="fixed inset-x-0 bottom-0 z-20 flex border-t border-hairline bg-surface/95 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur"
-    aria-label="Main"
+    :aria-label="t('shell.mainNav')"
   >
     <router-link
       v-for="item in items"
@@ -15,39 +15,53 @@
     >
       <span class="relative">
         <component :is="item.icon" :size="22" :weight="active(item) ? 'fill' : 'regular'"></component>
-        <span v-if="item.count" class="badge" :class="{ 'badge-attention': item.attention }">{{ item.count }}</span>
+        <span v-if="item.count" class="badge" :class="{ 'badge-attention': item.attention }">{{ formatNumber(item.count) }}</span>
       </span>
       <span>{{ item.short || item.label }}</span>
     </router-link>
-    <button type="button" class="tab-item" @click="$store.commit('ui/setNav', true)">
-      <ph-list :size="22"></ph-list>
-      <span>More</span>
+    <button type="button" class="tab-item" @click="ui.navOpen = true">
+      <PhList :size="22"></PhList>
+      <span>{{ t('nav.more') }}</span>
     </button>
   </nav>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { PhList } from '@phosphor-icons/vue';
 
 import { navGroups, isActive } from '../../lib/navigation.js';
+import { formatNumber } from '../../lib/format.js';
+import { useAuthStore } from '../../stores/auth.js';
+import { useAgentStore } from '../../stores/agent.js';
+import { useInboxStore } from '../../stores/inbox.js';
+import { useUiStore } from '../../stores/ui.js';
 
-export default {
-  components: { PhList },
-  computed: {
-    // The first group (daily work) plus the agent's settings.
-    items() {
-      const groups = navGroups(this.$store.getters);
-      const daily = groups[0].items;
-      const settings = groups[1] ? groups[1].items.slice(0, 1) : [];
-      return [...daily, ...settings];
-    },
-  },
-  methods: {
-    active(item) {
-      return isActive(item, this.$route.path);
-    },
-  },
-};
+const route = useRoute();
+const { t } = useI18n();
+const auth = useAuthStore();
+const agent = useAgentStore();
+const inbox = useInboxStore();
+const ui = useUiStore();
+
+// The first group (daily work) plus the agent's settings.
+const items = computed(() => {
+  const groups = navGroups({
+    isAdmin: auth.isAdmin,
+    preset: agent.kind,
+    waitingTotal: inbox.waitingTotal,
+    needsHuman: inbox.needsHuman,
+  });
+  const daily = groups[0].items;
+  const settings = groups[1] ? groups[1].items.slice(0, 1) : [];
+  return [...daily, ...settings];
+});
+
+function active(item) {
+  return isActive(item, route.path);
+}
 </script>
 
 <style scoped>

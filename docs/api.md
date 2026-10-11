@@ -138,11 +138,12 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ## Frontend map
 
 - `src/api/client.js`: the only `fetch` wrapper (JSON or FormData, error shape,
-  401 handler). `chat.js` streams with its own fetch because of SSE.
-- `src/store/modules/`: `auth` (token, me), `agent` (info, presets; getters
-  `config`, `jobs`, `missing`, `preset`, `itemsLabel`), `inbox` (badge
-  counts), `ui` (test chat sheet, phone drawer). Pages fetch lists (items,
-  documents, records) themselves, they are not in the store.
+  401 handler, the session token, `Accept-Language`). `chat.js` streams with
+  its own fetch because of SSE.
+- `src/stores/` (Pinia): `auth` (token, me), `agent` (info, presets; `config`,
+  `jobs`, `missing`, `preset`, `kind`), `inbox` (badge counts), `ui` (test chat
+  sheet, phone drawer). Pages fetch lists (items, documents, records)
+  themselves, they are not in a store.
 - Request budget (see [performance.md](performance.md)): `agent/load` fetches
   once per session (`{ force: true }` after a menu change); `agentKind` is
   remembered per token; sidebar counts ask only `?status=new`; a conversation's
@@ -156,13 +157,15 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   open one item.
 - Pages: `pages/{landing,home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat}`.
   Shared pieces in `components/{ui,layout,records,conversations,menu,knowledge,agent,chat}`.
-  Agent settings sections share `mixins/agentSection.js`; each PATCHes only its
-  own fields (the API leaves the rest).
+  Agent settings sections share `composables/useAgentSection.js`; each PATCHes
+  only its own fields (the API leaves the rest).
 - `src/lib/`: `flows.js` (status buttons), `format.js` (money, time, day,
   greeting, ago), `group.js` (Today/Yesterday, avatars), `records.js`
   (one-line summaries), `navigation.js` (the sidebar and tab bar), `setup.js`
   (Home checklist, where each `missing` item is fixed), `hours.js`,
   `presets.js` (icons, nouns, chat link), `channels.js`, `slug.js`.
+- `src/i18n/`: `index.js` (vue-i18n setup, `setLocale`, `localeTag`, `t` for
+  plain JS), `en.js` and `bn.js` (every word on screen, same keys).
 - Full guide: [architecture.md](architecture.md).
 
 ## Not built yet (backend supports it)

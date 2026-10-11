@@ -16,10 +16,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    count: { type: Number, default: 5 },
-  },
-};
+<script setup>
+defineProps({
+  count: { type: Number, default: 5 },
+});
 </script>

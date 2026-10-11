@@ -1,5 +1,7 @@
 import { PhForkKnife, PhPhone, PhFirstAid, PhSparkle, PhStethoscope, PhStorefront, PhTShirt } from '@phosphor-icons/vue';
 
+import { t } from '../i18n/index.js';
+
 // Icons are the frontend's; the words come from the API. An unknown preset
 // still renders, with a neutral icon.
 const ICONS = {
@@ -13,16 +15,26 @@ export function presetIcon(id) {
   return ICONS[id] || PhSparkle;
 }
 
-// What one entry in the list is called, singular.
-const NOUNS = {
-  restaurant: 'dish',
-  receptionist: 'service',
-  clinic: 'doctor',
-  shop: 'product',
-};
+const KNOWN = ['restaurant', 'receptionist', 'clinic', 'shop'];
 
-export function itemNoun(presetId) {
-  return NOUNS[presetId] || 'item';
+// What one entry in the list is called: "dish" for one, "dishes" for `count`.
+export function itemNoun(presetId, count = 1) {
+  return t(`presets.noun.${KNOWN.includes(presetId) ? presetId : 'other'}`, count);
+}
+
+// A kind of business in the chosen language. The API's own words are kept for
+// a kind the frontend has not heard of yet.
+export function presetLabel(preset) {
+  return KNOWN.includes(preset.id) ? t(`presets.label.${preset.id}`) : preset.label;
+}
+
+export function presetDescription(preset) {
+  return KNOWN.includes(preset.id) ? t(`presets.description.${preset.id}`) : preset.description;
+}
+
+// What the preset calls the list the owner keeps: Menu, Services, Doctors.
+export function itemsLabel(presetId) {
+  return t(`presets.items.${KNOWN.includes(presetId) ? presetId : 'other'}`);
 }
 
 // Where a visitor opens the agent: this app's own chat page, /chat/<public key>
@@ -36,13 +48,13 @@ export function chatLink(publicKey) {
 
 // The navigation link to a desk's own list: a restaurant's menu, a clinic's
 // doctors, a shop's products. A receptionist has none (its services are on the Agent page).
-const LISTS = {
-  restaurant: { label: 'Menu', icon: PhForkKnife },
-  clinic: { label: 'Doctors', icon: PhStethoscope },
-  shop: { label: 'Products', icon: PhTShirt },
+const LIST_ICONS = {
+  restaurant: PhForkKnife,
+  clinic: PhStethoscope,
+  shop: PhTShirt,
 };
 
 export function listLinks(presetId) {
-  const list = LISTS[presetId];
-  return list ? [{ to: '/menu', label: list.label, icon: list.icon }] : [];
+  const icon = LIST_ICONS[presetId];
+  return icon ? [{ to: '/menu', label: itemsLabel(presetId), icon }] : [];
 }

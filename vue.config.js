@@ -6,6 +6,17 @@ const { defineConfig } = require('@vue/cli-service');
 // NOT stripped: HeyDesk's own routes already start with /api.
 module.exports = defineConfig({
   transpileDependencies: true,
+  // vue-i18n's build flags: Composition API only, no legacy API, no devtools in production.
+  chainWebpack: (config) => {
+    config.plugin('define').tap(([definitions]) => [
+      {
+        ...definitions,
+        __VUE_I18N_FULL_INSTALL__: JSON.stringify(true),
+        __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+        __INTLIFY_PROD_DEVTOOLS__: JSON.stringify(false),
+      },
+    ]);
+  },
   devServer: {
     // Allow the Cloudflare Tunnel's host name, so one public link reaches this dev server.
     allowedHosts: 'all',
@@ -16,6 +27,10 @@ module.exports = defineConfig({
         pathRewrite: { '^/demo': '' },
       },
       '/api': {
+        target: 'http://localhost:8000',
+      },
+      // The payment link the agent sends (/pay/<id>) and the gateway's return (/pay/<id>/back).
+      '/pay/': {
         target: 'http://localhost:8000',
       },
     },

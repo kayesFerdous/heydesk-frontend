@@ -1,3 +1,5 @@
+import { t, localeTag } from '../i18n/index.js';
+
 // Lists read as a timeline (Today, Yesterday, ...) rather than one long pile,
 // the way ChatGPT groups its history. Days are decided in the agent's timezone.
 
@@ -17,10 +19,10 @@ export function groupByDay(items, field = 'created_at', timeZone = 'Asia/Dhaka')
   items.forEach((item) => {
     const key = dayKey(item[field], timeZone);
     let label;
-    if (key === today) label = 'Today';
-    else if (key === yesterday) label = 'Yesterday';
+    if (key === today) label = t('format.today');
+    else if (key === yesterday) label = t('format.yesterday');
     else
-      label = new Date(item[field]).toLocaleDateString('en-GB', {
+      label = new Date(item[field]).toLocaleDateString(localeTag(), {
         day: 'numeric',
         month: 'long',
         timeZone,

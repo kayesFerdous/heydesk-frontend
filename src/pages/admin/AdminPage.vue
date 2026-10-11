@@ -1,27 +1,27 @@
 <template>
   <section class="flex flex-col">
-    <page-header title="Businesses" subtitle="Every business on HeyDesk, its owner, and what happened lately.">
+    <PageHeader :title="t('admin.title')" :subtitle="t('admin.subtitle')">
       <template #tabs>
         <div class="tabs" role="tablist">
           <button
-            v-for="t in tabs"
-            :key="t.id"
+            v-for="id in TABS"
+            :key="id"
             type="button"
             role="tab"
-            :aria-selected="t.id === tab"
+            :aria-selected="id === tab"
             class="tab"
-            :class="{ 'tab-active': t.id === tab }"
-            @click="tab = t.id"
+            :class="{ 'tab-active': id === tab }"
+            @click="tab = id"
           >
-            {{ t.label }}
+            {{ t(`admin.tabs.${id}`) }}
           </button>
         </div>
       </template>
-    </page-header>
+    </PageHeader>
 
-    <load-error v-if="error" :message="error" @retry="load"></load-error>
+    <LoadError v-if="error" :message="error" @retry="load"></LoadError>
 
-    <skeleton-rows v-else-if="!loaded"></skeleton-rows>
+    <SkeletonRows v-else-if="!loaded"></SkeletonRows>
 
     <!-- Businesses -->
     <div v-else-if="tab === 'businesses'">
@@ -32,26 +32,26 @@
       >
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold">{{ b.name }}</p>
-          <p class="truncate text-sm text-ink-soft">{{ b.owner_email || 'No owner' }}</p>
+          <p class="truncate text-sm text-ink-soft">{{ b.owner_email || t('admin.noOwner') }}</p>
         </div>
-        <p class="hidden text-sm text-ink-soft sm:block">{{ b.kind || 'No agent yet' }}</p>
-        <p class="hidden text-sm sm:block">{{ b.conversations }} {{ b.conversations === 1 ? 'chat' : 'chats' }}</p>
+        <p class="hidden text-sm text-ink-soft sm:block">{{ b.kind || t('shell.noAgentYet') }}</p>
+        <p class="hidden text-sm sm:block">{{ t('admin.chats', { n: formatNumber(b.conversations) }, b.conversations) }}</p>
         <span class="justify-self-start">
-          <live-status :paused="b.status !== 'active'" label="Active" paused-label="Suspended" :breathe="false"></live-status>
+          <LiveStatus :paused="b.status !== 'active'" :label="t('admin.active')" :paused-label="t('admin.suspended')" :breathe="false"></LiveStatus>
         </span>
         <div class="col-span-2 sm:col-span-1 sm:text-right">
           <span v-if="confirmingId === b.id" class="flex items-center gap-2 sm:justify-end">
             <button type="button" class="btn btn-sm" :class="b.status === 'active' ? 'btn-danger' : 'btn-primary'" @click="toggleStatus(b)">
-              {{ b.status === 'active' ? 'Suspend' : 'Reactivate' }}
+              {{ b.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" @click="confirmingId = null">Keep as is</button>
+            <button type="button" class="btn btn-secondary btn-sm" @click="confirmingId = null">{{ t('admin.keepAsIs') }}</button>
           </span>
           <button v-else type="button" class="btn btn-quiet btn-sm" @click="confirmingId = b.id">
-            {{ b.status === 'active' ? 'Suspend' : 'Reactivate' }}
+            {{ b.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
           </button>
         </div>
       </div>
-      <p v-if="!businesses.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">No businesses yet.</p>
+      <p v-if="!businesses.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">{{ t('admin.noBusinesses') }}</p>
     </div>
 
     <!-- Owners -->
@@ -61,11 +61,11 @@
         class="mx-5 my-5 rounded-[var(--radius-panel)] border border-brand/15 bg-brand-tint px-4 py-3 text-sm sm:mx-8"
         role="status"
       >
-        <p class="font-semibold">New password for {{ temporary.email }}</p>
+        <p class="font-semibold">{{ t('admin.newPassword', { email: temporary.email }) }}</p>
         <p class="mt-1">
           <code class="rounded bg-surface px-2 py-0.5 font-semibold select-all">{{ temporary.password }}</code>
         </p>
-        <p class="mt-1 text-ink-soft">Shown once. Send it to them, and ask them to change it.</p>
+        <p class="mt-1 text-ink-soft">{{ t('admin.shownOnce') }}</p>
       </div>
       <div
         v-for="u in users"
@@ -74,9 +74,9 @@
       >
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold">{{ u.email }}</p>
-          <p class="truncate text-sm text-ink-soft sm:hidden">{{ u.business_name || 'HeyDesk admin' }}</p>
+          <p class="truncate text-sm text-ink-soft sm:hidden">{{ u.business_name || t('shell.heyDeskAdmin') }}</p>
         </div>
-        <p class="hidden truncate text-sm text-ink-soft sm:block">{{ u.business_name || 'HeyDesk admin' }}</p>
+        <p class="hidden truncate text-sm text-ink-soft sm:block">{{ u.business_name || t('shell.heyDeskAdmin') }}</p>
         <div class="text-right">
           <button
             v-if="u.role === 'owner'"
@@ -85,9 +85,9 @@
             :disabled="resettingId === u.id"
             @click="reset(u)"
           >
-            Reset password
+            {{ t('admin.resetPassword') }}
           </button>
-          <span v-else class="chip bg-hover text-ink-soft">Admin</span>
+          <span v-else class="chip bg-hover text-ink-soft">{{ t('admin.admin') }}</span>
         </div>
       </div>
     </div>
@@ -106,16 +106,19 @@
             <span class="text-ink-soft"> {{ event.action }}</span>
             <span v-if="event.target" class="text-ink-soft"> ({{ event.target }})</span>
           </p>
-          <p class="text-ink-soft">{{ time(event.at) }}</p>
+          <p class="text-ink-soft">{{ formatTime(event.at) }}</p>
         </div>
       </div>
-      <show-more v-if="auditHasMore" :loading="loadingMore" :error="moreError" @more="moreAudit"></show-more>
-      <p v-if="!audit.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">Nothing has happened yet.</p>
+      <ShowMore v-if="auditHasMore" :loading="loadingMore" :error="moreError" @more="moreAudit"></ShowMore>
+      <p v-if="!audit.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">{{ t('admin.nothingYet') }}</p>
     </div>
   </section>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import LoadError from '../../components/ui/LoadError.vue';
@@ -129,99 +132,81 @@ import {
   fetchAudit,
 } from '../../api/admin.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
-import { formatTime } from '../../lib/format.js';
+import { formatNumber, formatTime } from '../../lib/format.js';
 
-export default {
-  components: { SkeletonRows, PageHeader, LoadError, LiveStatus, ShowMore },
-  data() {
-    return {
-      tab: 'businesses',
-      tabs: [
-        { id: 'businesses', label: 'Businesses' },
-        { id: 'owners', label: 'Owners' },
-        { id: 'activity', label: 'Activity' },
-      ],
-      businesses: [],
-      users: [],
-      audit: [], // the activity log only grows, so it comes a page at a time
-      auditHasMore: false,
-      loadingMore: false,
-      moreError: null,
-      loaded: false,
-      error: null,
-      confirmingId: null,
-      resettingId: null,
-      temporary: null,
-    };
-  },
-  computed: {
-    auditGroups() {
-      return groupByDay(this.audit, 'at');
-    },
-  },
-  created() {
-    this.load();
-  },
-  methods: {
-    time: formatTime,
-    async load() {
-      this.error = null;
-      const token = this.$store.getters['auth/token'];
-      try {
-        [this.businesses, this.users] = await Promise.all([
-          fetchBusinesses(token),
-          fetchUsers(token),
-          this.loadAudit(),
-        ]);
-        this.loaded = true;
-      } catch (error) {
-        this.error = error.message;
-      }
-    },
-    // The newest page of the activity log (again after an admin action adds to it).
-    async loadAudit() {
-      this.audit = await fetchAudit(this.$store.getters['auth/token'], { limit: PAGE_SIZE });
-      this.auditHasMore = this.audit.length === PAGE_SIZE;
-      this.moreError = null;
-    },
-    // The next page: what happened before the oldest event on screen.
-    async moreAudit() {
-      this.loadingMore = true;
-      this.moreError = null;
-      try {
-        const older = await fetchAudit(this.$store.getters['auth/token'], {
-          limit: PAGE_SIZE,
-          before: this.audit[this.audit.length - 1].at,
-        });
-        this.audit = [...this.audit, ...older];
-        this.auditHasMore = older.length === PAGE_SIZE;
-      } catch (error) {
-        this.moreError = error.message;
-      }
-      this.loadingMore = false;
-    },
-    async toggleStatus(business) {
-      const next = business.status === 'active' ? 'suspended' : 'active';
-      try {
-        await setBusinessStatus(this.$store.getters['auth/token'], business.id, next);
-        business.status = next;
-        this.confirmingId = null;
-        await this.loadAudit();
-      } catch (error) {
-        this.error = error.message;
-      }
-    },
-    async reset(user) {
-      this.resettingId = user.id;
-      try {
-        const { password } = await resetPassword(this.$store.getters['auth/token'], user.id);
-        this.temporary = { email: user.email, password };
-        await this.loadAudit();
-      } catch (error) {
-        this.error = error.message;
-      }
-      this.resettingId = null;
-    },
-  },
-};
+const TABS = ['businesses', 'owners', 'activity'];
+
+const { t } = useI18n();
+
+const tab = ref('businesses');
+const businesses = ref([]);
+const users = ref([]);
+const audit = ref([]); // the activity log only grows, so it comes a page at a time
+const auditHasMore = ref(false);
+const loadingMore = ref(false);
+const moreError = ref(null);
+const loaded = ref(false);
+const error = ref(null);
+const confirmingId = ref(null);
+const resettingId = ref(null);
+const temporary = ref(null);
+
+const auditGroups = computed(() => groupByDay(audit.value, 'at'));
+
+// The newest page of the activity log (again after an admin action adds to it).
+async function loadAudit() {
+  audit.value = await fetchAudit({ limit: PAGE_SIZE });
+  auditHasMore.value = audit.value.length === PAGE_SIZE;
+  moreError.value = null;
+}
+
+async function load() {
+  error.value = null;
+  try {
+    [businesses.value, users.value] = await Promise.all([fetchBusinesses(), fetchUsers(), loadAudit()]);
+    loaded.value = true;
+  } catch (err) {
+    error.value = err.message;
+  }
+}
+
+// The next page: what happened before the oldest event on screen.
+async function moreAudit() {
+  loadingMore.value = true;
+  moreError.value = null;
+  try {
+    const older = await fetchAudit({ limit: PAGE_SIZE, before: audit.value[audit.value.length - 1].at });
+    audit.value = [...audit.value, ...older];
+    auditHasMore.value = older.length === PAGE_SIZE;
+  } catch (err) {
+    moreError.value = err.message;
+  }
+  loadingMore.value = false;
+}
+
+async function toggleStatus(business) {
+  const next = business.status === 'active' ? 'suspended' : 'active';
+  try {
+    await setBusinessStatus(business.id, next);
+    business.status = next;
+    confirmingId.value = null;
+    await loadAudit();
+  } catch (err) {
+    error.value = err.message;
+  }
+}
+
+async function reset(user) {
+  resettingId.value = user.id;
+  try {
+    const { password } = await resetPassword(user.id);
+    temporary.value = { email: user.email, password };
+    await loadAudit();
+  } catch (err) {
+    error.value = err.message;
+  }
+  resettingId.value = null;
+}
+
+load();
 </script>

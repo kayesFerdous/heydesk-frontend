@@ -4,24 +4,23 @@
        the same button tries again. -->
   <div class="my-4 flex flex-col items-center gap-2 px-5">
     <p v-if="error" class="flex items-center gap-2 text-sm text-ink" role="alert">
-      <ph-warning-circle :size="18" class="shrink-0 text-danger"></ph-warning-circle>
+      <PhWarningCircle :size="18" class="shrink-0 text-danger" />
       {{ error }}
     </p>
     <button type="button" class="btn btn-quiet" :disabled="loading" @click="$emit('more')">
-      {{ loading ? 'Loading...' : 'Show more' }}
+      {{ loading ? t('common.loading') : t('common.showMore') }}
     </button>
   </div>
 </template>
 
-<script>
+<script setup>
+import { useI18n } from 'vue-i18n';
 import { PhWarningCircle } from '@phosphor-icons/vue';
 
-export default {
-  components: { PhWarningCircle },
-  props: {
-    loading: { type: Boolean, default: false },
-    error: { type: String, default: null },
-  },
-  emits: ['more'],
-};
+defineProps({
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: null },
+});
+defineEmits(['more']);
+const { t } = useI18n();
 </script>

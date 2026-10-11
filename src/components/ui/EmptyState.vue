@@ -14,13 +14,11 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    // A Phosphor icon component, e.g. PhTray.
-    icon: { type: [Object, Function], required: true },
-    title: { type: String, required: true },
-    text: { type: String, required: true },
-  },
-};
+<script setup>
+defineProps({
+  // A Phosphor icon component, e.g. PhTray.
+  icon: { type: [Object, Function], required: true },
+  title: { type: String, required: true },
+  text: { type: String, required: true },
+});
 </script>

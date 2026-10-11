@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 // How one order, appointment or message is described in a single line, the
 // same way on Home and in the Inbox.
 export function summarize(record) {
@@ -9,12 +11,10 @@ export function summarize(record) {
   if (record.job === 'appointment' && record.details.doctor) {
     return `${record.details.doctor}, ${record.details.time}`;
   }
-  return record.note || record.details.message || 'Message for the team';
+  return record.note || record.details.message || t('records.messageForTeam');
 }
 
 // The Inbox tab a record lives under, plural: "Orders", "Appointments", "Messages".
-export const JOB_TABS = {
-  order: 'Orders',
-  appointment: 'Appointments',
-  message: 'Messages',
-};
+export function jobTab(job) {
+  return t(`records.tabs.${job}`);
+}

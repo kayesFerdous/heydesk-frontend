@@ -8,18 +8,18 @@
       >
         <p class="flex items-center gap-2 text-sm" aria-live="polite">
           <template v-if="dirty || saving">
-            <ph-pencil-simple-line :size="16" class="text-ink-soft"></ph-pencil-simple-line>
-            <span class="text-ink-soft">Unsaved changes</span>
+            <PhPencilSimpleLine :size="16" class="text-ink-soft" />
+            <span class="text-ink-soft">{{ t('common.unsavedChanges') }}</span>
           </template>
           <template v-else>
-            <ph-check-circle :size="16" weight="fill" class="text-success"></ph-check-circle>
+            <PhCheckCircle :size="16" weight="fill" class="text-success" />
             <span>{{ note }}</span>
           </template>
         </p>
         <div v-if="dirty || saving" class="flex gap-2">
-          <button type="button" class="btn btn-quiet" :disabled="saving" @click="$emit('discard')">Discard</button>
+          <button type="button" class="btn btn-quiet" :disabled="saving" @click="$emit('discard')">{{ t('common.discard') }}</button>
           <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? 'Saving...' : 'Save changes' }}
+            {{ saving ? t('common.saving') : t('common.saveChanges') }}
           </button>
         </div>
       </div>
@@ -27,19 +27,18 @@
   </transition>
 </template>
 
-<script>
+<script setup>
+import { useI18n } from 'vue-i18n';
 import { PhCheckCircle, PhPencilSimpleLine } from '@phosphor-icons/vue';
 
-export default {
-  components: { PhCheckCircle, PhPencilSimpleLine },
-  props: {
-    dirty: { type: Boolean, default: false },
-    saving: { type: Boolean, default: false },
-    // Shown for a moment after a save: "Saved. Live on the next message."
-    note: { type: String, default: '' },
-  },
-  emits: ['discard'],
-};
+defineProps({
+  dirty: { type: Boolean, default: false },
+  saving: { type: Boolean, default: false },
+  // Shown for a moment after a save: "Saved. Live on the next message."
+  note: { type: String, default: '' },
+});
+defineEmits(['discard']);
+const { t } = useI18n();
 </script>
 
 <style scoped>

@@ -1,23 +1,23 @@
 <template>
   <div>
     <!-- Its own Connect button, saved apart from the form below. -->
-    <sslcommerz-connect @change="connected = $event"></sslcommerz-connect>
+    <SslcommerzConnect @change="connected = $event"></SslcommerzConnect>
 
     <form v-if="form" class="mt-10 border-t border-hairline pt-8" novalidate @submit.prevent="save">
-      <form-problems :message="saveError" :problems="problems"></form-problems>
+      <FormProblems :message="saveError" :problems="problems"></FormProblems>
 
       <!-- A restaurant: pickup only, or delivery too, at one charge to any address. -->
       <div v-if="kind === 'restaurant'" class="flex flex-col gap-5">
         <div>
-          <h2 class="section-title">Delivery</h2>
-          <p class="mt-1 text-sm text-ink-soft">Off: your agent takes pickup orders only.</p>
+          <h2 class="section-title">{{ t('payments.delivery') }}</h2>
+          <p class="mt-1 text-sm text-ink-soft">{{ t('payments.deliveryOff') }}</p>
         </div>
         <div class="flex items-center justify-between gap-4">
-          <label class="text-sm font-semibold" for="delivers">We deliver</label>
-          <toggle-switch id="delivers" v-model="form.delivers" label="We deliver"></toggle-switch>
+          <label class="text-sm font-semibold" for="delivers">{{ t('payments.weDeliver') }}</label>
+          <ToggleSwitch id="delivers" v-model="form.delivers" :label="t('payments.weDeliver')"></ToggleSwitch>
         </div>
         <div v-if="form.delivers">
-          <label class="label" for="delivery-charge">Delivery charge (৳)</label>
+          <label class="label" for="delivery-charge">{{ t('payments.deliveryCharge') }} (৳)</label>
           <input
             id="delivery-charge"
             v-model="form.charge"
@@ -28,15 +28,15 @@
             step="1"
             inputmode="numeric"
           />
-          <p class="hint">The same to any address. 0 for free delivery.</p>
+          <p class="hint">{{ t('payments.deliveryChargeHint') }}</p>
         </div>
       </div>
 
       <!-- A shop: its delivery areas, each with a charge. -->
       <div v-if="kind === 'shop'" class="flex flex-col gap-5">
         <div>
-          <h2 class="section-title">Delivery areas</h2>
-          <p class="mt-1 text-sm text-ink-soft">Your agent asks the buyer which area, then tells them the charge and the total.</p>
+          <h2 class="section-title">{{ t('payments.areas') }}</h2>
+          <p class="mt-1 text-sm text-ink-soft">{{ t('payments.areasText') }}</p>
         </div>
         <!-- One area per block: the name on its own line, so it never gets squeezed. -->
         <div
@@ -45,14 +45,14 @@
           class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-3 rounded-[var(--radius-control)] border border-hairline p-3"
         >
           <div class="col-span-2">
-            <label class="label" :for="`zone-${index}`">Area</label>
-            <input :id="`zone-${index}`" v-model.trim="zone.name" class="field" :class="{ 'field-invalid': !zone.name }" type="text" placeholder="Inside Dhaka" />
+            <label class="label" :for="`zone-${index}`">{{ t('payments.area') }}</label>
+            <input :id="`zone-${index}`" v-model.trim="zone.name" class="field" :class="{ 'field-invalid': !zone.name }" type="text" :placeholder="t('payments.areaPlaceholder')" />
           </div>
-          <button type="button" class="btn btn-quiet !px-2.5" :aria-label="`Remove ${zone.name || 'this area'}`" @click="form.zones.splice(index, 1)">
-            <ph-trash :size="18"></ph-trash>
+          <button type="button" class="btn btn-quiet !px-2.5" :aria-label="t('payments.removeArea', { name: zone.name || t('payments.thisArea') })" @click="form.zones.splice(index, 1)">
+            <PhTrash :size="18"></PhTrash>
           </button>
           <div>
-            <label class="label" :for="`zone-charge-${index}`">Charge (৳)</label>
+            <label class="label" :for="`zone-charge-${index}`">{{ t('payments.charge') }} (৳)</label>
             <input
               :id="`zone-charge-${index}`"
               v-model="zone.charge"
@@ -65,18 +65,18 @@
             />
           </div>
           <div class="col-span-2">
-            <label class="label" :for="`zone-days-${index}`">Usually takes</label>
-            <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" placeholder="1–2 days" />
+            <label class="label" :for="`zone-days-${index}`">{{ t('payments.usuallyTakes') }}</label>
+            <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" :placeholder="t('payments.daysPlaceholder')" />
           </div>
         </div>
         <div>
           <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '' })">
-            <ph-plus :size="16" weight="bold"></ph-plus>
-            Add an area
+            <PhPlus :size="16" weight="bold"></PhPlus>
+            {{ t('payments.addArea') }}
           </button>
         </div>
         <div>
-          <label class="label" for="free-over">Free delivery on orders of (৳)</label>
+          <label class="label" for="free-over">{{ t('payments.freeOver') }} (৳)</label>
           <input
             id="free-over"
             v-model="form.freeOver"
@@ -87,18 +87,18 @@
             step="1"
             inputmode="numeric"
           />
-          <p class="hint">0: delivery is never free.</p>
+          <p class="hint">{{ t('payments.freeOverHint') }}</p>
         </div>
       </div>
 
       <div :class="{ 'mt-10 border-t border-hairline pt-8': kind !== 'clinic' }" class="flex flex-col gap-5">
         <div>
-          <h2 class="section-title">{{ words.title }}</h2>
-          <p class="mt-1 text-sm text-ink-soft">{{ words.explain }}</p>
+          <h2 class="section-title">{{ t(`${words}.title`) }}</h2>
+          <p class="mt-1 text-sm text-ink-soft">{{ t(`${words}.explain`) }}</p>
         </div>
 
         <div v-if="kind === 'clinic'">
-          <label class="label" for="deposit">Deposit (৳)</label>
+          <label class="label" for="deposit">{{ t('payments.deposit') }} (৳)</label>
           <input
             id="deposit"
             v-model="form.deposit"
@@ -109,132 +109,105 @@
             step="1"
             inputmode="numeric"
           />
-          <p class="hint">Taken with each appointment request.</p>
+          <p class="hint">{{ t('payments.depositHint') }}</p>
         </div>
 
         <div class="flex items-center justify-between gap-4">
           <div>
-            <label class="text-sm font-semibold" for="pay-first">{{ words.toggle }}</label>
+            <label class="text-sm font-semibold" for="pay-first">{{ t(`${words}.toggle`) }}</label>
             <p v-if="blocker" class="hint">{{ blocker }}</p>
           </div>
-          <toggle-switch
+          <ToggleSwitch
             id="pay-first"
             :model-value="form.pay_first && !blocker"
-            :label="words.toggle"
+            :label="t(`${words}.toggle`)"
             :disabled="!!blocker"
             @update:model-value="form.pay_first = $event"
-          ></toggle-switch>
+          ></ToggleSwitch>
         </div>
 
         <p class="flex items-start gap-2 text-sm text-ink-soft">
-          <ph-credit-card :size="18" class="mt-px shrink-0 text-ink-faint"></ph-credit-card>
+          <PhCreditCard :size="18" class="mt-px shrink-0 text-ink-faint"></PhCreditCard>
           <span>
-            Your agent sends the customer a link to pay into your SSLCommerz account.
-            {{ words.after }} Your agent can't mark anything paid: only the payment can.
+            {{ t('payments.linkIntro') }}
+            {{ t(`${words}.after`) }} {{ t('payments.onlyPayment') }}
           </span>
         </p>
       </div>
 
-      <save-bar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></save-bar>
+      <SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></SaveBar>
       <div class="h-8"></div>
     </form>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PhCreditCard, PhPlus, PhTrash } from '@phosphor-icons/vue';
 
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
 import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
-import agentSection from '../../mixins/agentSection.js';
-
-// What each kind of business takes first, in the owner's words.
-const WORDS = {
-  restaurant: {
-    title: 'Paying first',
-    explain: 'Many customers pay the delivery charge first, so you only cook for real orders.',
-    toggle: 'Take the delivery charge online first',
-    needs: 'Turn on delivery and set a charge first.',
-    after: 'A delivery order reaches you only after it is paid; the rest is paid on delivery. Pickup orders pay nothing first.',
-  },
-  clinic: {
-    title: 'Deposit',
-    explain: 'A small deposit with each request cuts the appointments nobody comes to.',
-    toggle: 'Take a deposit online first',
-    needs: 'Set the deposit amount first.',
-    after: 'A request reaches you only after its deposit is paid.',
-  },
-  shop: {
-    title: 'Paying first',
-    explain: 'Buyers pay the delivery charge first, so you only pack real orders.',
-    toggle: 'Take the delivery charge online first',
-    needs: 'Add a delivery area first.',
-    after: 'An order reaches you only after it is paid; the rest is cash on delivery.',
-  },
-};
+import { useAgentSection } from '../../composables/useAgentSection.js';
+import { useAgentStore } from '../../stores/agent.js';
 
 // Taka in the form, paisa in the API.
 const toTaka = (paisa) => String((paisa || 0) / 100);
 const toPaisa = (taka) => Math.round(Number(taka || 0) * 100);
 
-export default {
-  components: { FormProblems, SaveBar, ToggleSwitch, SslcommerzConnect, PhCreditCard, PhPlus, PhTrash },
-  mixins: [agentSection],
-  data() {
-    return { connected: false };
+const { t } = useI18n();
+const agent = useAgentStore();
+
+const connected = ref(false);
+const kind = computed(() => agent.kind);
+// What each kind of business takes first, in the owner's words: `payments.<kind>.*`.
+const words = computed(() => `payments.${['restaurant', 'clinic'].includes(kind.value) ? kind.value : 'shop'}`);
+
+function validAmount(taka) {
+  return taka === '' || Number(taka) >= 0;
+}
+
+const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm } = useAgentSection({
+  formFrom: (config) => {
+    const k = config.knowledge;
+    return {
+      delivers: !!k.delivers,
+      charge: toTaka(k.delivery_charge),
+      deposit: toTaka(k.deposit),
+      zones: (k.delivery || []).map((z) => ({ name: z.name, charge: toTaka(z.charge), days: z.days || '' })),
+      freeOver: toTaka(k.free_delivery_over),
+      pay_first: !!k.pay_first,
+    };
   },
-  computed: {
-    kind() {
-      return this.config && this.config.preset;
-    },
-    words() {
-      return WORDS[this.kind] || WORDS.shop;
-    },
-    // What's missing for there to be anything to take first, or ''.
-    nothingToTake() {
-      const f = this.form;
-      if (this.kind === 'restaurant' && !(f.delivers && toPaisa(f.charge) > 0)) return this.words.needs;
-      if (this.kind === 'clinic' && !(toPaisa(f.deposit) > 0)) return this.words.needs;
-      if (this.kind === 'shop' && !f.zones.length) return this.words.needs;
-      return '';
-    },
-    // Why paying first can't be turned on yet, or '' when it can.
-    blocker() {
-      return this.connected ? this.nothingToTake : 'Connect SSLCommerz above first.';
-    },
+  // Only this desk's own fields. Paying first stays as the owner left it while the
+  // SSLCommerz account is missing: the agent asks for nothing until one is connected.
+  patchFrom: (f) => {
+    const patch = { pay_first: f.pay_first && !nothingToTake.value };
+    if (kind.value === 'restaurant') {
+      patch.delivers = f.delivers;
+      patch.delivery_charge = toPaisa(f.charge);
+    }
+    if (kind.value === 'clinic') patch.deposit = toPaisa(f.deposit);
+    if (kind.value === 'shop') {
+      patch.delivery = f.zones.map((z) => ({ name: z.name, charge: toPaisa(z.charge), days: z.days }));
+      patch.free_delivery_over = toPaisa(f.freeOver);
+    }
+    return patch;
   },
-  methods: {
-    validAmount(taka) {
-      return taka === '' || Number(taka) >= 0;
-    },
-    formFrom(config) {
-      const k = config.knowledge;
-      return {
-        delivers: !!k.delivers,
-        charge: toTaka(k.delivery_charge),
-        deposit: toTaka(k.deposit),
-        zones: (k.delivery || []).map((z) => ({ name: z.name, charge: toTaka(z.charge), days: z.days || '' })),
-        freeOver: toTaka(k.free_delivery_over),
-        pay_first: !!k.pay_first,
-      };
-    },
-    // Only this desk's own fields. Paying first stays as the owner left it while the
-    // SSLCommerz account is missing: the agent asks for nothing until one is connected.
-    patchFrom(form) {
-      const patch = { pay_first: form.pay_first && !this.nothingToTake };
-      if (this.kind === 'restaurant') {
-        patch.delivers = form.delivers;
-        patch.delivery_charge = toPaisa(form.charge);
-      }
-      if (this.kind === 'clinic') patch.deposit = toPaisa(form.deposit);
-      if (this.kind === 'shop') {
-        patch.delivery = form.zones.map((z) => ({ name: z.name, charge: toPaisa(z.charge), days: z.days }));
-        patch.free_delivery_over = toPaisa(form.freeOver);
-      }
-      return patch;
-    },
-  },
-};
+});
+
+// What's missing for there to be anything to take first, or ''.
+const nothingToTake = computed(() => {
+  const f = form.value;
+  const needs = t(`${words.value}.needs`);
+  if (kind.value === 'restaurant' && !(f.delivers && toPaisa(f.charge) > 0)) return needs;
+  if (kind.value === 'clinic' && !(toPaisa(f.deposit) > 0)) return needs;
+  if (kind.value === 'shop' && !f.zones.length) return needs;
+  return '';
+});
+
+// Why paying first can't be turned on yet, or '' when it can.
+const blocker = computed(() => (connected.value ? nothingToTake.value : t('payments.connectFirst')));
 </script>

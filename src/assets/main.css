@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 /* The design tokens (DESIGN.md, v3 "Cobalt on paper"). Every colour, radius
@@ -8,7 +8,7 @@
    only. Everything else is a cool, slightly blue-tinted grey. Green, amber and
    red are states (live, needs a person, destructive), never decoration. */
 @theme {
-  --font-sans: 'Onest', ui-sans-serif, system-ui, 'Noto Sans Bengali', sans-serif;
+  --font-sans: 'Onest', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
   /* Brand */
   --color-brand: #004aac;
@@ -56,6 +56,17 @@
 /* Always light, whatever the device prefers. */
 :root {
   color-scheme: light;
+}
+
+/* Bangla mode. The tight tracking and leading tuned for Onest would squeeze
+   Bengali's joined letters and clip its vowel signs, so Bangla text gets
+   normal spacing and taller lines. Outside @layer, so it wins over utilities. */
+:lang(bn) {
+  letter-spacing: normal;
+}
+
+:lang(bn) :is(h1, h2, h3) {
+  line-height: 1.35;
 }
 
 @layer base {

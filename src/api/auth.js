@@ -14,6 +14,6 @@ export function signup(email, password, workspaceName) {
   });
 }
 
-export function fetchMe(token) {
-  return request('/auth/me', { token });
+export function fetchMe() {
+  return request('/auth/me');
 }

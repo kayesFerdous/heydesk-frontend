@@ -4,9 +4,9 @@ import { request } from './client.js';
 // @BotFather goes in once and never comes back: the server keeps it.
 
 // `{username, link}`, or null while no bot is connected.
-export async function fetchTelegram(token) {
+export async function fetchTelegram() {
   try {
-    return await request('/agent/telegram', { token });
+    return await request('/agent/telegram');
   } catch (error) {
     if (error.status === 404) return null;
     throw error;
@@ -14,12 +14,12 @@ export async function fetchTelegram(token) {
 }
 
 // Checks the token with Telegram and starts answering the bot's messages.
-export function connectTelegram(token, botToken) {
-  return request('/agent/telegram', { method: 'PUT', body: { token: botToken }, token });
+export function connectTelegram(botToken) {
+  return request('/agent/telegram', { method: 'PUT', body: { token: botToken } });
 }
 
-export function disconnectTelegram(token) {
-  return request('/agent/telegram', { method: 'DELETE', token });
+export function disconnectTelegram() {
+  return request('/agent/telegram', { method: 'DELETE' });
 }
 
 // BotFather's reply is a paragraph with the token in the middle, so the owner
