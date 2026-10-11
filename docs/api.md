@@ -20,7 +20,7 @@ Last synced 4 Oct 2026 (after agent jobs + document ingest); paging added 9 Oct 
   `Error` with `.status`, `.code`, `.fields`. Show `message` as-is.
 - Codes: `bad_request` 400, `unauthorized` 401, `forbidden` 403, `not_found`
   404, `unavailable` 404 (suspended business chat), `conflict` 409,
-  `invalid_transition` 409, `conversation_full` 409, `visitor_limited` 429, `invalid_config` 422
+  `invalid_transition` 409, `conversation_full` 409, `visitor_limited` 429, `rate_limited` 429, `invalid_config` 422
   (`fields`: path to problem), `invalid_request` 422 (`fields`),
   `unreadable_document` 422, `knowledge_unavailable` 503 (nothing saved, retry),
   `internal` 500.
@@ -111,7 +111,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | Call | What it does |
 |---|---|
 | `GET /chat/{public_key}` | `{name, greeting}`. 404 unknown, 404 `unavailable` if suspended |
-| `POST /chat/{public_key}` `{message, conversation_id?, visitor_id}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `done{interrupted}`, `error{message}`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51) |
+| `POST /chat/{public_key}` `{message, conversation_id?, visitor_id}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `done{interrupted}`, `error{message}`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
 | `GET /voice/ice` | ICE servers for a call: STUN, plus a Cloudflare TURN relay when the backend has keys |
 | `POST /voice/offer?key=<public_key>&visitor=<token>` `{sdp, type}` | WebRTC voice. `visitor` is the same token as the chat's; a limited visitor gets the chat's 429 before the call connects. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. Client: `api/voice.js`, `components/chat/VoiceCall.vue` |
 | `PATCH /voice/offer` | Trickle ICE candidates (the frontend does not use it) |
@@ -172,3 +172,10 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 
 Admin view of an owner's documents or jobs, import column `mapping`, voice
 channel UI.
+
+## Rate limits (backend D52)
+
+A burst gets a 429 `rate_limited`: "Too many requests. Please wait a minute and try again."
+Show the message as sent. Chat: 6 messages a minute per `visitor_id`, 60 per IP. Voice offer: 5 a
+minute per IP. Team-reply polling: 30 a minute per conversation (`AgentChat.vue` asks every 4
+seconds, 15 a minute). Login: 10 tries in 15 minutes per IP and email. Signup: 10 an hour per IP.
