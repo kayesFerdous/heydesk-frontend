@@ -1,9 +1,11 @@
 // The visitor-facing chat is a public endpoint: the agent's public key is the
-// whole credential. A reply streams back as server-sent events:
+// whole credential. Every message names the visitor (`lib/visitor.js`); one
+// over the chat's limits gets a 429 `visitor_limited`. A reply streams back as server-sent events:
 //   open {conversation_id}  token {text}  status {label}
 //   handoff {message, phone, email}  done {interrupted}  error {message}
 import { request } from './client.js';
 import { t } from '../i18n/index.js';
+import { visitorId } from '../lib/visitor.js';
 
 export function fetchChatAgent(publicKey) {
   return request(`/chat/${publicKey}`);
@@ -19,7 +21,7 @@ export async function streamChat(publicKey, message, conversationId, handlers) {
   const response = await fetch(`/api/chat/${publicKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, conversation_id: conversationId }),
+    body: JSON.stringify({ message, conversation_id: conversationId, visitor_id: visitorId }),
   });
 
   if (!response.ok) {
