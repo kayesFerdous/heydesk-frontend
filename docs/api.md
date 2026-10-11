@@ -176,6 +176,5 @@ channel UI.
 ## Rate limits (backend D52)
 
 A burst gets a 429 `rate_limited`: "Too many requests. Please wait a minute and try again."
-Show the message as sent. Chat: 6 messages a minute per `visitor_id`, 60 per IP. Voice offer: 5 a
-minute per IP. Team-reply polling: 30 a minute per conversation (`AgentChat.vue` asks every 4
-seconds, 15 a minute). Login: 10 tries in 15 minutes per IP and email. Signup: 10 an hour per IP.
+Show the message as sent. Chat: 6 messages a minute per `visitor_id`, 60 per IP. Login: 10 tries
+in 15 minutes per IP and email. Nothing else is rate limited.
