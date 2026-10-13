@@ -65,8 +65,15 @@ knowledge{} (per preset), faq (20000), handoff{message, phone, email}`.
 | `GET /shop/orders`, `PATCH /shop/orders/{id}` `{status?, tracking?}` | The shop's orders, paged (D46); move one along, or set the courier and parcel id |
 
 `Product`: `{code, name, description, price, was_price (before a sale; null: not on sale), category,
-sizes[], colours[], stock (null: not counted; 0: sold out)}`. Money in minor units. The Products page
-shows `was_price` crossed out when it's above `price`.
+sizes[], colours[], stock (null: not counted; 0: sold out), variants[]}`. Money in minor units. The
+Products page shows `was_price` crossed out when it's above `price`.
+
+`Variant` (D56): `{size, colour, stock}`, stock per size and colour. An empty size or colour means
+any of them (`{size: "L", colour: "", stock: 4}` counts L in every colour). When there are variants
+they hold the stock and `stock` is null; a size and colour no variant matches isn't counted. A
+variant's size or colour that isn't the product's is a 422. The CSV `stock` cell takes a number or
+`"M: 5; L White: 0"`. The Products page edits them as a list of counts and hides the on/off switch
+for such a product.
 
 A shop's config adds `delivery[{name, charge, days, places[]}]` (`places`: what buyers say instead
 of the area's name, "Mirpur" for Inside Dhaka; the agent works out the area from them),

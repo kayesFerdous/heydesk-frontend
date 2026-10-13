@@ -146,6 +146,7 @@ function itemToProduct(item) {
     sizes: item.sizes || [],
     colours: item.colours || [],
     stock,
+    variants: item.variants || [], // stock per size and colour (D56)
   };
 }
 

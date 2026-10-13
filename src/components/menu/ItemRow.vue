@@ -25,7 +25,9 @@
 
     <!-- On a phone the switch and Edit share one line under the name. -->
     <div class="col-span-2 flex items-center justify-between sm:contents">
-      <div class="flex items-center gap-2">
+      <!-- Counted per size and colour: the counts say what's sold out, not a switch. -->
+      <span v-if="item.variants?.length" class="text-xs whitespace-nowrap text-ink-soft">{{ t('menu.row.bySize') }}</span>
+      <div v-else class="flex items-center gap-2">
         <ToggleSwitch
           :model-value="item.available"
           :label="t('menu.row.isAvailable', { name: item.name })"
@@ -81,11 +83,41 @@
           <label class="label" :for="`cl-${uid}`">{{ t('menu.row.colours') }}</label>
           <input :id="`cl-${uid}`" v-model="coloursText" class="field" type="text" placeholder="White, Navy" />
         </div>
-        <div>
+        <div v-if="!counts.length">
           <label class="label" :for="`st-${uid}`">{{ t('menu.row.inStock') }}</label>
           <input :id="`st-${uid}`" v-model.trim="stockText" class="field" :class="{ 'field-invalid': errors.stock }" type="text" inputmode="numeric" :placeholder="t('menu.row.notCounted')" />
           <p v-if="errors.stock" class="error-text">{{ errors.stock }}</p>
           <p v-else class="hint">{{ t('menu.row.stockHint') }}</p>
+          <button v-if="sizeChoices.length || colourChoices.length" type="button" class="btn btn-quiet btn-sm mt-1 !px-0" @click="addCount">
+            {{ t('menu.row.countBySize') }}
+          </button>
+        </div>
+
+        <!-- Stock per size and colour: one line per count, "any" for every size or colour. -->
+        <div v-if="counts.length" class="sm:col-span-2">
+          <p class="label">{{ t('menu.row.stockBySize') }}</p>
+          <div class="flex flex-col gap-2">
+            <div v-for="(count, index) in counts" :key="index" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5.5rem_auto] items-center gap-2">
+              <select v-model="count.size" class="field" :aria-label="t('menu.row.sizes')">
+                <option value="">{{ t('menu.row.anySize') }}</option>
+                <option v-for="size in sizeChoices" :key="size" :value="size">{{ size }}</option>
+              </select>
+              <select v-model="count.colour" class="field" :aria-label="t('menu.row.colours')">
+                <option value="">{{ t('menu.row.anyColour') }}</option>
+                <option v-for="colour in colourChoices" :key="colour" :value="colour">{{ colour }}</option>
+              </select>
+              <input v-model.trim="count.stock" class="field" :class="{ 'field-invalid': errors.variants }" type="text" inputmode="numeric" :aria-label="t('menu.row.inStock')" />
+              <button type="button" class="btn btn-quiet !px-2.5" :aria-label="t('menu.row.removeCount')" @click="counts.splice(index, 1)">
+                <PhTrash :size="18"></PhTrash>
+              </button>
+            </div>
+          </div>
+          <p v-if="errors.variants" class="error-text">{{ errors.variants }}</p>
+          <p v-else class="hint">{{ t('menu.row.stockBySizeHint') }}</p>
+          <button type="button" class="btn btn-secondary btn-sm mt-2" @click="addCount">
+            <PhPlus :size="14" weight="bold"></PhPlus>
+            {{ t('menu.row.addCount') }}
+          </button>
         </div>
       </template>
       <div v-else class="sm:col-span-2">
@@ -117,7 +149,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCalendarBlank, PhClock, PhInfo, PhPalette, PhPackage, PhRuler, PhTranslate } from '@phosphor-icons/vue';
+import { PhCalendarBlank, PhClock, PhInfo, PhPalette, PhPackage, PhPlus, PhRuler, PhTranslate, PhTrash } from '@phosphor-icons/vue';
 
 import ToggleSwitch from '../ui/ToggleSwitch.vue';
 import { formatMoney, formatNumber } from '../../lib/format.js';
@@ -136,6 +168,11 @@ function list(text) {
     .split(',')
     .map((part) => part.trim())
     .filter(Boolean);
+}
+
+// "L/White", "L" or "White": one count's size and colour.
+function variantLabel(variant) {
+  return [variant.size, variant.colour].filter(Boolean).join('/');
 }
 
 function capitalize(text) {
@@ -161,6 +198,8 @@ const tagsText = ref('');
 const sizesText = ref('');
 const coloursText = ref('');
 const stockText = ref('');
+// Stock per size and colour (D56): [{ size, colour, stock }], "" for any size or colour.
+const counts = ref([]);
 const wasText = ref('');
 const errors = ref({});
 const confirming = ref(false);
@@ -178,6 +217,10 @@ const facts = computed(() => {
     if (item.sizes?.length) shown.push({ key: 'sizes', icon: PhRuler, text: item.sizes.join(', ') });
     if (item.colours?.length) shown.push({ key: 'colours', icon: PhPalette, text: item.colours.join(', ') });
     if (item.stock > 0) shown.push({ key: 'stock', icon: PhPackage, text: t('menu.row.stockCount', { n: formatNumber(item.stock) }) });
+    if (item.variants?.length) {
+      const text = item.variants.map((v) => `${variantLabel(v)} ${formatNumber(v.stock)}`).join(', ');
+      shown.push({ key: 'variants', icon: PhPackage, text });
+    }
     return shown;
   }
   const attributes = item.attributes || {};
@@ -190,6 +233,14 @@ const facts = computed(() => {
     });
 });
 
+// What a count can name: the sizes and colours as typed above.
+const sizeChoices = computed(() => list(sizesText.value));
+const colourChoices = computed(() => list(coloursText.value));
+
+function addCount() {
+  counts.value.push({ size: sizeChoices.value[0] || '', colour: '', stock: '' });
+}
+
 // Copy the item into the form each time editing starts.
 function fillForm() {
   const item = props.item;
@@ -199,6 +250,7 @@ function fillForm() {
   sizesText.value = (item.sizes || []).join(', ');
   coloursText.value = (item.colours || []).join(', ');
   stockText.value = item.stock === null || item.stock === undefined ? '' : String(item.stock);
+  counts.value = (item.variants || []).map((v) => ({ size: v.size, colour: v.colour, stock: String(v.stock) }));
   wasText.value = item.was_price ? String(item.was_price / 100) : '';
   errors.value = {};
   confirming.value = false;
@@ -227,6 +279,10 @@ function submit() {
   if (props.kind === 'shop' && stock !== null && !(Number.isInteger(stock) && stock >= 0)) {
     found.stock = t('menu.row.stockError');
   }
+  const variants = counts.value.map((c) => ({ size: c.size, colour: c.colour, stock: Number(c.stock) }));
+  if (counts.value.some((c) => c.stock === '' || !(Number.isInteger(Number(c.stock)) && Number(c.stock) >= 0))) {
+    found.variants = t('menu.row.stockBySizeError');
+  }
   if (!draft.value.name) found.name = t('menu.row.nameError');
   if (priceText.value === '' || Number.isNaN(price) || price < 0) found.price = t('menu.row.priceError');
   if (!draft.value.category) found.category = t('menu.row.categoryError');
@@ -238,8 +294,10 @@ function submit() {
       ? {
           sizes: list(sizesText.value),
           colours: list(coloursText.value),
-          stock,
-          available: stock !== 0,
+          // With counts per size and colour, they hold the stock (D56).
+          stock: variants.length ? null : stock,
+          variants,
+          available: variants.length ? true : stock !== 0,
           was_price: was === null ? null : Math.round(was * 100),
         }
       : {};
