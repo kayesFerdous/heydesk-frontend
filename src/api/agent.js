@@ -171,15 +171,30 @@ export async function replaceItems(items) {
   throw Object.assign(new Error(t('errors.noListToSave')), { status: 400 });
 }
 
-// A CSV replaces the menu or the doctors. dryRun checks it and shows what would be saved.
-export async function importItems(csv, dryRun) {
-  const kind = await agentKind();
-  const path = { restaurant: '/menu/import', clinic: '/doctors/import', shop: '/products/import' }[kind];
+const IMPORT_PATHS = { restaurant: '/menu/import', clinic: '/doctors/import', shop: '/products/import' };
+
+async function importPath() {
+  const path = IMPORT_PATHS[await agentKind()];
   if (!path) throw Object.assign(new Error(t('errors.noListToImport')), { status: 400 });
-  const result = await request(path, { method: 'POST', body: { csv, dry_run: dryRun } });
+  return path;
+}
+
+// The file's columns, its first rows, our fields, and the AI's guess at which
+// of their columns is which of our fields: { columns, headers, samples, mapping, by_ai }.
+export async function suggestColumns(csv) {
+  return request(`${await importPath()}/suggest`, { method: 'POST', body: { csv } });
+}
+
+// A CSV replaces the menu, the doctors or the products. `mapping` is
+// { ourField: theirColumn }, as the owner checked it. dryRun checks the file
+// and shows what would be saved.
+export async function importItems(csv, mapping, dryRun) {
+  const kind = await agentKind();
+  const path = await importPath();
+  const result = await request(path, { method: 'POST', body: { csv, mapping, dry_run: dryRun } });
   const toItem = { clinic: doctorToItem, shop: productToItem }[kind];
   const preview = toItem ? result.preview.map(toItem) : result.preview;
-  return { ...result, preview, attributes: [] };
+  return { ...result, preview };
 }
 
 // The documents the agent reads when a question is not answered elsewhere.

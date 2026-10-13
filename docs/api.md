@@ -48,7 +48,8 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 | `PATCH /agent` `{...config fields}` | Top-level fields replace: send the whole `knowledge`, the whole `handoff`. Live on next message. 422 `invalid_config` |
 | `GET /agent/items` | The menu/services list |
 | `PUT /agent/items` `[Item]` | Replace the whole list, in order |
-| `POST /agent/items/import` `{csv, mapping?, dry_run?}` | `{saved, count, attributes[], preview[5]}`. Replaces items unless `dry_run`. Known columns: name, price, category, tags, description, code, available; other columns become `attributes`. Frontend does not send `mapping` yet |
+| `POST /menu/import`, `/doctors/import`, `/products/import` `{csv, mapping?, dry_run?}` | `{saved, count, preview[5]}`. Replaces the list unless `dry_run`. `mapping` is `{ourField: theirColumn}` from `/suggest`, as the owner checked it; without it columns are matched by name. 422 `invalid_config` with `fields` per row ("row 3") or `mapping` (D53) |
+| `POST /menu/import/suggest`, `/doctors/import/suggest`, `/products/import/suggest` `{csv}` | `{columns[{name, about, required}], headers[], samples[3]{header: text}, mapping{field: header}, by_ai}`. The AI's guess at the match; `by_ai: false` means it matched by name only. One model call per request (D53) |
 
 `Item`: `{code, name, description, price (minor units), category, tags[], available, attributes{}}`.
 
@@ -170,7 +171,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 
 ## Not built yet (backend supports it)
 
-Admin view of an owner's documents or jobs, import column `mapping`, voice
+Admin view of an owner's documents or jobs, voice
 channel UI.
 
 ## Rate limits (backend D52)
