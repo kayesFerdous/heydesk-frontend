@@ -57,6 +57,23 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 country, currency, greeting, instructions (admin), notes (owner, 4000),
 knowledge{} (per preset), faq (20000), handoff{message, phone, email}`.
 
+### A shop (`agent.js`, D45, D54)
+| Call | What it does |
+|---|---|
+| `GET /products` | `[Product]`, in the shop's order |
+| `PUT /products` `[Product]` | Replace the whole list. **Send every field back**, or it's lost: the Products page edits one row and PUTs them all |
+| `GET /shop/orders`, `PATCH /shop/orders/{id}` `{status?, tracking?}` | The shop's orders, paged (D46); move one along, or set the courier and parcel id |
+
+`Product`: `{code, name, description, price, was_price (before a sale; null: not on sale), category,
+sizes[], colours[], stock (null: not counted; 0: sold out)}`. Money in minor units. The Products page
+shows `was_price` crossed out when it's above `price`.
+
+A shop's config adds `delivery[{name, charge, days, places[]}]` (`places`: what buyers say instead
+of the area's name, "Mirpur" for Inside Dhaka; the agent works out the area from them),
+`free_delivery_over`, `policies`, `size_guide` (free text; the agent suggests a size only from it)
+and `pay_first`. The Delivery and payments section sends the whole `delivery`, places included; the
+profile section shows `policies` and `size_guide` as long fields.
+
 Jobs (`presets/jobs.yaml`): `order` (pickup order, makes an `order` record),
 `appointment` and `message` (both make a `request` record). The owner cannot toggle
 them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,

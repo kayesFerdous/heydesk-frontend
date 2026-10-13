@@ -173,6 +173,7 @@ const blank = computed(() => ({
   name: '',
   description: '',
   price: 0,
+  was_price: null,
   category: category.value ?? allCategories.value[0] ?? '',
   tags: [],
   available: true,

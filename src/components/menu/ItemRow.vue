@@ -18,7 +18,10 @@
       </div>
     </div>
 
-    <p class="text-right text-sm font-semibold" :class="{ 'opacity-55': !item.available }">{{ formatMoney(item.price) }}</p>
+    <div class="text-right" :class="{ 'opacity-55': !item.available }">
+      <p class="text-sm font-semibold">{{ formatMoney(item.price) }}</p>
+      <p v-if="onSale" class="text-xs text-ink-soft line-through">{{ t('menu.row.was', { price: formatMoney(item.was_price) }) }}</p>
+    </div>
 
     <!-- On a phone the switch and Edit share one line under the name. -->
     <div class="col-span-2 flex items-center justify-between sm:contents">
@@ -63,6 +66,12 @@
         <input :id="`d-${uid}`" v-model="draft.description" class="field" type="text" />
       </div>
       <template v-if="kind === 'shop'">
+        <div>
+          <label class="label" :for="`w-${uid}`">{{ t('menu.row.wasPrice') }} (৳)</label>
+          <input :id="`w-${uid}`" v-model.trim="wasText" class="field" :class="{ 'field-invalid': errors.was_price }" type="text" inputmode="decimal" />
+          <p v-if="errors.was_price" class="error-text">{{ errors.was_price }}</p>
+          <p v-else class="hint">{{ t('menu.row.wasPriceHint') }}</p>
+        </div>
         <div>
           <label class="label" :for="`sz-${uid}`">{{ t('menu.row.sizes') }}</label>
           <input :id="`sz-${uid}`" v-model="sizesText" class="field" type="text" placeholder="M, L, XL" />
@@ -152,10 +161,12 @@ const tagsText = ref('');
 const sizesText = ref('');
 const coloursText = ref('');
 const stockText = ref('');
+const wasText = ref('');
 const errors = ref({});
 const confirming = ref(false);
 
 const noun = computed(() => itemNoun(props.kind));
+const onSale = computed(() => props.kind === 'shop' && props.item.was_price > props.item.price);
 const offWord = computed(() => (props.kind === 'clinic' ? t('menu.row.away') : t('menu.row.soldOut')));
 
 // A business's own facts (a doctor's days, hours and languages) are shown
@@ -188,6 +199,7 @@ function fillForm() {
   sizesText.value = (item.sizes || []).join(', ');
   coloursText.value = (item.colours || []).join(', ');
   stockText.value = item.stock === null || item.stock === undefined ? '' : String(item.stock);
+  wasText.value = item.was_price ? String(item.was_price / 100) : '';
   errors.value = {};
   confirming.value = false;
 }
@@ -210,6 +222,8 @@ function submit() {
   const found = {};
   const price = Number(priceText.value);
   const stock = stockText.value === '' ? null : Number(stockText.value);
+  const was = wasText.value === '' ? null : Number(wasText.value);
+  if (props.kind === 'shop' && was !== null && !(was > price)) found.was_price = t('menu.row.wasPriceError');
   if (props.kind === 'shop' && stock !== null && !(Number.isInteger(stock) && stock >= 0)) {
     found.stock = t('menu.row.stockError');
   }
@@ -221,7 +235,13 @@ function submit() {
 
   const product =
     props.kind === 'shop'
-      ? { sizes: list(sizesText.value), colours: list(coloursText.value), stock, available: stock !== 0 }
+      ? {
+          sizes: list(sizesText.value),
+          colours: list(coloursText.value),
+          stock,
+          available: stock !== 0,
+          was_price: was === null ? null : Math.round(was * 100),
+        }
       : {};
   emit('save', {
     ...props.item,

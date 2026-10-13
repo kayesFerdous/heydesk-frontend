@@ -141,6 +141,7 @@ function itemToProduct(item) {
     name: item.name,
     description: item.description || '',
     price: item.price,
+    was_price: item.was_price ?? null, // before a sale; null: not on sale
     category: item.category,
     sizes: item.sizes || [],
     colours: item.colours || [],

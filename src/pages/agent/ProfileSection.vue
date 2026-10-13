@@ -82,8 +82,8 @@ const PAYMENT_FIELDS = ['delivers', 'delivery_charge', 'deposit', 'pay_first', '
 
 // Fields with friendlier words than the schema's names (`profile.fields.<key>`);
 // the long ones get a textarea.
-const KNOWN_FIELDS = ['address', 'policies', 'about', 'services', 'emergency_phone'];
-const LONG_FIELDS = ['policies', 'about', 'services'];
+const KNOWN_FIELDS = ['address', 'policies', 'about', 'services', 'emergency_phone', 'size_guide'];
+const LONG_FIELDS = ['policies', 'about', 'services', 'size_guide'];
 
 const { t, te } = useI18n();
 const agent = useAgentStore();

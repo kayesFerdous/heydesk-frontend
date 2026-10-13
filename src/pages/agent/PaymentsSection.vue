@@ -68,9 +68,14 @@
             <label class="label" :for="`zone-days-${index}`">{{ t('payments.usuallyTakes') }}</label>
             <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" :placeholder="t('payments.daysPlaceholder')" />
           </div>
+          <div class="col-span-3">
+            <label class="label" :for="`zone-places-${index}`">{{ t('payments.places') }}</label>
+            <input :id="`zone-places-${index}`" v-model="zone.places" class="field" type="text" :placeholder="t('payments.placesPlaceholder')" />
+            <p class="hint">{{ t('payments.placesHint') }}</p>
+          </div>
         </div>
         <div>
-          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '' })">
+          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', places: '' })">
             <PhPlus :size="16" weight="bold"></PhPlus>
             {{ t('payments.addArea') }}
           </button>
@@ -156,6 +161,8 @@ import { useAgentStore } from '../../stores/agent.js';
 // Taka in the form, paisa in the API.
 const toTaka = (paisa) => String((paisa || 0) / 100);
 const toPaisa = (taka) => Math.round(Number(taka || 0) * 100);
+// "Mirpur, Uttara" in the form, ["Mirpur", "Uttara"] in the API.
+const toList = (text) => text.split(',').map((part) => part.trim()).filter(Boolean);
 
 const { t } = useI18n();
 const agent = useAgentStore();
@@ -176,7 +183,12 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
       delivers: !!k.delivers,
       charge: toTaka(k.delivery_charge),
       deposit: toTaka(k.deposit),
-      zones: (k.delivery || []).map((z) => ({ name: z.name, charge: toTaka(z.charge), days: z.days || '' })),
+      zones: (k.delivery || []).map((z) => ({
+        name: z.name,
+        charge: toTaka(z.charge),
+        days: z.days || '',
+        places: (z.places || []).join(', '),
+      })),
       freeOver: toTaka(k.free_delivery_over),
       pay_first: !!k.pay_first,
     };
@@ -191,7 +203,12 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
     }
     if (kind.value === 'clinic') patch.deposit = toPaisa(f.deposit);
     if (kind.value === 'shop') {
-      patch.delivery = f.zones.map((z) => ({ name: z.name, charge: toPaisa(z.charge), days: z.days }));
+      patch.delivery = f.zones.map((z) => ({
+        name: z.name,
+        charge: toPaisa(z.charge),
+        days: z.days,
+        places: toList(z.places),
+      }));
       patch.free_delivery_over = toPaisa(f.freeOver);
     }
     return patch;
