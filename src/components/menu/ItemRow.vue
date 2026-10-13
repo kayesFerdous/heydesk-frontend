@@ -4,7 +4,9 @@
     v-if="!editing"
     class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] sm:px-8"
   >
-    <div class="min-w-0" :class="{ 'opacity-55': !item.available }">
+    <div class="flex min-w-0 items-center gap-3" :class="{ 'opacity-55': !item.available }">
+      <img v-if="item.photos?.length" :src="item.photos[0]" alt="" class="size-10 shrink-0 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
+      <div class="min-w-0">
       <p class="truncate text-sm font-semibold">{{ item.name }}</p>
       <p v-if="item.description" class="truncate text-sm text-ink-soft">{{ item.description }}</p>
       <p v-if="facts.length" class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
@@ -15,6 +17,7 @@
       </p>
       <div v-if="item.tags.length" class="mt-1.5 flex flex-wrap gap-1.5">
         <span v-for="tag in item.tags" :key="tag" class="chip bg-hover !font-medium text-ink-soft">{{ tag }}</span>
+      </div>
       </div>
     </div>
 
@@ -93,6 +96,31 @@
           </button>
         </div>
 
+        <!-- Photos (D57): uploaded at once, kept when the product is saved. -->
+        <div class="sm:col-span-2">
+          <p class="label">{{ t('menu.row.photos') }}</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <div v-for="(url, index) in photos" :key="url" class="relative">
+              <img :src="url" :alt="t('menu.row.photoOf', { name: draft.name, n: index + 1 })" class="size-20 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
+              <button
+                type="button"
+                class="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-surface text-ink-soft shadow-[var(--shadow-lift)] ring-1 ring-hairline hover:text-danger"
+                :aria-label="t('menu.row.removePhoto', { n: index + 1 })"
+                @click="photos.splice(index, 1)"
+              >
+                <PhX :size="12" weight="bold"></PhX>
+              </button>
+            </div>
+            <label v-if="photos.length < MAX_PHOTOS" class="btn btn-secondary btn-sm cursor-pointer" :class="{ 'pointer-events-none opacity-60': uploading }">
+              <PhImage :size="16"></PhImage>
+              {{ uploading ? t('menu.row.addingPhoto') : t('menu.row.addPhoto') }}
+              <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" :disabled="uploading" @change="addPhoto" />
+            </label>
+          </div>
+          <p v-if="errors.photos" class="error-text">{{ errors.photos }}</p>
+          <p v-else class="hint">{{ t('menu.row.photosHint') }}</p>
+        </div>
+
         <!-- Stock per size and colour: one line per count, "any" for every size or colour. -->
         <div v-if="counts.length" class="sm:col-span-2">
           <p class="label">{{ t('menu.row.stockBySize') }}</p>
@@ -149,9 +177,10 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCalendarBlank, PhClock, PhInfo, PhPalette, PhPackage, PhPlus, PhRuler, PhTranslate, PhTrash } from '@phosphor-icons/vue';
+import { PhCalendarBlank, PhClock, PhImage, PhInfo, PhPalette, PhPackage, PhPlus, PhRuler, PhTranslate, PhTrash, PhX } from '@phosphor-icons/vue';
 
 import ToggleSwitch from '../ui/ToggleSwitch.vue';
+import { uploadProductPhoto } from '../../api/agent.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import { itemNoun } from '../../lib/presets.js';
 
@@ -161,6 +190,8 @@ const FACT_ICONS = {
   hours: PhClock,
   languages: PhTranslate,
 };
+
+const MAX_PHOTOS = 3; // a product's photos; the first is the one the agent shows
 
 // "M, L , XL" -> ["M", "L", "XL"]
 function list(text) {
@@ -201,6 +232,8 @@ const stockText = ref('');
 // Stock per size and colour (D56): [{ size, colour, stock }], "" for any size or colour.
 const counts = ref([]);
 const wasText = ref('');
+const photos = ref([]); // their URLs, as the backend gave them
+const uploading = ref(false);
 const errors = ref({});
 const confirming = ref(false);
 
@@ -252,6 +285,7 @@ function fillForm() {
   stockText.value = item.stock === null || item.stock === undefined ? '' : String(item.stock);
   counts.value = (item.variants || []).map((v) => ({ size: v.size, colour: v.colour, stock: String(v.stock) }));
   wasText.value = item.was_price ? String(item.was_price / 100) : '';
+  photos.value = [...(item.photos || [])];
   errors.value = {};
   confirming.value = false;
 }
@@ -269,6 +303,22 @@ fillForm();
 onMounted(() => {
   if (props.editing) nameInput.value?.focus();
 });
+
+// The photo goes up now (the backend makes it a JPEG and indexes it); the
+// product keeps it when it's saved.
+async function addPhoto(event) {
+  const file = event.target.files[0];
+  event.target.value = ''; // the same file can be picked again
+  if (!file) return;
+  uploading.value = true;
+  errors.value = { ...errors.value, photos: null };
+  try {
+    photos.value.push((await uploadProductPhoto(file)).url);
+  } catch (error) {
+    errors.value = { ...errors.value, photos: error.message };
+  }
+  uploading.value = false;
+}
 
 function submit() {
   const found = {};
@@ -299,6 +349,7 @@ function submit() {
           variants,
           available: variants.length ? true : stock !== 0,
           was_price: was === null ? null : Math.round(was * 100),
+          photos: photos.value,
         }
       : {};
   emit('save', {

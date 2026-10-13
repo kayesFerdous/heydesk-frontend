@@ -49,7 +49,20 @@
               class="rounded-[var(--radius-panel)] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap"
               :class="line.role === 'user' ? 'rounded-tl-sm bg-hover text-ink' : 'rounded-tr-sm bg-brand-tint text-ink'"
             >
-              {{ line.text }}
+              <!-- The photo the visitor sent, and the products the agent showed (D57). -->
+              <a v-if="line.photo" :href="line.photo" target="_blank" rel="noopener">
+                <img :src="line.photo" :alt="t('conversations.theirPhoto', { name })" class="mb-1.5 max-h-60 rounded-[var(--radius-control)]" />
+              </a>
+              <div v-if="line.photos?.length" class="flex flex-wrap gap-2">
+                <figure v-for="product in line.photos" :key="product.url" class="w-28">
+                  <img :src="product.url" :alt="product.name" class="aspect-square w-full rounded-[var(--radius-control)] object-cover" />
+                  <figcaption class="mt-1 text-xs leading-snug">
+                    <span class="block font-semibold">{{ product.name }}</span>
+                    <span class="text-ink-soft">{{ product.price }}</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <span v-if="line.text">{{ line.text }}</span>
             </div>
           </div>
         </div>

@@ -29,6 +29,10 @@ module.exports = defineConfig({
       '/api': {
         target: 'http://localhost:8000',
       },
+      // Product photos and the ones visitors send (backend D57).
+      '/media': {
+        target: 'http://localhost:8000',
+      },
       // The payment link the agent sends (/pay/<id>) and the gateway's return (/pay/<id>/back).
       '/pay/': {
         target: 'http://localhost:8000',

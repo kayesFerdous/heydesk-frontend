@@ -22,7 +22,7 @@ Last synced 4 Oct 2026 (after agent jobs + document ingest); paging added 9 Oct 
   404, `unavailable` 404 (suspended business chat), `conflict` 409,
   `invalid_transition` 409, `conversation_full` 409, `visitor_limited` 429, `rate_limited` 429, `invalid_config` 422
   (`fields`: path to problem), `invalid_request` 422 (`fields`),
-  `unreadable_document` 422, `knowledge_unavailable` 503 (nothing saved, retry),
+  `unreadable_document` 422, `unreadable_photo` 422, `knowledge_unavailable` 503 (nothing saved, retry),
   `internal` 500.
 - Money is minor units, times are UTC (see CLAUDE.md for the helpers).
 - Roles: `owner` (own business) and `admin` (all, no business). Owners cannot
@@ -62,11 +62,15 @@ knowledge{} (per preset), faq (20000), handoff{message, phone, email}`.
 |---|---|
 | `GET /products` | `[Product]`, in the shop's order |
 | `PUT /products` `[Product]` | Replace the whole list. **Send every field back**, or it's lost: the Products page edits one row and PUTs them all |
+| `POST /products/photos` (multipart `file`) | A product photo (JPEG, PNG or WebP, up to 10 MB) → `{url}`, saved as a JPEG and indexed for photo search. The product keeps it once it's saved with that URL in `photos`. 422 `unreadable_photo`; 503 `knowledge_unavailable` when Gemini or Qdrant is down (nothing kept). Client: `uploadProductPhoto` in `api/agent.js` (backend D57) |
 | `GET /shop/orders`, `PATCH /shop/orders/{id}` `{status?, tracking?}` | The shop's orders, paged (D46); move one along, or set the courier and parcel id |
 
 `Product`: `{code, name, description, price, was_price (before a sale; null: not on sale), category,
-sizes[], colours[], stock (null: not counted; 0: sold out), variants[]}`. Money in minor units. The
-Products page shows `was_price` crossed out when it's above `price`.
+sizes[], colours[], stock (null: not counted; 0: sold out), variants[], photos[]}`. Money in minor units. The
+Products page shows `was_price` crossed out when it's above `price`. `photos` (D57): up to 3 URLs
+from `POST /products/photos` (`/media/...`, served by the backend; the dev server forwards
+`/media`); the first is the one the agent shows. A URL that isn't one of the business's product
+photos is a 422. A CSV import keeps each product's photos by its code.
 
 `Variant` (D56): `{size, colour, stock}`, stock per size and colour. An empty size or colour means
 any of them (`{size: "L", colour: "", stock: 4}` counts L in every colour). When there are variants
@@ -130,13 +134,13 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | Call | What it does |
 |---|---|
 | `GET /conversations?status=active\|needs_human` | `[{id, channel, status, created_at, updated_at}]` |
-| `GET /conversations/{id}` | Plus `messages[{role: user/assistant, text}]` and `records[]` |
+| `GET /conversations/{id}` | Plus `messages[{role: user/assistant, text, photo, photos}]` and `records[]`. `photo`: the URL of the photo the visitor sent (their `text` starts with the backend's `[Photo. ...]` line); `photos`: `[{name, price, url}]` the agent showed, on a line with empty `text` (D57) |
 
 ### Visitor chat (`chat.js`, public, the public key is the credential)
 | Call | What it does |
 |---|---|
-| `GET /chat/{public_key}` | `{name, greeting}`. 404 unknown, 404 `unavailable` if suspended |
-| `POST /chat/{public_key}` `{message, conversation_id?, visitor_id}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `done{interrupted}`, `error{message}`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
+| `GET /chat/{public_key}` | `{name, greeting, photos}`. `photos`: true when the visitor can send a photo (a shop, D57). 404 unknown, 404 `unavailable` if suspended |
+| `POST /chat/{public_key}` `{message, conversation_id?, visitor_id, photo?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `photos{items:[{name, price, url}]}` (products the agent shows, D57), `done{interrupted}`, `error{message}`. `photo`: a JPEG or PNG as base64 or a data URL, at most 2 MB (`lib/photo.js` makes it a 1024 px JPEG first); `message` may then be empty. A photo to an agent without `photos`, or one that isn't a picture, is a 422 `unreadable_photo`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
 | `GET /voice/ice` | ICE servers for a call: STUN, plus a Cloudflare TURN relay when the backend has keys |
 | `POST /voice/offer?key=<public_key>&visitor=<token>` `{sdp, type}` | WebRTC voice. `visitor` is the same token as the chat's; a limited visitor gets the chat's 429 before the call connects. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. Client: `api/voice.js`, `components/chat/VoiceCall.vue` |
 | `PATCH /voice/offer` | Trickle ICE candidates (the frontend does not use it) |

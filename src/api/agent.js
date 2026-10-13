@@ -147,7 +147,16 @@ function itemToProduct(item) {
     colours: item.colours || [],
     stock,
     variants: item.variants || [], // stock per size and colour (D56)
+    photos: item.photos || [], // their URLs; the first is the one the agent shows (D57)
   };
+}
+
+// A product photo goes up on its own and comes back as { url }; the product
+// keeps it once it's saved with that URL in its `photos` (backend D57).
+export async function uploadProductPhoto(file) {
+  const form = new FormData();
+  form.append('file', file);
+  return request('/products/photos', { method: 'POST', body: form });
 }
 
 export async function fetchItems() {
