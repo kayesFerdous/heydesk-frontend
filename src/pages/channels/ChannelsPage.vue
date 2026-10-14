@@ -24,6 +24,11 @@
       <SettingsGroup title="Telegram" :tip="t('telegram.intro')">
         <TelegramConnect :business-name="agent.config?.business_name ?? ''" @copied="onCopied"></TelegramConnect>
       </SettingsGroup>
+
+      <!-- Messenger: the business's Facebook Page -->
+      <SettingsGroup title="Messenger" :tip="t('messenger.intro')">
+        <MessengerConnect @copied="onCopied"></MessengerConnect>
+      </SettingsGroup>
     </div>
   </section>
 </template>
@@ -40,6 +45,7 @@ import LoadError from '../../components/ui/LoadError.vue';
 import LiveStatus from '../../components/ui/LiveStatus.vue';
 import CopyField from '../../components/ui/CopyField.vue';
 import TelegramConnect from '../../components/agent/TelegramConnect.vue';
+import MessengerConnect from '../../components/agent/MessengerConnect.vue';
 import { chatLink } from '../../lib/presets.js';
 import { markShared } from '../../lib/setup.js';
 import { useAuthStore } from '../../stores/auth.js';

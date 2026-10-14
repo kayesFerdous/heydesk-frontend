@@ -130,6 +130,17 @@ The card finds the token inside BotFather's whole pasted reply (`findBotToken`)
 and connects as soon as one is there. Conversations from Telegram have
 `channel: "telegram"` (`lib/channels.js` labels web, voice and Telegram).
 
+### Messenger (`messenger.js`, card `components/agent/MessengerConnect.vue`)
+The business's Facebook Page (backend D60). The Page access token is sent once
+and never returned. Alerts for the owner stay on Telegram.
+| Call | What it does |
+|---|---|
+| `GET /agent/messenger` | `{page_id, link}` (`https://m.me/<page_id>`). 404 while no Page is connected |
+| `PUT /agent/messenger` `{token}` | Checks it with Facebook and subscribes the Page; connecting again replaces it. 422 `invalid_config` with `fields.token` for a token Facebook refuses or a Page another business has; 400 if the server has no `META_APP_SECRET` |
+| `DELETE /agent/messenger` | 204. The Page stops being answered |
+
+Conversations from Messenger have `channel: "messenger"`.
+
 ### Inbox and records (`records.js`)
 | Call | What it does |
 |---|---|

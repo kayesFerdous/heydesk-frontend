@@ -109,6 +109,7 @@ export default {
     web: { label: 'Chat', long: 'Chat' },
     voice: { label: 'Voice', long: 'Voice call' },
     telegram: { label: 'Telegram', long: 'Telegram' },
+    messenger: { label: 'Messenger', long: 'Messenger' },
   },
 
   presets: {
@@ -552,6 +553,19 @@ export default {
     step2Text: 'Copy its whole last message and paste it here. HeyDesk finds the token in it and connects your bot.',
     connecting: 'Connecting your bot...',
     noToken: "No token in that yet. It looks like 123456789:AAH... and comes in BotFather's last message.",
+  },
+
+  messenger: {
+    intro: 'Let customers message your agent on your Facebook Page, in Messenger.',
+    setUp: 'Set up Messenger',
+    token: 'Page access token',
+    tokenText: "Make one for your Page in HeyDesk's Meta app and paste it here. Alerts for you still come to Telegram.",
+    connect: 'Connect Page',
+    connecting: 'Connecting your Page...',
+    connectedText: 'Customers message your Page and your agent answers. You can answer a customer yourself by replying to their alert in Telegram, within 24 hours of their last message.',
+    link: 'Messenger link',
+    open: 'Open in Messenger',
+    disconnectWarning: 'Customers will stop getting replies on your Page.',
   },
 
   sslcommerz: {

@@ -110,6 +110,7 @@ export default {
     web: { label: 'চ্যাট', long: 'চ্যাট' },
     voice: { label: 'ভয়েস', long: 'ভয়েস কল' },
     telegram: { label: 'Telegram', long: 'Telegram' },
+    messenger: { label: 'Messenger', long: 'Messenger' },
   },
 
   presets: {
@@ -549,6 +550,19 @@ export default {
     step2Text: 'এর শেষ মেসেজটি পুরোটা কপি করে এখানে পেস্ট করুন। HeyDesk এর ভেতর থেকে টোকেন খুঁজে আপনার বট যুক্ত করবে।',
     connecting: 'আপনার বট যুক্ত হচ্ছে...',
     noToken: 'এতে এখনো টোকেন নেই। দেখতে 123456789:AAH... এর মতো, আর BotFather-এর শেষ মেসেজে থাকে।',
+  },
+
+  messenger: {
+    intro: 'কাস্টমারদের আপনার Facebook পেজে, Messenger-এ এজেন্টকে মেসেজ দিতে দিন।',
+    setUp: 'Messenger সেট আপ করুন',
+    token: 'পেজ অ্যাক্সেস টোকেন',
+    tokenText: 'HeyDesk-এর Meta অ্যাপে আপনার পেজের জন্য একটি টোকেন বানিয়ে এখানে পেস্ট করুন। আপনার অ্যালার্ট আগের মতোই Telegram-এ আসবে।',
+    connect: 'পেজ যুক্ত করুন',
+    connecting: 'আপনার পেজ যুক্ত হচ্ছে...',
+    connectedText: 'কাস্টমার আপনার পেজে মেসেজ দেন আর আপনার এজেন্ট উত্তর দেয়। Telegram-এ তাঁর অ্যালার্টে রিপ্লাই দিয়ে নিজেও উত্তর দিতে পারেন, তাঁর শেষ মেসেজের ২৪ ঘণ্টার মধ্যে।',
+    link: 'Messenger লিংক',
+    open: 'Messenger-এ খুলুন',
+    disconnectWarning: 'কাস্টমাররা আপনার পেজে আর উত্তর পাবেন না।',
   },
 
   sslcommerz: {
