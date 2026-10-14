@@ -2,6 +2,9 @@
   <div class="flex h-full min-h-0 flex-col">
     <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto px-5 py-5" aria-live="polite">
       <div class="mx-auto flex max-w-2xl flex-col gap-3">
+        <!-- What the page shows above the first message (the customer's page
+             introduces the business here). -->
+        <slot name="intro"></slot>
         <div
           v-for="(message, index) in messages"
           :key="index"
@@ -90,8 +93,8 @@
             <PhPaperPlaneTilt :size="18" weight="fill"></PhPaperPlaneTilt>
           </button>
         </form>
-        <div class="mt-2 flex items-center justify-between text-xs text-ink-soft">
-          <span>{{ note || t('chat.testNote') }}</span>
+        <div v-if="!customer" class="mt-2 flex items-center justify-between text-xs text-ink-soft">
+          <span>{{ t('chat.testNote') }}</span>
           <button type="button" class="link shrink-0 whitespace-nowrap" @click="restart">
             {{ t('chat.startOver') }}
           </button>
@@ -116,8 +119,9 @@ const props = defineProps({
   publicKey: { type: String, required: true },
   // The {name, greeting, photos} a page already loaded; without it the chat asks itself.
   agent: { type: Object, default: null },
-  // The line under the input; "Test chats show up in Conversations" when left out.
-  note: { type: String, default: '' },
+  // The customer's own page: no test note under the input, and the page puts
+  // Start over in its header (it calls the exposed `restart`).
+  customer: { type: Boolean, default: false },
 });
 const { t } = useI18n();
 
@@ -247,6 +251,8 @@ async function send() {
 
 watch(() => props.publicKey, start, { immediate: true });
 onBeforeUnmount(() => clearInterval(teamTimer));
+
+defineExpose({ restart });
 </script>
 
 <style scoped>

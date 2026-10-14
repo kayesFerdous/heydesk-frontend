@@ -6,8 +6,8 @@ import bn from './bn.js';
 // The two languages the console speaks. English is the fallback: a key that
 // has no Bangla yet shows its English words, never the key itself.
 export const LOCALES = [
-  { code: 'en', label: 'English', short: 'EN', tag: 'en-US' },
-  { code: 'bn', label: 'বাংলা', short: 'বাং', tag: 'bn-BD' },
+  { code: 'en', label: 'English', tag: 'en-US' },
+  { code: 'bn', label: 'বাংলা', tag: 'bn-BD' },
 ];
 
 const STORAGE_KEY = 'heydesk_locale';

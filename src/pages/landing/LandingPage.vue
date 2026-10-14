@@ -12,7 +12,6 @@
           <a href="#setup" class="nav-link">{{ t('landing.nav.setup') }}</a>
         </div>
         <div class="ml-auto flex items-center gap-2">
-          <LanguageSwitch compact></LanguageSwitch>
           <router-link to="/sign-in" class="btn btn-quiet btn-sm">{{ t('common.signIn') }}</router-link>
           <router-link :to="signUp" class="btn btn-secondary btn-sm">{{ t('landing.getStarted') }}</router-link>
         </div>
@@ -210,7 +209,6 @@ import {
 } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
-import LanguageSwitch from '../../components/ui/LanguageSwitch.vue';
 import StatusChip from '../../components/ui/StatusChip.vue';
 import LandingDemo from '../../components/landing/LandingDemo.vue';
 import vReveal from '../../directives/reveal.js';

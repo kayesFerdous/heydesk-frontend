@@ -228,6 +228,12 @@ Same world as the console: white sheet, rules, stamps, serials.
   serial and amount, the "New" stamp, and the proof line "Read back to the
   customer and confirmed in chat". Labelled as an example. The row is the
   landing demo's `InboxRow`, so the two never drift apart.
+- **Customer chat** (`/chat/:key`): one ruled sheet, full screen on a phone
+  and a centred column with hairline edges on a laptop. The header is who
+  answers (name, Online) with Start over and Call. Above the first message
+  the business introduces itself: its avatar and name, that an AI assistant
+  answers any time, in Bangla, Banglish or English, and that Call works too.
+  No language switch: the agent follows the customer's own language.
 - **Setup** (first run): three numbered steps (Choose, Your details, Try it).
   The kinds of agent are ruled rows with a radio at the end, not cards. The
   last step puts the live chat beside the chat link and a notice listing what

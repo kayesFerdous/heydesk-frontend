@@ -1,10 +1,7 @@
 <template>
   <div class="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
     <div class="flex flex-col px-6 py-8 sm:px-12 lg:px-16">
-      <div class="flex items-center justify-between gap-4">
-        <BrandMark></BrandMark>
-        <LanguageSwitch></LanguageSwitch>
-      </div>
+      <BrandMark class="self-start"></BrandMark>
 
       <div class="my-auto w-full max-w-sm py-12">
         <h1 class="text-[1.75rem] leading-tight font-semibold tracking-[-0.025em]">
@@ -121,7 +118,6 @@ import { useI18n } from 'vue-i18n';
 import { PhSealCheck, PhWarningCircle } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
-import LanguageSwitch from '../../components/ui/LanguageSwitch.vue';
 import InboxRow from '../../components/landing/InboxRow.vue';
 import { formatMoney } from '../../lib/format.js';
 import { useAuthStore } from '../../stores/auth.js';
