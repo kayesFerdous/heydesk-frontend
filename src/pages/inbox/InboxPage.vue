@@ -79,13 +79,20 @@
 
     <div
       v-else
-      class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_24rem]"
-      :class="{ 'border-t border-hairline': inbox.jobs.length <= 1 }"
+      class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_25rem]"
     >
       <div class="lg:min-h-0 lg:overflow-y-auto">
+        <div class="ledger ledger-head px-5 pt-3 sm:px-8" :class="{ 'ledger-money': isOrders }" aria-hidden="true">
+          <span>{{ t('home.columns.when') }}</span>
+          <span class="col-span-2">{{ t('home.columns.entry') }}</span>
+          <span>{{ t('home.columns.code') }}</span>
+          <span v-if="isOrders" class="text-right">{{ t('home.columns.amount') }}</span>
+          <span>{{ t('home.columns.status') }}</span>
+        </div>
         <div v-for="group in groups" :key="group.label">
-          <h2 class="sticky top-0 z-[1] border-b border-hairline bg-wash/95 px-5 py-1.5 text-xs font-semibold text-ink-soft backdrop-blur sm:px-8">
+          <h2 class="day-head">
             {{ group.label }}
+            <span v-if="isOrders" class="font-medium text-ink-soft">{{ dayTotal(group) }}</span>
           </h2>
           <RecordRow
             v-for="record in group.items"
@@ -134,7 +141,7 @@ import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import { fetchRecords, fetchRecord, setRecordStatus } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
-import { formatNumber } from '../../lib/format.js';
+import { formatMoney, formatNumber } from '../../lib/format.js';
 import { jobTab } from '../../lib/records.js';
 import { useInboxStore } from '../../stores/inbox.js';
 
@@ -160,6 +167,14 @@ let searchTimer = null;
 let lastAsk = 0; // numbers each records request, so only the newest one counts
 
 const groups = computed(() => groupByDay(records.value));
+// Orders carry money: their list gets an amount column and a total per day.
+const isOrders = computed(() => currentJob.value === 'order');
+
+// "Today ৳2,450": what the day's orders on screen add up to, counted the same
+// way as "Taken today" on Home.
+function dayTotal(group) {
+  return formatMoney(group.items.reduce((sum, record) => sum + (record.total || 0), 0));
+}
 const selected = computed(() => {
   const inList = records.value.find((record) => record.id === selectedId.value);
   if (inList) return inList;

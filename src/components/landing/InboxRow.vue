@@ -7,7 +7,7 @@
     <span class="min-w-0 flex-1">
       <span class="block truncate font-semibold">
         {{ row.name }}
-        <span v-if="row.code" class="ml-1 font-normal text-ink-soft">{{ row.code }}</span>
+        <span v-if="row.code" class="serial ml-1 text-ink-soft">{{ row.code }}</span>
       </span>
       <span class="block truncate text-ink-soft">{{ row.summary }}</span>
     </span>

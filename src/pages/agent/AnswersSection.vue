@@ -2,13 +2,12 @@
   <form v-if="form" novalidate @submit.prevent="save">
     <FormProblems :message="saveError" :problems="problems"></FormProblems>
 
-    <div class="flex flex-col gap-5">
+    <SettingsGroup :title="t('answers.soundTitle')" :tip="t('answers.soundText')">
       <div>
-        <h2 class="section-title">{{ t('answers.soundTitle') }}</h2>
-        <p class="mt-1 text-sm text-ink-soft">{{ t('answers.soundText') }}</p>
-      </div>
-      <div>
-        <label class="label" for="notes">{{ t('answers.notes') }}</label>
+        <FieldLabel html-for="notes">
+          {{ t('answers.notes') }}
+          <template #end>{{ t('answers.characters', { n: formatNumber(form.notes.length), max: formatNumber(4000) }) }}</template>
+        </FieldLabel>
         <textarea
           id="notes"
           v-model="form.notes"
@@ -18,17 +17,20 @@
           maxlength="4000"
           :placeholder="t('answers.notesPlaceholder')"
         ></textarea>
-        <p class="hint">{{ t('answers.characters', { n: formatNumber(form.notes.length), max: formatNumber(4000) }) }}</p>
+        <p v-if="errors.notes" class="error-text">{{ errors.notes }}</p>
       </div>
-    </div>
+    </SettingsGroup>
 
-    <div class="mt-10 flex flex-col gap-5 border-t border-hairline pt-8">
+    <SettingsGroup :title="t('answers.faqTitle')" :tip="t('answers.faqText')">
       <div>
-        <h2 class="section-title">{{ t('answers.faqTitle') }}</h2>
-        <p class="mt-1 text-sm text-ink-soft">{{ t('answers.faqText') }}</p>
-      </div>
-      <div>
-        <label class="label" for="faq">{{ t('answers.faq') }}</label>
+        <FieldLabel html-for="faq">
+          {{ t('answers.faq') }}
+          <template #end>
+            <i18n-t keypath="answers.longer" tag="span" scope="global">
+              <template #knowledge><router-link to="/knowledge" class="link">{{ t('nav.knowledge') }}</router-link></template>
+            </i18n-t>
+          </template>
+        </FieldLabel>
         <textarea
           id="faq"
           v-model="form.faq"
@@ -37,14 +39,9 @@
           rows="10"
           :placeholder="t('answers.faqPlaceholder')"
         ></textarea>
+        <p v-if="errors.faq" class="error-text">{{ errors.faq }}</p>
       </div>
-      <p class="flex items-start gap-2 text-sm text-ink-soft">
-        <PhBooks :size="18" class="mt-px shrink-0 text-ink-faint"></PhBooks>
-        <i18n-t keypath="answers.longer" tag="span" scope="global">
-          <template #knowledge><router-link to="/knowledge" class="link">{{ t('nav.knowledge') }}</router-link></template>
-        </i18n-t>
-      </p>
-    </div>
+    </SettingsGroup>
 
     <SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></SaveBar>
     <div class="h-8"></div>
@@ -53,10 +50,11 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { PhBooks } from '@phosphor-icons/vue';
 
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
+import SettingsGroup from '../../components/ui/SettingsGroup.vue';
+import FieldLabel from '../../components/ui/FieldLabel.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { formatNumber } from '../../lib/format.js';
 

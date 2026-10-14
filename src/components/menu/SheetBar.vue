@@ -1,6 +1,6 @@
 <template>
   <!-- The list is kept in a Google Sheet (backend D58): where it's read from, when, and why not. -->
-  <div class="flex flex-col gap-3 border-b border-hairline px-5 py-3 sm:flex-row sm:items-center sm:px-8">
+  <div class="notice mx-5 mb-4 flex-col gap-3 sm:mx-8 sm:flex-row sm:items-center">
     <div class="flex min-w-0 flex-1 items-start gap-2 text-sm">
       <PhWarningCircle v-if="sheet.problem" :size="16" class="mt-0.5 shrink-0 text-danger"></PhWarningCircle>
       <PhTable v-else :size="16" class="mt-0.5 shrink-0 text-success"></PhTable>

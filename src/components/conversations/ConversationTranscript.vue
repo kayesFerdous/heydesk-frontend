@@ -6,7 +6,7 @@
           <PhArrowLeft :size="20"></PhArrowLeft>
         </button>
         <div class="min-w-0">
-          <h2 class="truncate text-lg font-semibold tracking-[-0.01em]">{{ name }}</h2>
+          <h2 class="truncate text-lg font-semibold tracking-[-0.015em]">{{ name }}</h2>
           <p class="text-sm text-ink-soft">
             {{ channel.long }}, {{ when }}
           </p>
@@ -75,10 +75,11 @@
           v-for="record in conversation.records"
           :key="record.id"
           :to="`/inbox?job=${record.job}&open=${record.id}`"
-          class="mb-2 flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-hairline px-4 py-3 text-sm transition-colors hover:bg-wash"
+          class="mb-2 flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-hairline px-4 py-3 text-sm transition-colors hover:border-line-strong hover:bg-wash"
         >
-          <span class="font-semibold">
-            {{ t(`records.name.${record.job}`) }} {{ record.code }}
+          <span class="flex items-center gap-2 font-semibold">
+            {{ t(`records.name.${record.job}`) }}
+            <span class="serial font-medium text-ink-soft">{{ record.code }}</span>
           </span>
           <span class="flex items-center gap-3">
             <span v-if="record.kind === 'order'" class="font-semibold">{{ formatMoney(record.total) }}</span>

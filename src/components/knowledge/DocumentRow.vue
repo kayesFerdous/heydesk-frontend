@@ -18,8 +18,16 @@
       <button type="button" class="btn btn-secondary btn-sm" :disabled="busy" @click="confirming = false">{{ t('common.keepIt') }}</button>
     </span>
     <span v-else class="flex items-center gap-1">
-      <button type="button" class="btn btn-quiet btn-sm" @click="$emit('read')">{{ t('knowledge.row.read') }}</button>
-      <button type="button" class="btn btn-quiet btn-sm hover:!text-danger" @click="confirming = true">{{ t('common.remove') }}</button>
+      <button type="button" class="btn btn-secondary btn-sm" @click="$emit('read')">{{ t('knowledge.row.read') }}</button>
+      <button
+        type="button"
+        class="btn btn-quiet btn-icon !h-8 !w-8 hover:!text-danger"
+        :aria-label="t('knowledge.row.removeName', { name: document.title })"
+        :title="t('common.remove')"
+        @click="confirming = true"
+      >
+        <PhTrash :size="18"></PhTrash>
+      </button>
     </span>
   </li>
 </template>
@@ -27,7 +35,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhFilePdf, PhFileMd, PhFileText } from '@phosphor-icons/vue';
+import { PhFilePdf, PhFileMd, PhFileText, PhTrash } from '@phosphor-icons/vue';
 
 import { formatDay, formatNumber } from '../../lib/format.js';
 

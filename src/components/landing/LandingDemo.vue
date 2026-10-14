@@ -98,7 +98,7 @@
           <span :key="`n${run}${step >= 5}`" class="count" :class="{ 'count-new': step >= 5 }">{{ t('demo.newCount', { n: formatNumber(step >= 5 ? 1 : 0) }) }}</span>
         </header>
 
-        <p class="border-b border-hairline bg-wash px-5 py-1.5 text-xs font-semibold text-ink-soft">{{ t('format.today') }}</p>
+        <p class="day-head static sm:px-5">{{ t('format.today') }}</p>
 
         <ul class="text-sm">
           <li v-if="step >= 5" :key="`r${run}`" class="landed border-b border-hairline px-5 py-3.5">

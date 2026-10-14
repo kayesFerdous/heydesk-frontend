@@ -1,8 +1,10 @@
 <template>
-  <div class="border-y border-hairline bg-wash px-5 py-6 sm:px-8">
+  <div class="panel mx-5 mb-4 bg-wash p-5 sm:mx-8">
     <div class="max-w-2xl">
-      <h2 class="section-title">{{ sheet ? t('menu.sheet.title') : t('menu.import.title') }}</h2>
-      <p class="mt-1 text-sm text-ink-soft">{{ sheet ? t('menu.sheet.intro') : t('menu.import.intro') }}</p>
+      <h2 class="section-title">
+        {{ sheet ? t('menu.sheet.title') : t('menu.import.title') }}
+        <InfoTip :text="sheet ? t('menu.sheet.intro') : t('menu.import.intro')" class="ml-0.5 -translate-y-px"></InfoTip>
+      </h2>
 
       <!-- A Google Sheet (backend D58): its link, shared as "Anyone with the link". -->
       <form v-if="sheet" class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="readSheet">
@@ -16,7 +18,10 @@
         />
         <button type="submit" class="btn btn-secondary" :disabled="!url || reading">{{ t('menu.sheet.read') }}</button>
       </form>
-      <p v-if="sheet" class="hint">{{ t('menu.sheet.shareHint') }}</p>
+      <p v-if="sheet" class="hint flex items-center gap-1.5">
+        {{ t('menu.sheet.shareShort') }}
+        <InfoTip :text="t('menu.sheet.shareHint')"></InfoTip>
+      </p>
 
       <div v-else class="mt-4">
         <label class="btn btn-secondary cursor-pointer">
@@ -104,6 +109,7 @@ import { useI18n } from 'vue-i18n';
 import { PhUploadSimple } from '@phosphor-icons/vue';
 
 import FormProblems from '../ui/FormProblems.vue';
+import InfoTip from '../ui/InfoTip.vue';
 import { importItems, linkSheet, suggestColumns, suggestSheetColumns } from '../../api/agent.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import { itemNoun } from '../../lib/presets.js';

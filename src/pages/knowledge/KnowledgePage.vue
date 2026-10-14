@@ -1,6 +1,10 @@
 <template>
   <section class="flex flex-col lg:h-full">
-    <PageHeader :title="t('knowledge.title')" :subtitle="t('knowledge.subtitle')">
+    <PageHeader
+      :title="t('knowledge.title')"
+      :tip="t('knowledge.subtitle')"
+      :subtitle="loaded ? t('knowledge.count', { n: formatNumber(documents.length), limit: formatNumber(LIMIT) }) : ''"
+    >
       <template v-if="loaded" #actions>
         <button type="button" class="btn btn-primary" @click="adding = !adding">
           <PhPlus :size="16" weight="bold"></PhPlus>
@@ -20,7 +24,7 @@
 
     <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
 
-    <div v-else class="border-t border-hairline lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+    <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       <EmptyState
         v-if="!documents.length && !adding"
         :icon="PhBooks"
@@ -30,7 +34,7 @@
 
       <template v-else>
         <div v-for="group in groups" :key="group.label">
-          <h2 class="sticky top-0 z-[1] border-b border-hairline bg-wash/95 px-5 py-1.5 text-xs font-semibold text-ink-soft backdrop-blur sm:px-8">{{ group.label }}</h2>
+          <h2 class="day-head">{{ group.label }}</h2>
           <ul>
             <DocumentRow
               v-for="document in group.items"
@@ -43,9 +47,6 @@
             ></DocumentRow>
           </ul>
         </div>
-        <p class="px-5 py-4 text-sm text-ink-soft sm:px-8">
-          {{ t('knowledge.count', { n: formatNumber(documents.length), limit: formatNumber(LIMIT) }) }}
-        </p>
       </template>
     </div>
 

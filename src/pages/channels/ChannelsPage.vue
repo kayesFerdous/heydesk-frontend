@@ -1,39 +1,29 @@
 <template>
   <section>
-    <PageHeader :title="t('channelsPage.title')" :subtitle="t('channelsPage.subtitle')"></PageHeader>
+    <PageHeader :title="t('channelsPage.title')" :tip="t('channelsPage.subtitle')"></PageHeader>
 
     <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
 
-    <div v-else class="max-w-3xl px-5 pb-12 sm:px-8">
+    <div v-else class="max-w-4xl px-5 pb-12 sm:px-8">
       <!-- Website chat: always on, needs only the link -->
-      <div class="panel p-5 sm:p-6">
-        <div class="flex items-start gap-4">
-          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
-            <PhGlobe :size="20"></PhGlobe>
-          </span>
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h2 class="section-title">{{ t('channelsPage.websiteChat') }}</h2>
-              <LiveStatus v-if="agent.publicKey" :paused="auth.isSuspended" :label="t('common.on')"></LiveStatus>
-            </div>
-            <p class="mt-1 text-sm text-ink-soft">{{ t('channelsPage.websiteChatText') }}</p>
-
-            <div v-if="agent.publicKey" class="mt-5">
-              <CopyField :label="t('common.chatLink')" :value="link" @copied="onCopied"></CopyField>
-              <a :href="link" target="_blank" rel="noopener" class="btn btn-quiet mt-3 -ml-2">
-                <PhArrowSquareOut :size="18"></PhArrowSquareOut>
-                {{ t('channelsPage.openChatPage') }}
-              </a>
-            </div>
-            <div v-else class="mt-5 skeleton h-10 w-full" aria-hidden="true"></div>
+      <SettingsGroup :title="t('channelsPage.websiteChat')" :tip="t('channelsPage.websiteChatText')">
+        <template v-if="agent.publicKey">
+          <LiveStatus :paused="auth.isSuspended" :label="t('common.on')"></LiveStatus>
+          <div>
+            <CopyField :label="t('common.chatLink')" :value="link" @copied="onCopied"></CopyField>
+            <a :href="link" target="_blank" rel="noopener" class="btn btn-quiet btn-sm mt-2 -ml-3">
+              <PhArrowSquareOut :size="16"></PhArrowSquareOut>
+              {{ t('channelsPage.openChatPage') }}
+            </a>
           </div>
-        </div>
-      </div>
+        </template>
+        <div v-else class="skeleton h-10 w-full" aria-hidden="true"></div>
+      </SettingsGroup>
 
       <!-- Telegram: the business's own bot -->
-      <div class="panel mt-4 p-5 sm:p-6">
+      <SettingsGroup title="Telegram" :tip="t('telegram.intro')">
         <TelegramConnect :business-name="agent.config?.business_name ?? ''" @copied="onCopied"></TelegramConnect>
-      </div>
+      </SettingsGroup>
     </div>
   </section>
 </template>
@@ -42,9 +32,10 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhGlobe, PhArrowSquareOut } from '@phosphor-icons/vue';
+import { PhArrowSquareOut } from '@phosphor-icons/vue';
 
 import PageHeader from '../../components/ui/PageHeader.vue';
+import SettingsGroup from '../../components/ui/SettingsGroup.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import LiveStatus from '../../components/ui/LiveStatus.vue';
 import CopyField from '../../components/ui/CopyField.vue';

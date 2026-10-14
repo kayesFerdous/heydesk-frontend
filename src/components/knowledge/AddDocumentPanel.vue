@@ -1,8 +1,10 @@
 <template>
-  <div class="border-y border-hairline bg-wash px-5 py-6 sm:px-8">
+  <div class="panel mx-5 mb-4 bg-wash p-5 sm:mx-8">
     <form class="max-w-2xl" novalidate @submit.prevent="submit">
-      <h2 class="section-title">{{ t('knowledge.panel.title') }}</h2>
-      <p class="mt-1 text-sm text-ink-soft">{{ t('knowledge.panel.intro') }}</p>
+      <h2 class="section-title">
+        {{ t('knowledge.panel.title') }}
+        <InfoTip :text="t('knowledge.panel.intro')" class="ml-0.5 -translate-y-px"></InfoTip>
+      </h2>
 
       <div class="mt-4">
         <label class="btn btn-secondary cursor-pointer">
@@ -17,9 +19,8 @@
 
       <div class="mt-5 flex flex-col gap-5">
         <div>
-          <label class="label" for="doc-title">{{ t('knowledge.panel.docTitle') }}</label>
+          <FieldLabel html-for="doc-title" :tip="file ? t('knowledge.panel.titleHint') : ''">{{ t('knowledge.panel.docTitle') }}</FieldLabel>
           <input id="doc-title" v-model.trim="title" class="field" type="text" maxlength="200" :disabled="busy" />
-          <p v-if="file" class="mt-1.5 text-xs text-ink-soft">{{ t('knowledge.panel.titleHint') }}</p>
         </div>
         <div v-if="!file">
           <label class="label" for="doc-text">{{ t('knowledge.panel.text') }}</label>
@@ -51,6 +52,8 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { PhUploadSimple } from '@phosphor-icons/vue';
 
+import InfoTip from '../ui/InfoTip.vue';
+import FieldLabel from '../ui/FieldLabel.vue';
 import { addTextDocument, addFileDocument } from '../../api/agent.js';
 
 const emit = defineEmits(['close', 'added']);

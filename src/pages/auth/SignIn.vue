@@ -93,17 +93,15 @@
           </p>
         </div>
 
-        <div class="step mt-6 rounded-[var(--radius-panel)] bg-white p-4 text-ink shadow-[var(--shadow-float)]" style="--i: 3">
-          <div class="flex items-center gap-3">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-semibold text-brand">TA</span>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold">Tanvir Ahmed <span class="font-normal text-ink-soft">A-104</span></p>
-              <p class="text-sm text-ink-soft">{{ t('signIn.exampleSummary') }}</p>
-            </div>
-            <div class="flex flex-col items-end gap-1">
-              <span class="text-sm font-semibold">{{ formatMoney(90000) }}</span>
-              <StatusChip status="new"></StatusChip>
-            </div>
+        <!-- The order lands as a passbook entry: dated, coded, stamped. -->
+        <div class="step mt-6 overflow-hidden rounded-[var(--radius-panel)] bg-white text-sm text-ink" style="--i: 3">
+          <p class="day-head static px-4">{{ t('format.today') }}</p>
+          <div class="px-4 py-3.5">
+            <InboxRow :row="exampleRow" :time="t('format.justNow')"></InboxRow>
+            <p class="mt-2 flex items-center gap-1.5 pl-12 text-xs font-medium text-success">
+              <PhSealCheck :size="15" weight="fill" class="shrink-0"></PhSealCheck>
+              {{ t('demo.confirmed') }}
+            </p>
           </div>
         </div>
 
@@ -120,11 +118,11 @@
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhWarningCircle } from '@phosphor-icons/vue';
+import { PhSealCheck, PhWarningCircle } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
 import LanguageSwitch from '../../components/ui/LanguageSwitch.vue';
-import StatusChip from '../../components/ui/StatusChip.vue';
+import InboxRow from '../../components/landing/InboxRow.vue';
 import { formatMoney } from '../../lib/format.js';
 import { useAuthStore } from '../../stores/auth.js';
 
@@ -145,6 +143,15 @@ const formError = ref(null);
 const isLoading = ref(false);
 
 const isSignup = computed(() => mode.value === 'signup');
+// The example order on the cobalt panel (not a real customer).
+const exampleRow = computed(() => ({
+  initials: 'TA',
+  name: 'Tanvir Ahmed',
+  code: 'A-104',
+  summary: t('signIn.exampleSummary'),
+  amount: formatMoney(90000),
+  status: 'new',
+}));
 const buttonLabel = computed(() => {
   if (isLoading.value) return isSignup.value ? t('signIn.creating') : t('signIn.signingIn');
   return isSignup.value ? t('signIn.createAccount') : t('common.signIn');

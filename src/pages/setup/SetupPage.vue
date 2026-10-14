@@ -34,7 +34,7 @@
 
       <!-- Step 1: choose -->
       <section v-if="step === 0" class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.chooseText') }}</p>
 
         <p v-if="loadError" class="mt-8 text-sm text-danger" role="alert">
@@ -44,28 +44,27 @@
           </button>
         </p>
 
-        <div v-else class="mt-8 grid gap-4 sm:grid-cols-3" role="radiogroup" :aria-label="t('setup.kind')">
+        <!-- The kinds of agent, as ruled rows: one line each, chosen like a radio. -->
+        <div v-else class="mt-8 border-t border-line-strong" role="radiogroup" :aria-label="t('setup.kind')">
           <button
             v-for="preset in presets"
             :key="preset.id"
             type="button"
             role="radio"
             :aria-checked="preset.id === presetId"
-            class="choice"
-            :class="{ 'choice-selected': preset.id === presetId }"
+            class="row flex w-full items-center gap-4 px-2 py-4 text-left sm:px-3"
+            :class="{ 'row-selected': preset.id === presetId }"
             @click="presetId = preset.id"
           >
-            <span class="grid h-11 w-11 place-items-center rounded-[var(--radius-panel)] bg-brand-tint text-brand">
-              <component :is="presetIcon(preset.id)" :size="24"></component>
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
+              <component :is="presetIcon(preset.id)" :size="22"></component>
             </span>
-            <span class="mt-4 block text-base font-semibold">{{ presetLabel(preset) }}</span>
-            <span class="mt-1 block text-sm leading-relaxed text-ink-soft">{{ presetDescription(preset) }}</span>
-            <PhCheckCircle
-              v-if="preset.id === presetId"
-              :size="22"
-              weight="fill"
-              class="absolute top-4 right-4 text-brand"
-            ></PhCheckCircle>
+            <span class="min-w-0 flex-1">
+              <span class="block font-semibold">{{ presetLabel(preset) }}</span>
+              <span class="mt-0.5 block text-sm text-ink-soft">{{ presetDescription(preset) }}</span>
+            </span>
+            <PhCheckCircle v-if="preset.id === presetId" :size="22" weight="fill" class="shrink-0 text-brand" aria-hidden="true"></PhCheckCircle>
+            <PhCircle v-else :size="22" class="shrink-0 text-line-strong" aria-hidden="true"></PhCircle>
           </button>
         </div>
 
@@ -79,7 +78,7 @@
 
       <!-- Step 2: details -->
       <section v-else-if="step === 1" class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">{{ t('setup.detailsTitle') }}</h1>
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.detailsTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.detailsText') }}</p>
 
         <form class="mt-8 flex max-w-lg flex-col gap-5" novalidate @submit.prevent="create">
@@ -130,7 +129,7 @@
 
       <!-- Step 3: try it -->
       <section v-else class="mt-12">
-        <h1 class="text-[1.75rem] font-semibold tracking-[-0.025em]">{{ t('setup.readyTitle') }}</h1>
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.readyTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.readyText') }}</p>
 
         <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
@@ -140,11 +139,14 @@
 
           <div class="flex flex-col gap-6">
             <CopyField v-if="agent.publicKey" :label="t('common.chatLink')" :value="link"></CopyField>
-            <div v-if="agent.missing.length" class="rounded-[var(--radius-panel)] border border-hairline bg-wash p-4 text-sm">
-              <p class="font-semibold">{{ t('setup.stillToFill') }}</p>
-              <ul class="mt-2 list-disc pl-5 text-ink-soft">
-                <li v-for="item in agent.missing" :key="item">{{ item }}</li>
-              </ul>
+            <div v-if="agent.missing.length" class="notice">
+              <PhListChecks :size="20" class="shrink-0 text-attention" aria-hidden="true"></PhListChecks>
+              <div class="min-w-0">
+                <p class="font-semibold">{{ t('setup.stillToFill') }}</p>
+                <ul class="mt-1 list-disc pl-5 text-ink-soft">
+                  <li v-for="item in agent.missing" :key="item">{{ item }}</li>
+                </ul>
+              </div>
             </div>
             <div class="flex flex-col gap-2">
               <router-link to="/agent" class="btn btn-primary">{{ t('setup.finish') }}</router-link>
@@ -161,7 +163,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhCheck, PhCheckCircle } from '@phosphor-icons/vue';
+import { PhCheck, PhCheckCircle, PhCircle, PhListChecks } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
 import CopyField from '../../components/ui/CopyField.vue';
@@ -269,33 +271,3 @@ async function start() {
 
 start();
 </script>
-
-<style scoped>
-.choice {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  height: 100%;
-  border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-panel);
-  padding: 1.25rem;
-  text-align: left;
-  background-color: var(--color-surface);
-  transition: border-color 0.2s var(--ease-settle),
-    background-color 0.2s var(--ease-settle);
-}
-
-.choice:hover {
-  border-color: var(--color-line-strong);
-  background-color: var(--color-wash);
-}
-
-.choice-selected,
-.choice-selected:hover {
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 1px var(--color-brand);
-  background-color: var(--color-brand-tint);
-}
-</style>

@@ -2,31 +2,29 @@
   <form v-if="form" novalidate @submit.prevent="save">
     <FormProblems :message="saveError" :problems="problems"></FormProblems>
 
-    <div class="flex flex-col gap-5">
-      <h2 class="section-title">{{ t('profile.nameAndGreeting') }}</h2>
+    <SettingsGroup :title="t('profile.nameAndGreeting')">
       <div class="grid gap-5 sm:grid-cols-2">
         <div>
-          <label class="label" for="agent-name">{{ t('profile.agentName') }}</label>
+          <FieldLabel html-for="agent-name">{{ t('profile.agentName') }}</FieldLabel>
           <input id="agent-name" v-model.trim="form.name" class="field" :class="{ 'field-invalid': errors.name }" type="text" />
           <p v-if="errors.name" class="error-text">{{ errors.name }}</p>
         </div>
         <div>
-          <label class="label" for="business-name">{{ t('common.businessName') }}</label>
+          <FieldLabel html-for="business-name">{{ t('common.businessName') }}</FieldLabel>
           <input id="business-name" v-model.trim="form.business_name" class="field" :class="{ 'field-invalid': errors.business_name }" type="text" />
           <p v-if="errors.business_name" class="error-text">{{ errors.business_name }}</p>
         </div>
       </div>
       <div>
-        <label class="label" for="greeting">{{ t('profile.greeting') }}</label>
+        <FieldLabel html-for="greeting" :tip="t('profile.greetingHint', { placeholder: '{business_name}' })">{{ t('profile.greeting') }}</FieldLabel>
         <textarea id="greeting" v-model="form.greeting" class="field" :class="{ 'field-invalid': errors.greeting }" rows="2"></textarea>
-        <p class="hint">{{ t('profile.greetingHint', { placeholder: '{business_name}' }) }}</p>
+        <p v-if="errors.greeting" class="error-text">{{ errors.greeting }}</p>
       </div>
-    </div>
+    </SettingsGroup>
 
-    <div v-if="fields.length" class="mt-10 flex flex-col gap-5 border-t border-hairline pt-8">
-      <h2 class="section-title">{{ t('profile.about') }}</h2>
+    <SettingsGroup v-if="fields.length" :title="t('profile.about')">
       <div v-for="field in fields" :key="field.key">
-        <label class="label" :for="`k-${field.key}`">{{ field.label }}</label>
+        <FieldLabel :html-for="`k-${field.key}`" :tip="field.help">{{ field.label }}</FieldLabel>
         <textarea
           v-if="field.long"
           :id="`k-${field.key}`"
@@ -43,24 +41,24 @@
           :class="{ 'field-invalid': errors[field.key] }"
           type="text"
         />
-        <p v-if="field.help" class="hint">{{ field.help }}</p>
+        <p v-if="errors[field.key]" class="error-text">{{ errors[field.key] }}</p>
       </div>
-    </div>
+    </SettingsGroup>
 
     <!-- What the agent does is fixed per kind of business; shown, not edited. -->
-    <div class="mt-10 border-t border-hairline pt-8">
-      <h2 class="section-title">{{ t('profile.canDo') }}</h2>
-      <p class="mt-1 text-sm text-ink-soft">{{ t('profile.canDoText') }}</p>
-      <ul class="mt-4 flex flex-col gap-3">
-        <li v-for="job in agent.jobs" :key="job" class="flex gap-3">
-          <PhCheckCircle :size="20" weight="fill" class="mt-px shrink-0 text-brand"></PhCheckCircle>
-          <div>
-            <p class="text-sm font-semibold">{{ t(`jobs.${agent.kind}.${job}.label`) }}</p>
-            <p class="mt-0.5 text-sm text-ink-soft">{{ t(`jobs.${agent.kind}.${job}.text`) }}</p>
-          </div>
+    <SettingsGroup :title="t('profile.canDo')" :tip="t('profile.canDoText')">
+      <ul class="flex flex-wrap gap-2">
+        <li
+          v-for="job in agent.jobs"
+          :key="job"
+          class="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-wash py-1.5 pr-2 pl-3 text-sm font-medium"
+        >
+          <PhCheckCircle :size="16" weight="fill" class="shrink-0 text-brand"></PhCheckCircle>
+          {{ t(`jobs.${agent.kind}.${job}.label`) }}
+          <InfoTip :text="t(`jobs.${agent.kind}.${job}.text`)" :label="t(`jobs.${agent.kind}.${job}.label`)"></InfoTip>
         </li>
       </ul>
-    </div>
+    </SettingsGroup>
 
     <SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></SaveBar>
     <div class="h-8"></div>
@@ -74,6 +72,9 @@ import { PhCheckCircle } from '@phosphor-icons/vue';
 
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
+import SettingsGroup from '../../components/ui/SettingsGroup.vue';
+import FieldLabel from '../../components/ui/FieldLabel.vue';
+import InfoTip from '../../components/ui/InfoTip.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { useAgentStore } from '../../stores/agent.js';
 

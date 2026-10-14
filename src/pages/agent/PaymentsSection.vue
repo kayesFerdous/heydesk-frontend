@@ -1,23 +1,21 @@
 <template>
   <div>
     <!-- Its own Connect button, saved apart from the form below. -->
-    <SslcommerzConnect @change="connected = $event"></SslcommerzConnect>
+    <SettingsGroup :title="t('payments.online')" :tip="t('sslcommerz.intro')">
+      <SslcommerzConnect @change="connected = $event"></SslcommerzConnect>
+    </SettingsGroup>
 
-    <form v-if="form" class="mt-10 border-t border-hairline pt-8" novalidate @submit.prevent="save">
-      <FormProblems :message="saveError" :problems="problems"></FormProblems>
+    <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-8 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
+      <FormProblems :message="saveError" :problems="problems" class="mt-6"></FormProblems>
 
       <!-- A restaurant: pickup only, or delivery too, at one charge to any address. -->
-      <div v-if="kind === 'restaurant'" class="flex flex-col gap-5">
-        <div>
-          <h2 class="section-title">{{ t('payments.delivery') }}</h2>
-          <p class="mt-1 text-sm text-ink-soft">{{ t('payments.deliveryOff') }}</p>
-        </div>
+      <SettingsGroup v-if="kind === 'restaurant'" :title="t('payments.delivery')" :tip="t('payments.deliveryOff')">
         <div class="flex items-center justify-between gap-4">
-          <label class="text-sm font-semibold" for="delivers">{{ t('payments.weDeliver') }}</label>
+          <label class="text-sm font-medium" for="delivers">{{ t('payments.weDeliver') }}</label>
           <ToggleSwitch id="delivers" v-model="form.delivers" :label="t('payments.weDeliver')"></ToggleSwitch>
         </div>
         <div v-if="form.delivers">
-          <label class="label" for="delivery-charge">{{ t('payments.deliveryCharge') }} (৳)</label>
+          <FieldLabel html-for="delivery-charge" :tip="t('payments.deliveryChargeHint')">{{ t('payments.deliveryCharge') }} (৳)</FieldLabel>
           <input
             id="delivery-charge"
             v-model="form.charge"
@@ -28,31 +26,26 @@
             step="1"
             inputmode="numeric"
           />
-          <p class="hint">{{ t('payments.deliveryChargeHint') }}</p>
         </div>
-      </div>
+      </SettingsGroup>
 
       <!-- A shop: its delivery areas, each with a charge. -->
-      <div v-if="kind === 'shop'" class="flex flex-col gap-5">
-        <div>
-          <h2 class="section-title">{{ t('payments.areas') }}</h2>
-          <p class="mt-1 text-sm text-ink-soft">{{ t('payments.areasText') }}</p>
-        </div>
+      <SettingsGroup v-if="kind === 'shop'" :title="t('payments.areas')" :tip="t('payments.areasText')">
         <!-- One area per block: the name on its own line, so it never gets squeezed. -->
         <div
           v-for="(zone, index) in form.zones"
           :key="index"
-          class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-3 rounded-[var(--radius-control)] border border-hairline p-3"
+          class="panel grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-3 p-4"
         >
           <div class="col-span-2">
-            <label class="label" :for="`zone-${index}`">{{ t('payments.area') }}</label>
+            <FieldLabel :html-for="`zone-${index}`">{{ t('payments.area') }}</FieldLabel>
             <input :id="`zone-${index}`" v-model.trim="zone.name" class="field" :class="{ 'field-invalid': !zone.name }" type="text" :placeholder="t('payments.areaPlaceholder')" />
           </div>
-          <button type="button" class="btn btn-quiet !px-2.5" :aria-label="t('payments.removeArea', { name: zone.name || t('payments.thisArea') })" @click="form.zones.splice(index, 1)">
+          <button type="button" class="btn btn-quiet btn-icon" :aria-label="t('payments.removeArea', { name: zone.name || t('payments.thisArea') })" @click="form.zones.splice(index, 1)">
             <PhTrash :size="18"></PhTrash>
           </button>
           <div>
-            <label class="label" :for="`zone-charge-${index}`">{{ t('payments.charge') }} (৳)</label>
+            <FieldLabel :html-for="`zone-charge-${index}`">{{ t('payments.charge') }} (৳)</FieldLabel>
             <input
               :id="`zone-charge-${index}`"
               v-model="zone.charge"
@@ -65,13 +58,12 @@
             />
           </div>
           <div class="col-span-2">
-            <label class="label" :for="`zone-days-${index}`">{{ t('payments.usuallyTakes') }}</label>
+            <FieldLabel :html-for="`zone-days-${index}`">{{ t('payments.usuallyTakes') }}</FieldLabel>
             <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" :placeholder="t('payments.daysPlaceholder')" />
           </div>
           <div class="col-span-3">
-            <label class="label" :for="`zone-places-${index}`">{{ t('payments.places') }}</label>
+            <FieldLabel :html-for="`zone-places-${index}`" :tip="t('payments.placesHint')">{{ t('payments.places') }}</FieldLabel>
             <input :id="`zone-places-${index}`" v-model="zone.places" class="field" type="text" :placeholder="t('payments.placesPlaceholder')" />
-            <p class="hint">{{ t('payments.placesHint') }}</p>
           </div>
         </div>
         <div>
@@ -81,7 +73,7 @@
           </button>
         </div>
         <div>
-          <label class="label" for="free-over">{{ t('payments.freeOver') }} (৳)</label>
+          <FieldLabel html-for="free-over" :tip="t('payments.freeOverHint')">{{ t('payments.freeOver') }} (৳)</FieldLabel>
           <input
             id="free-over"
             v-model="form.freeOver"
@@ -92,18 +84,12 @@
             step="1"
             inputmode="numeric"
           />
-          <p class="hint">{{ t('payments.freeOverHint') }}</p>
         </div>
-      </div>
+      </SettingsGroup>
 
-      <div :class="{ 'mt-10 border-t border-hairline pt-8': kind !== 'clinic' }" class="flex flex-col gap-5">
-        <div>
-          <h2 class="section-title">{{ t(`${words}.title`) }}</h2>
-          <p class="mt-1 text-sm text-ink-soft">{{ t(`${words}.explain`) }}</p>
-        </div>
-
+      <SettingsGroup :title="t(`${words}.title`)" :tip="t(`${words}.explain`)">
         <div v-if="kind === 'clinic'">
-          <label class="label" for="deposit">{{ t('payments.deposit') }} (৳)</label>
+          <FieldLabel html-for="deposit" :tip="t('payments.depositHint')">{{ t('payments.deposit') }} (৳)</FieldLabel>
           <input
             id="deposit"
             v-model="form.deposit"
@@ -114,13 +100,16 @@
             step="1"
             inputmode="numeric"
           />
-          <p class="hint">{{ t('payments.depositHint') }}</p>
         </div>
 
         <div class="flex items-center justify-between gap-4">
           <div>
-            <label class="text-sm font-semibold" for="pay-first">{{ t(`${words}.toggle`) }}</label>
-            <p v-if="blocker" class="hint">{{ blocker }}</p>
+            <div class="flex items-center gap-1.5">
+              <label class="text-sm font-medium" for="pay-first">{{ t(`${words}.toggle`) }}</label>
+              <InfoTip :text="`${t('payments.linkIntro')} ${t(`${words}.after`)} ${t('payments.onlyPayment')}`"></InfoTip>
+            </div>
+            <!-- Why it cannot be turned on yet stays in view: it is the next step. -->
+            <p v-if="blocker" class="hint !mt-0.5">{{ blocker }}</p>
           </div>
           <ToggleSwitch
             id="pay-first"
@@ -130,15 +119,7 @@
             @update:model-value="form.pay_first = $event"
           ></ToggleSwitch>
         </div>
-
-        <p class="flex items-start gap-2 text-sm text-ink-soft">
-          <PhCreditCard :size="18" class="mt-px shrink-0 text-ink-faint"></PhCreditCard>
-          <span>
-            {{ t('payments.linkIntro') }}
-            {{ t(`${words}.after`) }} {{ t('payments.onlyPayment') }}
-          </span>
-        </p>
-      </div>
+      </SettingsGroup>
 
       <SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></SaveBar>
       <div class="h-8"></div>
@@ -149,10 +130,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCreditCard, PhPlus, PhTrash } from '@phosphor-icons/vue';
+import { PhPlus, PhTrash } from '@phosphor-icons/vue';
 
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
+import SettingsGroup from '../../components/ui/SettingsGroup.vue';
+import FieldLabel from '../../components/ui/FieldLabel.vue';
+import InfoTip from '../../components/ui/InfoTip.vue';
 import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';

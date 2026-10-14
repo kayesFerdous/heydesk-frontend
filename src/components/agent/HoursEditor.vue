@@ -3,7 +3,7 @@
     <div
       v-for="day in DAYS"
       :key="day"
-      class="flex min-h-14 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2"
+      class="flex min-h-13 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2"
     >
       <span class="w-24 text-sm font-medium" :class="{ 'text-ink-soft': !hours[day] }">{{ t(`days.${day}`) }}</span>
 
@@ -15,7 +15,7 @@
 
       <div v-if="hours[day]" class="flex items-center gap-2">
         <input
-          class="field !w-32"
+          class="field !h-9 !w-32"
           type="time"
           :aria-label="t('hours.opens', { day: t(`days.${day}`) })"
           :value="hours[day][0]"
@@ -23,7 +23,7 @@
         />
         <span class="text-sm text-ink-soft">{{ t('hours.to') }}</span>
         <input
-          class="field !w-32"
+          class="field !h-9 !w-32"
           type="time"
           :aria-label="t('hours.closes', { day: t(`days.${day}`) })"
           :value="hours[day][1]"

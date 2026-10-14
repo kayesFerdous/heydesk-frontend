@@ -1,66 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-/* The design tokens (DESIGN.md, v3 "Cobalt on paper"). Every colour, radius
-   and shadow in the app comes from here, so a page never invents its own.
+/* The design tokens (DESIGN.md, v4 "Passbook"). Every colour, radius and
+   shadow in the app comes from here, so a page never invents its own.
 
-   One brand colour: Gigalogy's cobalt #004AAC, used for actions and selection
-   only. Everything else is a cool, slightly blue-tinted grey. Green, amber and
-   red are states (live, needs a person, destructive), never decoration. */
+   The console reads like a bank passbook: cobalt ink on white paper,
+   one-pixel rules, and status as a small stamp. Gigalogy's cobalt #004AAC is the only brand colour, used for actions
+   and selection. Green, orange and red are states (live, needs a person,
+   destructive), never decoration. */
 @theme {
-  --font-sans: 'Onest', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+  /* Order and booking codes only (A-104, #12): a serial, like a cheque number. */
+  --font-serial: 'Geist Mono', 'Noto Sans Bengali', ui-monospace, monospace;
 
-  /* Brand */
+  /* Brand: Gigalogy cobalt */
   --color-brand: #004aac;
-  --color-brand-hover: #003d8f;
-  --color-brand-tint: #eef3fb;
-  --color-brand-tint-strong: #dfe9f8;
+  --color-brand-hover: #003b8a;
+  --color-brand-tint: #edf3fc;
+  --color-brand-tint-strong: #d9e6f8;
 
-  /* Surfaces: white work area, a quiet paper sidebar */
+  /* Surfaces: one white sheet (work area and sidebar), a cool paper for bands */
   --color-surface: #ffffff;
-  --color-sidebar: #f5f6f9;
-  --color-wash: #f7f8fa;
-  --color-hover: #eef0f4;
+  --color-sidebar: #f3f5f9;
+  --color-wash: #f7f9fc;
+  --color-hover: #ebeff6;
 
-  /* Lines */
-  --color-hairline: #e6e9ef;
-  --color-line-strong: #d4d9e2;
+  /* Rules: printed lines, one device pixel */
+  --color-hairline: #e2e7ef;
+  --color-line-strong: #c9d2df;
 
-  /* Text: blue-tinted near-black, never #000 */
-  --color-ink: #0c1424;
-  --color-ink-soft: #566176;
-  --color-ink-faint: #8b94a6;
+  /* Ink: Gigalogy's indigo navy, never #000 */
+  --color-ink: #0b1a33;
+  --color-ink-soft: #4d5a70;
+  --color-ink-faint: #8591a5;
 
   /* States */
-  --color-success: #157f4c;
-  --color-success-tint: #e7f5ed;
-  /* "Needs a person": a true orange, opposite cobalt on the colour wheel, so it
-     stands out without muddying into brown (a darkened yellow does). */
+  --color-success: #127a48;
+  --color-success-tint: #e7f4ed;
+  /* "Needs a person": a true orange, opposite cobalt on the colour wheel. */
   --color-attention: #b54708;
-  --color-attention-tint: #f1f3f6;
-  --color-danger: #c42b2b;
+  --color-attention-tint: #fdf1e7;
+  --color-danger: #c22b2b;
   --color-danger-tint: #fdeeee;
 
-  /* Concentric shapes: panels 12px, controls 8px, chips fully round. */
-  --radius-panel: 0.75rem;
+  /* Small, printed corners: panels 10px, controls 8px, stamps 4px. */
+  --radius-panel: 0.625rem;
   --radius-control: 0.5rem;
+  --radius-stamp: 0.25rem;
 
-  /* Two elevations and no more: a lifted control, and a floating layer. */
-  --shadow-lift: 0 1px 2px rgb(12 20 36 / 0.06);
-  --shadow-float: 0 16px 40px -12px rgb(12 20 36 / 0.22), 0 2px 6px rgb(12 20 36 / 0.06);
+  /* Elevation is for things that float over the page (menus, sheets, the
+     drawer). Things on the page are separated by rules, not shadows. */
+  --shadow-lift: 0 1px 2px rgb(11 26 51 / 0.06);
+  --shadow-float: 0 18px 44px -14px rgb(11 26 51 / 0.24), 0 2px 6px rgb(11 26 51 / 0.06);
 
   /* Exponential ease-out: motion settles rather than stopping. */
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Always light, whatever the device prefers. */
+/* Always light: owners work in lit shops and offices. */
 :root {
   color-scheme: light;
 }
 
-/* Bangla mode. The tight tracking and leading tuned for Onest would squeeze
-   Bengali's joined letters and clip its vowel signs, so Bangla text gets
-   normal spacing and taller lines. Outside @layer, so it wins over utilities. */
+/* Bangla mode. Tight tracking would squeeze Bengali's joined letters and clip
+   its vowel signs, so Bangla text gets normal spacing and taller lines. Outside
+   @layer, so it wins over utilities. */
 :lang(bn) {
   letter-spacing: normal;
 }
@@ -75,7 +79,7 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    /* Prices, order numbers, times and phone numbers line up in columns. */
+    /* Prices, codes, times and phone numbers line up in columns. */
     font-variant-numeric: tabular-nums;
   }
 
@@ -109,7 +113,7 @@
      sentence case, four intents. One primary per screen. */
   .btn {
     @apply inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-control)] px-4
-      text-sm font-semibold whitespace-nowrap transition-[background-color,color,box-shadow,transform]
+      text-sm font-semibold whitespace-nowrap transition-[background-color,color,border-color,transform]
       duration-200 ease-[var(--ease-settle)] active:translate-y-px
       disabled:pointer-events-none disabled:opacity-40;
   }
@@ -118,15 +122,14 @@
     @apply h-8 px-3 text-[0.8125rem];
   }
 
-  /* The cobalt button has a faint top highlight, so it reads as a pressable
-     object instead of a flat rectangle. */
+  /* Cobalt, with a faint top highlight so it reads as something to press. */
   .btn-primary {
     @apply bg-brand text-white hover:bg-brand-hover;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 40 100 / 0.24);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 1px 2px rgb(0 40 100 / 0.22);
   }
 
   .btn-secondary {
-    @apply border border-line-strong bg-surface text-ink shadow-[var(--shadow-lift)] hover:bg-wash;
+    @apply border border-line-strong bg-surface text-ink hover:border-ink-faint hover:bg-wash;
   }
 
   .btn-quiet {
@@ -145,7 +148,7 @@
   /* One input shape. Labels sit above the field, never inside it. */
   .field {
     @apply h-10 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3
-      text-sm text-ink shadow-[var(--shadow-lift)] transition-[border-color,box-shadow] duration-200
+      text-sm text-ink transition-[border-color,box-shadow] duration-200
       placeholder:text-ink-soft hover:border-ink-faint focus:border-brand focus:outline-none
       focus:ring-3 focus:ring-brand/15 disabled:cursor-not-allowed disabled:opacity-60;
   }
@@ -170,9 +173,12 @@
     @apply mt-1.5 text-[0.8125rem] text-danger;
   }
 
-  /* Status chips: fully round, always an icon plus a word (never colour alone). */
+  /* Status is a stamp: a small square-cornered box with an icon and a word,
+     its border inked in its own colour. Never colour alone. */
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap;
+    @apply inline-flex items-center gap-1 rounded-[var(--radius-stamp)] border px-1.5 py-0.5 text-xs
+      font-semibold whitespace-nowrap;
+    border-color: color-mix(in srgb, currentColor 24%, transparent);
   }
 
   /* A count next to a label: "Inbox 3". */
@@ -192,7 +198,7 @@
   }
 
   .tab {
-    @apply -mb-px inline-flex h-10 shrink-0 items-center gap-1.5 border-b-2 border-transparent
+    @apply -mb-px inline-flex h-11 shrink-0 items-center gap-1.5 border-b-2 border-transparent
       text-sm font-medium whitespace-nowrap text-ink-soft transition-colors duration-200 hover:text-ink;
   }
 
@@ -201,9 +207,9 @@
     @apply border-brand text-ink;
   }
 
-  /* A pill switch between two or three views ("All" / "Needs a person"). */
+  /* A switch between two or three views ("All" / "Needs a person"). */
   .segmented {
-    @apply inline-flex rounded-[var(--radius-control)] bg-hover p-0.5;
+    @apply inline-flex rounded-[var(--radius-control)] border border-hairline bg-wash p-0.5;
   }
 
   .segment {
@@ -213,24 +219,23 @@
 
   .segment-active,
   .segment-active:hover {
-    @apply bg-surface text-ink shadow-[var(--shadow-lift)];
+    @apply bg-surface text-ink shadow-[0_0_0_1px_var(--color-hairline),var(--shadow-lift)];
   }
 
   /* A bordered panel inside the work area: the setup guide, a form group.
-     Border is the elevation; panels never also carry a shadow. */
+     The rule is the elevation; panels never also carry a shadow. */
   .panel {
     @apply rounded-[var(--radius-panel)] border border-hairline bg-surface;
   }
 
   /* A notice that needs the owner ("asked for a person", "things left to fill
-     in"): a white panel with a slight lift, so it never passes for a grey chat
-     bubble. Title in ink, detail in ink-soft, one orange icon carries the
-     meaning. Same build as a Google or Stripe console notice. */
+     in"): a white panel with a firmer rule. Title in ink, detail in ink-soft,
+     one orange icon carries the meaning. */
   .notice {
-    @apply flex gap-3 rounded-[var(--radius-panel)] border border-line-strong bg-surface px-4 py-3.5 text-sm shadow-[var(--shadow-lift)];
+    @apply flex gap-3 rounded-[var(--radius-panel)] border border-line-strong bg-surface px-4 py-3.5 text-sm;
   }
 
-  /* A list row: hairline below, wash on hover, cobalt tint when selected. */
+  /* A list row: a rule below, wash on hover, cobalt tint when selected. */
   .row {
     @apply border-b border-hairline transition-colors duration-150 hover:bg-wash;
   }
@@ -238,6 +243,54 @@
   .row-selected,
   .row-selected:hover {
     @apply bg-brand-tint;
+  }
+
+  /* A day's heading in a long list ("Today", "Yesterday", "12 October"),
+     printed like the date line in a passbook. Sticks while its rows scroll. */
+  .day-head {
+    @apply sticky top-0 z-[1] flex items-baseline justify-between gap-4 border-b border-line-strong
+      bg-surface/95 px-5 pt-4 pb-2 text-[0.8125rem] font-semibold text-ink backdrop-blur sm:px-8;
+  }
+
+  /* Ledger rows: fixed columns that never move (when, avatar, entry, code,
+     amount, stamp, end). On phones only the avatar, the entry and one last
+     cell remain. `.ledger-money` adds the amount column for agents that take
+     orders. */
+  .ledger {
+    @apply grid items-center gap-x-3;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  }
+
+  @media (min-width: 640px) {
+    .ledger {
+      grid-template-columns: 4.5rem 2.25rem minmax(0, 1fr) 5.5rem 8.5rem 1rem;
+    }
+
+    .ledger-money {
+      grid-template-columns: 4.5rem 2.25rem minmax(0, 1fr) 5.5rem 6rem 8.5rem 1rem;
+    }
+  }
+
+  /* The heading row above a ledger: column names, small and quiet. */
+  .ledger-head {
+    @apply hidden border-b border-line-strong pb-2 text-xs font-medium text-ink-soft sm:grid;
+  }
+
+  /* A small menu that opens under a button (account, Import). Its parent
+     needs `position: relative`. */
+  .popover {
+    @apply absolute top-full z-30 mt-1.5 rounded-[var(--radius-panel)] border border-hairline bg-surface p-1.5
+      shadow-[var(--shadow-float)];
+  }
+
+  .menu-item {
+    @apply flex h-9 w-full items-center gap-2.5 rounded-[calc(var(--radius-control)-2px)] px-2.5 text-left text-sm
+      font-medium text-ink transition-colors hover:bg-wash;
+  }
+
+  /* An order or booking code, set like a serial number. */
+  .serial {
+    @apply font-[family-name:var(--font-serial)] text-[0.8125rem] font-medium tracking-normal;
   }
 
   /* Loading placeholders in the shape of the content. */

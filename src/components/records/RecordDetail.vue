@@ -1,9 +1,14 @@
 <template>
+  <!-- The record as a receipt slip: who, what, the total, the proof, and the
+       one next step. -->
   <div class="flex h-full flex-col p-6">
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <p class="text-xs font-medium text-ink-soft">{{ t(`records.name.${record.job}`) }} {{ record.code }}</p>
-        <h2 class="mt-1 truncate text-xl font-semibold tracking-[-0.01em]">
+        <p class="flex items-center gap-2 text-xs font-medium text-ink-soft">
+          {{ t(`records.name.${record.job}`) }}
+          <span class="serial !text-xs text-ink">{{ record.code }}</span>
+        </p>
+        <h2 class="mt-1.5 truncate text-xl font-semibold tracking-[-0.015em]">
           {{ record.customer_name || t('records.customer') }}
         </h2>
         <a
@@ -15,7 +20,10 @@
           {{ record.customer_phone }}
         </a>
       </div>
-      <StatusChip :status="record.status"></StatusChip>
+      <!-- A new status lands like a stamp pressed on the slip. -->
+      <transition name="stamp" mode="out-in">
+        <StatusChip :key="record.status" :status="record.status"></StatusChip>
+      </transition>
     </div>
 
     <template v-if="record.kind === 'order'">
@@ -23,20 +31,22 @@
         <li
           v-for="(line, index) in record.lines"
           :key="index"
-          class="flex justify-between gap-4"
+          class="flex items-baseline gap-2"
         >
           <span>
             <span class="text-ink-soft">{{ formatNumber(line.quantity) }} x</span> {{ line.name }}
             <span v-if="choices(line)" class="text-ink-soft">({{ choices(line) }})</span>
           </span>
+          <span class="leader" aria-hidden="true"></span>
           <span class="font-medium">{{ formatMoney(line.price * line.quantity) }}</span>
         </li>
       </ul>
-      <p v-if="record.address" class="mt-2.5 flex justify-between gap-4 text-sm">
+      <p v-if="record.address" class="mt-2.5 flex items-baseline gap-2 text-sm">
         <span>{{ t('records.delivery') }}</span>
+        <span class="leader" aria-hidden="true"></span>
         <span class="font-medium">{{ record.delivery_charge ? formatMoney(record.delivery_charge) : t('records.free') }}</span>
       </p>
-      <div class="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
+      <div class="mt-4 flex items-baseline justify-between border-t border-line-strong pt-4">
         <span class="text-sm text-ink-soft">{{ t('records.total') }}</span>
         <span class="text-2xl font-semibold tracking-[-0.02em]">{{ formatMoney(record.total) }}</span>
       </div>
@@ -86,8 +96,8 @@
       </dl>
     </template>
 
-    <p class="mt-5 flex items-center gap-1.5 text-xs text-ink-soft">
-      <PhSealCheck :size="14" class="text-success"></PhSealCheck>
+    <p class="mt-6 flex items-center gap-2 border-t border-dashed border-line-strong pt-4 text-xs text-ink-soft">
+      <PhSealCheck :size="16" weight="fill" class="shrink-0 text-success"></PhSealCheck>
       {{ t('records.confirmedInChat', { day: formatDay(record.created_at), time: formatTime(record.created_at) }) }}
     </p>
 
@@ -154,3 +164,29 @@ function moveOn(status) {
   emit('move', status, extra);
 }
 </script>
+
+<style scoped>
+/* The dotted line that joins an item to its price, as on a printed bill. */
+.leader {
+  flex: 1;
+  min-width: 1rem;
+  border-bottom: 1px dotted var(--color-line-strong);
+  transform: translateY(-0.25rem);
+}
+
+/* The new status stamp lands: pressed down a touch, then settles. */
+.stamp-enter-active {
+  transition: transform 0.22s var(--ease-settle), opacity 0.22s var(--ease-settle);
+}
+
+.stamp-enter-from {
+  opacity: 0;
+  transform: scale(1.25) rotate(-4deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-enter-active {
+    transition: none;
+  }
+}
+</style>

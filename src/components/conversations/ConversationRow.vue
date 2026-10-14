@@ -1,7 +1,7 @@
 <template>
   <button
     type="button"
-    class="row grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-5 py-3 text-left"
+    class="row grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-5 py-3 text-left sm:px-8 lg:px-5"
     :class="{ 'row-selected': selected }"
     :aria-current="selected"
     @click="$emit('select')"

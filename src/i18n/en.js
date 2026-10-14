@@ -5,6 +5,8 @@
 // another message. Write a literal @ as {'@'}.
 export default {
   common: {
+    notConnected: 'Not connected.',
+    moreInfo: 'More about this',
     back: 'Back',
     businessName: 'Business name',
     cancel: 'Cancel',
@@ -182,6 +184,9 @@ export default {
   },
 
   shell: {
+    account: 'Your account',
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
     paused: 'Your agent is paused by HeyDesk, so customers see that it is unavailable. Contact HeyDesk to turn it back on.',
     agentLive: 'Agent live',
     platformAdmin: 'Platform admin',
@@ -308,15 +313,15 @@ export default {
     aVisitor: 'A visitor',
     handoffText: '{channel}. Read what was said, then call or reply.',
     todayNone: 'No customers yet today. Your agent is ready the moment one writes.',
-    todayHad: 'Today your agent had {had}.',
-    todayHadTook: 'Today your agent had {had} and took {took}.',
-    conversations: '{n} conversation | {n} conversations',
-    and: ' and ',
-    taken: {
-      order: '{n} order worth {total} | {n} orders worth {total}',
-      appointment: '{n} appointment request | {n} appointment requests',
-      message: '{n} message | {n} messages',
+    figures: {
+      conversations: 'Conversations today',
+      order: 'Orders today',
+      appointment: 'Bookings today',
+      message: 'Messages today',
+      taken: 'Taken today',
+      waiting: 'Waiting for you',
     },
+    columns: { when: 'When', entry: 'Customer', code: 'Code', amount: 'Amount', status: 'Status' },
   },
 
   inbox: {
@@ -385,8 +390,8 @@ export default {
   },
 
   agent: {
+    tryIt: 'Try it',
     title: 'Agent settings',
-    subtitle: 'What your agent knows and how it talks. Changes go live on the next message.',
     sections: 'Settings sections',
     profile: 'Profile',
     hours: 'Hours and hand-off',
@@ -406,7 +411,7 @@ export default {
     greeting: 'Greeting',
     greetingHint: 'The first thing customers see. Write {placeholder} to insert your business name.',
     about: 'About your business',
-    canDo: 'What your agent can do',
+    canDo: 'What it does',
     canDoText: 'HeyDesk sets these for your kind of business.',
     fields: {
       address: { label: 'Address' },
@@ -430,7 +435,7 @@ export default {
   hours: {
     title: 'Opening hours',
     text: 'Your agent tells customers when you are open, and only takes orders and bookings for those times.',
-    handoffTitle: 'When a person is needed',
+    handoffTitle: 'Hand-off to you',
     handoffText: 'What customers hear when they ask for a person, and how they reach you. They also show up in Conversations as "Needs a person".',
     handoffMessage: 'What your agent says',
     oneIsEnough: 'One of the two is enough.',
@@ -442,19 +447,20 @@ export default {
   },
 
   answers: {
-    soundTitle: 'How your agent should sound',
+    soundTitle: 'Tone and rules',
     soundText: 'Tone, rules, anything it should always say or never say.',
     notes: 'Notes for your agent',
     notesPlaceholder: 'Be warm and brief. Never promise a time we have not confirmed.',
     characters: '{n} of {max} characters',
-    faqTitle: 'Questions customers ask',
+    faqTitle: 'Common questions',
     faqText: 'Write each question with its answer. Your agent uses these to reply in its own words.',
     faq: 'Questions and answers',
     faqPlaceholder: 'Is there parking? There is a public car park two minutes away.',
-    longer: 'Longer material, like a price list or a policy document, goes in {knowledge}.',
+    longer: 'Long documents go in {knowledge}.',
   },
 
   payments: {
+    online: 'Online payments',
     delivery: 'Delivery',
     deliveryOff: 'Off: your agent takes pickup orders only.',
     weDeliver: 'We deliver',
@@ -512,6 +518,7 @@ export default {
   },
 
   telegram: {
+    notWorking: 'Button not working?',
     connectedText: 'Customers message {bot} and your agent answers. Share the link on your page, receipts or a sign at the counter.',
     link: 'Telegram link',
     open: 'Open in Telegram',
@@ -559,18 +566,19 @@ export default {
   },
 
   menu: {
+    allCategories: 'All categories',
     subtitle: 'Your agent only offers what is listed here, at these prices. Changes are live right away.',
-    importCsv: 'Import CSV',
     add: 'Add {noun}',
-    all: 'All',
     search: 'Search {list}',
     price: 'Price',
     fee: 'Fee',
     available: 'Available',
     emptyTitle: 'No {nouns} yet',
-    emptyText: 'Add them one at a time with Add {noun}, or use Import CSV to bring in a whole spreadsheet at once. Your agent can only offer what is listed here.',
+    emptyText: 'Add them one at a time, or bring a whole spreadsheet in with Import.',
     noMatches: 'No {nouns} match that.',
     row: {
+      photosOf: 'Photos of {name}',
+      editName: 'Edit {name}',
       isAvailable: '{name} is available',
       on: 'On',
       soldOut: 'Sold out',
@@ -615,6 +623,8 @@ export default {
       removeCount: 'Remove this count',
     },
     import: {
+      fromFile: 'From a CSV file',
+      button: 'Import',
       title: 'Import from a spreadsheet',
       intro: 'Upload your list saved as CSV, with your own column names. It replaces the whole list.',
       choose: 'Choose a CSV file',
@@ -652,7 +662,8 @@ export default {
       replaceWith: 'Replace with these {n}',
     },
     sheet: {
-      button: 'Google Sheet',
+      shareShort: 'Share it as: Anyone with the link, Viewer.',
+      fromSheet: 'From a Google Sheet',
       title: 'Keep your list in a Google Sheet',
       intro: 'Paste the link of the sheet you already keep. We read it every 5 minutes, so a change there reaches your agent by itself.',
       link: "The sheet's link",
@@ -682,6 +693,7 @@ export default {
     opening: 'Opening...',
     kinds: { pdf: 'PDF', markdown: 'Markdown', text: 'Text' },
     row: {
+      removeName: 'Remove {name}',
       meta: '{kind}, {pieces}, added {day}',
       pieces: '{n} piece | {n} pieces',
       removeIt: 'Remove it?',

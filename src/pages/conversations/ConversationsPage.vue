@@ -5,8 +5,8 @@
       class="flex min-h-0 flex-col border-hairline lg:w-[22rem] lg:shrink-0 lg:border-r"
       :class="selectedId ? 'hidden lg:flex' : 'flex flex-1'"
     >
-      <header class="px-5 pt-6 pb-4 sm:px-8 sm:pt-8 lg:px-5">
-        <h1 class="text-2xl font-semibold tracking-[-0.02em]">{{ t('conversations.title') }}</h1>
+      <header class="px-5 pt-6 pb-4 sm:px-8 sm:pt-9 lg:px-5">
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('conversations.title') }}</h1>
         <p class="mt-1 text-sm text-ink-soft">{{ t('conversations.subtitle') }}</p>
         <div class="segmented mt-4" role="group" :aria-label="t('conversations.filter')">
           <button type="button" class="segment" :class="{ 'segment-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
@@ -34,9 +34,9 @@
         </button>
       </EmptyState>
 
-      <div v-else class="min-h-0 flex-1 overflow-y-auto border-t border-hairline">
+      <div v-else class="min-h-0 flex-1 overflow-y-auto">
         <div v-for="group in groups" :key="group.label">
-          <h2 class="sticky top-0 z-[1] border-b border-hairline bg-wash/95 px-5 py-1.5 text-xs font-semibold text-ink-soft backdrop-blur">
+          <h2 class="day-head lg:!px-5">
             {{ group.label }}
           </h2>
           <ConversationRow

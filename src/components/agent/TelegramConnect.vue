@@ -1,91 +1,89 @@
 <template>
-  <div class="flex items-start gap-4">
-    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
-      <PhTelegramLogo :size="20"></PhTelegramLogo>
-    </span>
+  <!-- The Telegram row's fields; the row's name and tip come from the page. -->
+  <div class="min-w-0">
+      <div v-if="loading" class="skeleton h-4 w-64" aria-hidden="true"></div>
 
-    <div class="min-w-0 flex-1">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <h2 class="section-title">Telegram</h2>
-        <span v-if="bot" class="chip bg-success-tint text-success">
-          <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
-          {{ t('connect.connected') }}
-        </span>
-      </div>
-
-      <div v-if="loading" class="skeleton mt-2 h-4 w-64" aria-hidden="true"></div>
-
-      <p v-else-if="loadError" class="mt-1 text-sm" role="alert">
+      <p v-else-if="loadError" class="text-sm" role="alert">
         <span class="text-danger">{{ loadError }}</span>
         <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="load">{{ t('common.tryAgain') }}</button>
       </p>
 
       <!-- Connected: share the link -->
-      <div v-else-if="bot">
-        <i18n-t keypath="telegram.connectedText" tag="p" class="mt-1 text-sm text-ink-soft" scope="global">
-          <template #bot><span class="font-semibold text-ink">@{{ bot.username }}</span></template>
-        </i18n-t>
-        <div class="mt-5">
+      <div v-else-if="bot" class="flex flex-col gap-5">
+        <p class="flex flex-wrap items-center gap-2 text-sm">
+          <span class="chip bg-success-tint text-success">
+            <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
+            {{ t('connect.connected') }}
+          </span>
+          <span class="font-semibold">@{{ bot.username }}</span>
+          <InfoTip :text="t('telegram.connectedText', { bot: '@' + bot.username })"></InfoTip>
+        </p>
+        <div>
           <CopyField :label="t('telegram.link')" :value="bot.link" @copied="$emit('copied')"></CopyField>
-        </div>
-        <div class="mt-3 flex flex-wrap items-center gap-3">
-          <a :href="bot.link" target="_blank" rel="noopener" class="btn btn-secondary">
-            <PhArrowSquareOut :size="18"></PhArrowSquareOut>
-            {{ t('telegram.open') }}
-          </a>
-          <template v-if="!confirmingDisconnect">
-            <button type="button" class="text-sm font-semibold text-ink-soft hover:text-danger" @click="confirmingDisconnect = true">
+          <div class="mt-3 flex flex-wrap items-center gap-3">
+            <a :href="bot.link" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+              <PhArrowSquareOut :size="16"></PhArrowSquareOut>
+              {{ t('telegram.open') }}
+            </a>
+            <button v-if="!confirmingDisconnect" type="button" class="text-sm font-semibold text-ink-soft hover:text-danger" @click="confirmingDisconnect = true">
               {{ t('connect.disconnect') }}
             </button>
-          </template>
-          <span v-else class="flex flex-wrap items-center gap-3 text-sm" role="alert">
-            <span>{{ t('telegram.disconnectWarning') }}</span>
-            <button type="button" class="font-semibold text-danger hover:underline" :disabled="busy" @click="disconnect">
-              {{ busy ? t('connect.disconnecting') : t('connect.disconnect') }}
-            </button>
-            <button type="button" class="font-semibold text-ink-soft hover:underline" @click="confirmingDisconnect = false">
-              {{ t('common.keepIt') }}
-            </button>
-          </span>
+            <span v-else class="flex flex-wrap items-center gap-3 text-sm" role="alert">
+              <span>{{ t('telegram.disconnectWarning') }}</span>
+              <button type="button" class="font-semibold text-danger hover:underline" :disabled="busy" @click="disconnect">
+                {{ busy ? t('connect.disconnecting') : t('connect.disconnect') }}
+              </button>
+              <button type="button" class="font-semibold text-ink-soft hover:underline" @click="confirmingDisconnect = false">
+                {{ t('common.keepIt') }}
+              </button>
+            </span>
+          </div>
+          <p v-if="error" class="mt-2 text-sm text-danger" role="alert">{{ error }}</p>
         </div>
-        <p v-if="error" class="mt-2 text-sm text-danger" role="alert">{{ error }}</p>
 
         <!-- Alerts for the owner, in their own chat with the bot -->
-        <div class="mt-5 border-t border-hairline pt-4">
+        <div class="border-t border-hairline pt-5">
           <p class="flex items-center gap-2 text-sm font-semibold">
             <PhBell :size="16"></PhBell>
             {{ t('telegram.alerts') }}
+            <InfoTip :text="bot.owner_linked ? t('telegram.alertsOn') : t('telegram.alertsOff')"></InfoTip>
+            <span v-if="bot.owner_linked" class="chip ml-1 bg-success-tint text-success">
+              <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
+              {{ t('common.on') }}
+            </span>
           </p>
-          <p v-if="bot.owner_linked" class="mt-0.5 text-sm text-ink-soft">{{ t('telegram.alertsOn') }}</p>
-          <template v-else>
-            <p class="mt-0.5 text-sm text-ink-soft">{{ t('telegram.alertsOff') }}</p>
+          <template v-if="!bot.owner_linked">
             <div class="mt-3 flex flex-wrap items-center gap-3">
-              <a :href="bot.owner_link" target="_blank" rel="noopener" class="btn btn-secondary">
-                <PhArrowSquareOut :size="18"></PhArrowSquareOut>
+              <a :href="bot.owner_link" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                <PhArrowSquareOut :size="16"></PhArrowSquareOut>
                 {{ t('telegram.getAlerts') }}
               </a>
               <button type="button" class="text-sm font-semibold text-brand hover:underline" @click="load">
                 {{ t('telegram.sentIt') }}
               </button>
             </div>
-            <i18n-t keypath="telegram.nothingHappens" tag="p" class="mt-4 text-sm text-ink-soft" scope="global">
-              <template #bot><span class="font-semibold text-ink">@{{ bot.username }}</span></template>
-            </i18n-t>
-            <div class="mt-2">
-              <CopyField :label="t('telegram.messageForBot')" :value="ownerCommand"></CopyField>
-            </div>
+            <!-- The way round a phone without the app, folded until needed. -->
+            <details class="mt-4 text-sm">
+              <summary class="cursor-pointer font-medium text-ink-soft hover:text-ink">{{ t('telegram.notWorking') }}</summary>
+              <i18n-t keypath="telegram.nothingHappens" tag="p" class="mt-2 text-ink-soft" scope="global">
+                <template #bot><span class="font-semibold text-ink">@{{ bot.username }}</span></template>
+              </i18n-t>
+              <div class="mt-2">
+                <CopyField :label="t('telegram.messageForBot')" :value="ownerCommand"></CopyField>
+              </div>
+            </details>
           </template>
         </div>
       </div>
 
-      <!-- Not connected, steps closed -->
+      <!-- Not connected, steps closed. What it is sits in the row's tip. -->
       <div v-else-if="!open">
-        <p class="mt-1 text-sm text-ink-soft">{{ t('telegram.intro') }}</p>
-        <button type="button" class="btn btn-secondary mt-4" @click="open = true">{{ t('telegram.setUp') }}</button>
+        <p class="text-sm text-ink-soft">{{ t('common.notConnected') }}</p>
+        <button type="button" class="btn btn-secondary mt-3" @click="open = true">{{ t('telegram.setUp') }}</button>
       </div>
 
       <!-- Not connected: two steps -->
-      <ol v-else class="mt-3 flex flex-col gap-6">
+      <ol v-else class="flex flex-col gap-6">
         <li>
           <p class="text-sm font-semibold">{{ t('telegram.step1') }}</p>
           <p class="mt-0.5 text-sm text-ink-soft">{{ t('telegram.step1Text') }}</p>
@@ -133,16 +131,16 @@
           <button type="button" class="text-sm font-semibold text-ink-soft hover:underline" @click="close">{{ t('common.notNow') }}</button>
         </li>
       </ol>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhArrowSquareOut, PhBell, PhCheck, PhCheckCircle, PhCopy, PhTelegramLogo } from '@phosphor-icons/vue';
+import { PhArrowSquareOut, PhBell, PhCheck, PhCheckCircle, PhCopy } from '@phosphor-icons/vue';
 
 import CopyField from '../ui/CopyField.vue';
+import InfoTip from '../ui/InfoTip.vue';
 import {
   connectTelegram,
   disconnectTelegram,

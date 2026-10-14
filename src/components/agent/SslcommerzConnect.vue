@@ -1,12 +1,12 @@
 <template>
-  <div class="flex items-start gap-4">
+  <div class="panel flex items-start gap-4 p-4">
     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
       <PhCreditCard :size="20"></PhCreditCard>
     </span>
 
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <h2 class="section-title">SSLCommerz</h2>
+        <h3 class="text-sm font-semibold">SSLCommerz</h3>
         <span v-if="account" class="chip bg-success-tint text-success">
           <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
           {{ t('connect.connected') }}
@@ -52,10 +52,10 @@
         <p v-if="error" class="mt-2 text-sm text-danger" role="alert">{{ error }}</p>
       </div>
 
-      <!-- Not connected, closed -->
+      <!-- Not connected, closed. What SSLCommerz is sits in the row's tip. -->
       <div v-else-if="!open">
-        <p class="mt-1 text-sm text-ink-soft">{{ t('sslcommerz.intro') }}</p>
-        <button type="button" class="btn btn-secondary mt-4" @click="open = true">{{ t('sslcommerz.connect') }}</button>
+        <p class="mt-0.5 text-sm text-ink-soft">{{ t('common.notConnected') }}</p>
+        <button type="button" class="btn btn-secondary mt-3" @click="open = true">{{ t('sslcommerz.connect') }}</button>
       </div>
 
       <!-- Connecting: two steps -->

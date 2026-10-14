@@ -29,6 +29,16 @@ export function formatDay(isoString, timeZone = 'Asia/Dhaka') {
   });
 }
 
+// Today as the top of a statement: "Tuesday, 14 October", where the business is.
+export function formatToday(timeZone = 'Asia/Dhaka') {
+  return new Date().toLocaleDateString(localeTag(), {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone,
+  });
+}
+
 // A message split into plain text and web links, so a page can make the links
 // clickable without v-html: [{ text }, { text, url }, …]. Trailing punctuation
 // stays text: "Pay here: https://x/pay/1." links https://x/pay/1.

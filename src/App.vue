@@ -1,10 +1,15 @@
 <template>
   <router-view v-if="isBare"></router-view>
 
-  <!-- The shell: a quiet paper sidebar and the white work area, edge to edge.
-       No floating card, no outer margin, no top banner. -->
-  <div v-else class="flex h-dvh bg-sidebar">
-    <AppSidebar class="hidden w-60 shrink-0 md:flex"></AppSidebar>
+  <!-- The shell: one white sheet, the sidebar ruled off from the work area.
+       No floating card, no outer margin, no top banner. The sidebar folds to
+       icons on desktop. -->
+  <div v-else class="flex h-dvh bg-surface">
+    <AppSidebar
+      class="hidden shrink-0 transition-[width] duration-200 ease-[var(--ease-settle)] motion-reduce:transition-none md:flex"
+      :class="ui.sidebarCollapsed ? 'w-16' : 'w-60'"
+      collapsible
+    ></AppSidebar>
 
     <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface pb-24 md:border-l md:border-hairline md:pb-0">
       <p

@@ -1,10 +1,11 @@
 <template>
   <!-- Appears at the bottom of a settings form once something has changed, so
-       Save is always in reach without a button at the top of every section. -->
+       Save is always in reach without a button at the top of every section.
+       After a save it offers the test chat: the moment to try the change. -->
   <transition name="save-bar">
-    <div v-if="dirty || saving || note" class="sticky bottom-0 z-10 mt-10 -mx-5 sm:-mx-8">
+    <div v-if="dirty || saving || note" class="sticky bottom-24 z-10 mt-6 md:bottom-4">
       <div
-        class="flex flex-wrap items-center justify-between gap-3 border-t border-hairline bg-surface/95 px-5 py-3 backdrop-blur sm:px-8"
+        class="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-line-strong bg-surface py-2.5 pr-2.5 pl-4 shadow-[var(--shadow-float)]"
       >
         <p class="flex items-center gap-2 text-sm" aria-live="polite">
           <template v-if="dirty || saving">
@@ -16,6 +17,10 @@
             <span>{{ note }}</span>
           </template>
         </p>
+        <button v-if="note && !dirty && !saving" type="button" class="btn btn-secondary btn-sm" @click="ui.testSheetOpen = true">
+          <PhChatCircleDots :size="16" class="text-brand"></PhChatCircleDots>
+          {{ t('agent.tryIt') }}
+        </button>
         <div v-if="dirty || saving" class="flex gap-2">
           <button type="button" class="btn btn-quiet" :disabled="saving" @click="$emit('discard')">{{ t('common.discard') }}</button>
           <button type="submit" class="btn btn-primary" :disabled="saving">
@@ -29,7 +34,9 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { PhCheckCircle, PhPencilSimpleLine } from '@phosphor-icons/vue';
+import { PhChatCircleDots, PhCheckCircle, PhPencilSimpleLine } from '@phosphor-icons/vue';
+
+import { useUiStore } from '../../stores/ui.js';
 
 defineProps({
   dirty: { type: Boolean, default: false },
@@ -39,6 +46,7 @@ defineProps({
 });
 defineEmits(['discard']);
 const { t } = useI18n();
+const ui = useUiStore();
 </script>
 
 <style scoped>

@@ -2,33 +2,29 @@
   <form v-if="form" novalidate @submit.prevent="save">
     <FormProblems :message="saveError" :problems="problems"></FormProblems>
 
-    <div v-if="hasHours">
-      <h2 class="section-title">{{ t('hours.title') }}</h2>
-      <p class="mt-1 mb-4 text-sm text-ink-soft">{{ t('hours.text') }}</p>
+    <SettingsGroup v-if="hasHours" :title="t('hours.title')" :tip="t('hours.text')">
       <HoursEditor v-model="form.hours"></HoursEditor>
-    </div>
+    </SettingsGroup>
 
-    <div class="flex flex-col gap-5" :class="{ 'mt-10 border-t border-hairline pt-8': hasHours }">
+    <SettingsGroup :title="t('hours.handoffTitle')" :tip="t('hours.handoffText')">
       <div>
-        <h2 class="section-title">{{ t('hours.handoffTitle') }}</h2>
-        <p class="mt-1 text-sm text-ink-soft">{{ t('hours.handoffText') }}</p>
-      </div>
-      <div>
-        <label class="label" for="handoff-message">{{ t('hours.handoffMessage') }}</label>
+        <FieldLabel html-for="handoff-message">{{ t('hours.handoffMessage') }}</FieldLabel>
         <input id="handoff-message" v-model="form.handoff.message" class="field" :class="{ 'field-invalid': errors['handoff.message'] }" type="text" />
+        <p v-if="errors['handoff.message']" class="error-text">{{ errors['handoff.message'] }}</p>
       </div>
       <div class="grid gap-5 sm:grid-cols-2">
         <div>
-          <label class="label" for="handoff-phone">{{ t('common.phone') }}</label>
+          <FieldLabel html-for="handoff-phone" :tip="t('hours.oneIsEnough')">{{ t('common.phone') }}</FieldLabel>
           <input id="handoff-phone" v-model.trim="form.handoff.phone" class="field" :class="{ 'field-invalid': errors['handoff.phone'] }" type="tel" autocomplete="off" placeholder="01712 345678" />
+          <p v-if="errors['handoff.phone']" class="error-text">{{ errors['handoff.phone'] }}</p>
         </div>
         <div>
-          <label class="label" for="handoff-email">{{ t('common.email') }}</label>
+          <FieldLabel html-for="handoff-email" :tip="t('hours.oneIsEnough')">{{ t('common.email') }}</FieldLabel>
           <input id="handoff-email" v-model.trim="form.handoff.email" class="field" :class="{ 'field-invalid': errors['handoff.email'] }" type="email" autocomplete="off" />
+          <p v-if="errors['handoff.email']" class="error-text">{{ errors['handoff.email'] }}</p>
         </div>
       </div>
-      <p class="-mt-2 text-[0.8125rem] text-ink-soft">{{ t('hours.oneIsEnough') }}</p>
-    </div>
+    </SettingsGroup>
 
     <SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></SaveBar>
     <div class="h-8"></div>
@@ -41,6 +37,8 @@ import { useI18n } from 'vue-i18n';
 
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
+import SettingsGroup from '../../components/ui/SettingsGroup.vue';
+import FieldLabel from '../../components/ui/FieldLabel.vue';
 import HoursEditor from '../../components/agent/HoursEditor.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { normalizeHours, DAYS } from '../../lib/hours.js';

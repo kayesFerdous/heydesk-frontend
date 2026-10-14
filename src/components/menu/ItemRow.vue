@@ -1,23 +1,23 @@
 <template>
-  <!-- Reading -->
+  <!-- Reading: name (with its tags), price, whether it is offered, edit. -->
   <div
     v-if="!editing"
-    class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem] sm:px-8"
+    class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem] sm:px-8"
   >
     <div class="flex min-w-0 items-center gap-3" :class="{ 'opacity-55': !item.available }">
       <img v-if="item.photos?.length" :src="item.photos[0]" alt="" class="size-10 shrink-0 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
       <div class="min-w-0">
-      <p class="truncate text-sm font-semibold">{{ item.name }}</p>
-      <p v-if="item.description" class="truncate text-sm text-ink-soft">{{ item.description }}</p>
-      <p v-if="facts.length" class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
-        <span v-for="fact in facts" :key="fact.key" class="inline-flex items-center gap-1">
-          <component :is="fact.icon" :size="13" class="text-ink-faint"></component>
-          {{ fact.text }}
-        </span>
-      </p>
-      <div v-if="item.tags.length" class="mt-1.5 flex flex-wrap gap-1.5">
-        <span v-for="tag in item.tags" :key="tag" class="chip bg-hover !font-medium text-ink-soft">{{ tag }}</span>
-      </div>
+        <p class="flex min-w-0 items-center gap-2">
+          <span class="truncate text-sm font-semibold">{{ item.name }}</span>
+          <span v-for="tag in item.tags.slice(0, 3)" :key="tag" class="chip hidden shrink-0 bg-wash !py-0 !font-medium text-ink-soft sm:inline-flex">{{ tag }}</span>
+        </p>
+        <p v-if="item.description" class="truncate text-sm text-ink-soft">{{ item.description }}</p>
+        <p v-if="facts.length" class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
+          <span v-for="fact in facts" :key="fact.key" class="inline-flex items-center gap-1">
+            <component :is="fact.icon" :size="13" class="text-ink-faint"></component>
+            {{ fact.text }}
+          </span>
+        </p>
       </div>
     </div>
 
@@ -37,19 +37,27 @@
           :label="t('menu.row.isAvailable', { name: item.name })"
           @update:model-value="$emit('toggle')"
         ></ToggleSwitch>
-        <span class="text-xs whitespace-nowrap text-ink-soft">{{ item.available ? t('menu.row.on') : offWord }}</span>
+        <!-- Only the exception is spelled out: a switch that is on says enough. -->
+        <span v-if="!item.available" class="text-xs font-medium whitespace-nowrap text-ink-soft">{{ offWord }}</span>
       </div>
 
       <div class="sm:text-right">
-        <button v-if="!locked || kind === 'shop'" type="button" class="btn btn-quiet btn-sm" @click="$emit('edit')">
-          {{ locked ? t('menu.row.photos') : t('common.edit') }}
+        <button
+          v-if="!locked || kind === 'shop'"
+          type="button"
+          class="btn btn-quiet btn-icon !h-8 !w-8"
+          :aria-label="locked ? t('menu.row.photosOf', { name: item.name }) : t('menu.row.editName', { name: item.name })"
+          :title="locked ? t('menu.row.photos') : t('common.edit')"
+          @click="$emit('edit')"
+        >
+          <component :is="locked ? PhImage : PhPencilSimple" :size="18"></component>
         </button>
       </div>
     </div>
   </div>
 
   <!-- Editing, in the row itself -->
-  <form v-else class="border-b border-hairline bg-brand-tint/40 px-5 py-5 sm:px-8" novalidate @submit.prevent="submit">
+  <form v-else class="border-b border-hairline bg-wash px-5 py-5 sm:px-8" novalidate @submit.prevent="submit">
     <p v-if="locked" class="hint mb-4 !mt-0">{{ t('menu.sheet.onlyPhotos') }}</p>
     <div class="grid max-w-3xl gap-4 sm:grid-cols-2">
       <!-- While a Google Sheet is the list, only photos change here (D58). -->
@@ -78,34 +86,30 @@
       </div>
       <template v-if="kind === 'shop'">
         <div>
-          <label class="label" :for="`w-${uid}`">{{ t('menu.row.wasPrice') }} (৳)</label>
+          <FieldLabel :html-for="`w-${uid}`" :tip="t('menu.row.wasPriceHint')">{{ t('menu.row.wasPrice') }} (৳)</FieldLabel>
           <input :id="`w-${uid}`" v-model.trim="wasText" class="field" :class="{ 'field-invalid': errors.was_price }" type="text" inputmode="decimal" />
           <p v-if="errors.was_price" class="error-text">{{ errors.was_price }}</p>
-          <p v-else class="hint">{{ t('menu.row.wasPriceHint') }}</p>
         </div>
         <div>
-          <label class="label" :for="`sz-${uid}`">{{ t('menu.row.sizes') }}</label>
+          <FieldLabel :html-for="`sz-${uid}`" :tip="t('menu.row.sizesHint')">{{ t('menu.row.sizes') }}</FieldLabel>
           <input :id="`sz-${uid}`" v-model="sizesText" class="field" type="text" placeholder="M, L, XL" />
-          <p class="hint">{{ t('menu.row.sizesHint') }}</p>
         </div>
         <div>
           <label class="label" :for="`cl-${uid}`">{{ t('menu.row.colours') }}</label>
           <input :id="`cl-${uid}`" v-model="coloursText" class="field" type="text" placeholder="White, Navy" />
         </div>
         <div v-if="!counts.length">
-          <label class="label" :for="`st-${uid}`">{{ t('menu.row.inStock') }}</label>
+          <FieldLabel :html-for="`st-${uid}`" :tip="t('menu.row.stockHint')">{{ t('menu.row.inStock') }}</FieldLabel>
           <input :id="`st-${uid}`" v-model.trim="stockText" class="field" :class="{ 'field-invalid': errors.stock }" type="text" inputmode="numeric" :placeholder="t('menu.row.notCounted')" />
           <p v-if="errors.stock" class="error-text">{{ errors.stock }}</p>
-          <p v-else class="hint">{{ t('menu.row.stockHint') }}</p>
           <button v-if="sizeChoices.length || colourChoices.length" type="button" class="btn btn-quiet btn-sm mt-1 !px-0" @click="addCount">
             {{ t('menu.row.countBySize') }}
           </button>
         </div>
       </template>
       <div v-else class="sm:col-span-2">
-        <label class="label" :for="`t-${uid}`">{{ t('menu.row.tags') }}</label>
+        <FieldLabel :html-for="`t-${uid}`" :tip="t('menu.row.tagsHint')">{{ t('menu.row.tags') }}</FieldLabel>
         <input :id="`t-${uid}`" v-model="tagsText" class="field" type="text" placeholder="popular, spicy, vegetarian" />
-        <p class="hint">{{ t('menu.row.tagsHint') }}</p>
       </div>
       </fieldset>
 
@@ -113,7 +117,7 @@
 
         <!-- Photos (D57): uploaded at once, kept when the product is saved. -->
         <div class="sm:col-span-2">
-          <p class="label">{{ t('menu.row.photos') }}</p>
+          <p class="label flex items-center gap-1.5">{{ t('menu.row.photos') }} <InfoTip :text="t('menu.row.photosHint')"></InfoTip></p>
           <div class="flex flex-wrap items-center gap-2">
             <div v-for="(url, index) in photos" :key="url" class="relative">
               <img :src="url" :alt="t('menu.row.photoOf', { name: draft.name, n: index + 1 })" class="size-20 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
@@ -133,12 +137,11 @@
             </label>
           </div>
           <p v-if="errors.photos" class="error-text">{{ errors.photos }}</p>
-          <p v-else class="hint">{{ t('menu.row.photosHint') }}</p>
         </div>
 
         <!-- Stock per size and colour: one line per count, "any" for every size or colour. -->
         <fieldset v-if="counts.length" :disabled="locked" class="sm:col-span-2">
-          <p class="label">{{ t('menu.row.stockBySize') }}</p>
+          <p class="label flex items-center gap-1.5">{{ t('menu.row.stockBySize') }} <InfoTip :text="t('menu.row.stockBySizeHint')"></InfoTip></p>
           <div class="flex flex-col gap-2">
             <div v-for="(count, index) in counts" :key="index" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5.5rem_auto] items-center gap-2">
               <select v-model="count.size" class="field" :aria-label="t('menu.row.sizes')">
@@ -156,7 +159,6 @@
             </div>
           </div>
           <p v-if="errors.variants" class="error-text">{{ errors.variants }}</p>
-          <p v-else class="hint">{{ t('menu.row.stockBySizeHint') }}</p>
           <button type="button" class="btn btn-secondary btn-sm mt-2" @click="addCount">
             <PhPlus :size="14" weight="bold"></PhPlus>
             {{ t('menu.row.addCount') }}
@@ -187,9 +189,11 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCalendarBlank, PhClock, PhImage, PhInfo, PhPalette, PhPackage, PhPlus, PhRuler, PhTranslate, PhTrash, PhX } from '@phosphor-icons/vue';
+import { PhCalendarBlank, PhClock, PhImage, PhInfo, PhPalette, PhPackage, PhPencilSimple, PhPlus, PhRuler, PhTranslate, PhTrash, PhX } from '@phosphor-icons/vue';
 
 import ToggleSwitch from '../ui/ToggleSwitch.vue';
+import FieldLabel from '../ui/FieldLabel.vue';
+import InfoTip from '../ui/InfoTip.vue';
 import { uploadProductPhoto } from '../../api/agent.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import { itemNoun } from '../../lib/presets.js';
