@@ -18,16 +18,20 @@
     >
       <PhInfo :size="16"></PhInfo>
     </button>
-    <!-- Fixed to the viewport, so a scrolling form never clips it. -->
-    <span
-      v-show="open"
-      :id="id"
-      role="tooltip"
-      class="fixed z-50 w-max max-w-72 rounded-[var(--radius-control)] bg-ink px-3 py-2 text-[0.8125rem] leading-snug font-normal text-white shadow-[var(--shadow-float)]"
-      :style="place"
-    >
-      {{ text }}
-    </span>
+    <!-- Rendered into <body> and fixed to the window: a scrolling form never
+         clips it, and a transformed parent (a nudged icon, a page settling in)
+         cannot shift it. -->
+    <Teleport to="body">
+      <span
+        v-show="open"
+        :id="id"
+        role="tooltip"
+        class="fixed z-50 w-max max-w-72 rounded-[var(--radius-control)] bg-ink px-3 py-2 text-[0.8125rem] leading-snug font-normal text-white shadow-[var(--shadow-float)]"
+        :style="place"
+      >
+        {{ text }}
+      </span>
+    </Teleport>
   </span>
 </template>
 
