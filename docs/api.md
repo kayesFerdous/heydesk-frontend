@@ -50,8 +50,20 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 | `PUT /agent/items` `[Item]` | Replace the whole list, in order |
 | `POST /menu/import`, `/doctors/import`, `/products/import` `{csv, mapping?, dry_run?}` | `{saved, count, preview[5]}`. Replaces the list unless `dry_run`. `mapping` is `{ourField: theirColumn}` from `/suggest`, as the owner checked it; without it columns are matched by name. 422 `invalid_config` with `fields` per row ("row 3") or `mapping` (D53) |
 | `POST /menu/import/suggest`, `/doctors/import/suggest`, `/products/import/suggest` `{csv}` | `{columns[{name, about, required}], headers[], samples[3]{header: text}, mapping{field: header}, by_ai}`. The AI's guess at the match; `by_ai: false` means it matched by name only. One model call per request (D53) |
+| `POST /agent/sheet/suggest` `{url}` | A Google Sheet's link (shared "Anyone with the link: Viewer"): the same answer as the import's `/suggest`, for that tab. 422 `invalid_config` `fields.url` for a link that isn't a sheet or a sheet that isn't shared (D58) |
+| `PUT /agent/sheet` `{url, mapping, dry_run?}` | Answers like the import: `{saved, count, preview[5]}`, 422 per row. Unless `dry_run`, links the sheet and takes the list from it; from then on the server reads it every 5 minutes (D58) |
+| `GET /agent/sheet` | `{url, synced_at, problem}`: `synced_at` is the last clean read; `problem` (empty: fine) says why the list didn't change. 404 while none is linked |
+| `POST /agent/sheet/sync` | Reads it now; the same answer as `GET` |
+| `DELETE /agent/sheet` | 204. Stops syncing; the list stays and can be edited again |
 
 `Item`: `{code, name, description, price (minor units), category, tags[], available, attributes{}}`.
+
+While a sheet is linked, the list is the sheet's: `PUT /menu`, `PUT /doctors`
+and every CSV import are 409 `sheet_linked`, and `PUT /products` takes only
+each product's `photos`. A shop's stock in the sheet is what's on the shelf:
+the server takes off orders not shipped yet, and only when a product's stock
+cell changed (D58). The Products/Menu/Doctors page shows `SheetBar` and locks
+the rows (`ItemRow` `locked`: a shop can still change photos).
 
 `config` (AgentConfig): `preset, name, business_name, timezone ("Asia/Dhaka"),
 country, currency, greeting, instructions (admin), notes (owner, 4000),

@@ -1,10 +1,24 @@
 <template>
   <div class="border-y border-hairline bg-wash px-5 py-6 sm:px-8">
     <div class="max-w-2xl">
-      <h2 class="section-title">{{ t('menu.import.title') }}</h2>
-      <p class="mt-1 text-sm text-ink-soft">{{ t('menu.import.intro') }}</p>
+      <h2 class="section-title">{{ sheet ? t('menu.sheet.title') : t('menu.import.title') }}</h2>
+      <p class="mt-1 text-sm text-ink-soft">{{ sheet ? t('menu.sheet.intro') : t('menu.import.intro') }}</p>
 
-      <div class="mt-4">
+      <!-- A Google Sheet (backend D58): its link, shared as "Anyone with the link". -->
+      <form v-if="sheet" class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="readSheet">
+        <label class="sr-only" for="sheet-url">{{ t('menu.sheet.link') }}</label>
+        <input
+          id="sheet-url"
+          v-model.trim="url"
+          class="field"
+          type="url"
+          placeholder="https://docs.google.com/spreadsheets/d/..."
+        />
+        <button type="submit" class="btn btn-secondary" :disabled="!url || reading">{{ t('menu.sheet.read') }}</button>
+      </form>
+      <p v-if="sheet" class="hint">{{ t('menu.sheet.shareHint') }}</p>
+
+      <div v-else class="mt-4">
         <label class="btn btn-secondary cursor-pointer">
           <PhUploadSimple :size="18"></PhUploadSimple>
           {{ fileName || t('menu.import.choose') }}
@@ -40,7 +54,7 @@
                 class="field !h-9"
                 :class="{ 'field-invalid': column.required && !mapping[column.name] }"
               >
-                <option value="">{{ t('menu.import.notInFile') }}</option>
+                <option value="">{{ sheet ? t('menu.sheet.notInSheet') : t('menu.import.notInFile') }}</option>
                 <option v-for="header in suggestion.headers" :key="header" :value="header">{{ header }}</option>
               </select>
               <p v-if="example(column.name)" class="mt-1 truncate text-xs text-ink-soft">
@@ -69,11 +83,14 @@
         <p class="mt-3 text-sm text-attention">
           {{ t('menu.import.replaces', { n: formatNumber(currentCount), noun: itemNoun(kind, currentCount) }) }}
         </p>
+        <p v-if="sheet" class="mt-1 text-sm text-ink-soft">{{ t('menu.sheet.after') }}</p>
       </div>
 
       <div class="mt-5 flex gap-2">
         <button v-if="result" type="button" class="btn btn-primary" :disabled="busy" @click="confirm">
-          {{ busy ? t('menu.import.importing') : t('menu.import.replaceWith', { n: formatNumber(result.count) }) }}
+          <template v-if="busy">{{ t('menu.import.importing') }}</template>
+          <template v-else-if="sheet">{{ t('menu.sheet.keep', { n: formatNumber(result.count) }) }}</template>
+          <template v-else>{{ t('menu.import.replaceWith', { n: formatNumber(result.count) }) }}</template>
         </button>
         <button type="button" class="btn btn-quiet" :disabled="busy" @click="$emit('close')">{{ t('common.cancel') }}</button>
       </div>
@@ -87,20 +104,23 @@ import { useI18n } from 'vue-i18n';
 import { PhUploadSimple } from '@phosphor-icons/vue';
 
 import FormProblems from '../ui/FormProblems.vue';
-import { importItems, suggestColumns } from '../../api/agent.js';
+import { importItems, linkSheet, suggestColumns, suggestSheetColumns } from '../../api/agent.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import { itemNoun } from '../../lib/presets.js';
 
-defineProps({
+const props = defineProps({
   // The desk: "restaurant", "clinic" or "shop". Only used for the words.
   kind: { type: String, default: null },
   currentCount: { type: Number, default: 0 },
+  // From a Google Sheet that stays linked, instead of a file read once.
+  sheet: { type: Boolean, default: false },
 });
 const emit = defineEmits(['close', 'imported']);
 const { t, te } = useI18n();
 
 const csv = ref('');
 const fileName = ref('');
+const url = ref(''); // the Google Sheet's link
 const suggestion = ref(null); // { columns, headers, samples, mapping, by_ai }
 const mapping = ref({}); // our field → their column; "" when the file has none
 const result = ref(null); // the check: { count, preview }
@@ -139,20 +159,36 @@ async function pick(event) {
   const file = event.target.files[0];
   if (!file) return;
   fileName.value = file.name;
+  await start(async () => {
+    csv.value = await file.text();
+    return suggestColumns(csv.value);
+  });
+}
+
+function readSheet() {
+  start(() => suggestSheetColumns(url.value));
+}
+
+// Reads the columns with `read`, then shows the AI's guess first. The owner
+// checks it below; nothing is saved yet.
+async function start(read) {
   suggestion.value = null;
   result.value = null;
   clearError();
   reading.value = true;
   try {
-    csv.value = await file.text();
-    // The AI's guess first. The owner checks it below; nothing is saved yet.
-    const found = await suggestColumns(csv.value);
+    const found = await read();
     mapping.value = Object.fromEntries(found.columns.map((c) => [c.name, found.mapping[c.name] || '']));
     suggestion.value = found;
   } catch (err) {
     showError(err);
   }
   reading.value = false;
+}
+
+// The import, or linking the sheet: the same answer either way.
+function send(dryRun) {
+  return props.sheet ? linkSheet(url.value, chosen(), dryRun) : importItems(csv.value, chosen(), dryRun);
 }
 
 // Every change to the matches checks the file again, so the preview is
@@ -170,7 +206,7 @@ async function check() {
   }
   busy.value = true;
   try {
-    result.value = await importItems(csv.value, chosen(), true);
+    result.value = await send(true);
   } catch (err) {
     showError(err);
   }
@@ -181,7 +217,7 @@ async function confirm() {
   busy.value = true;
   clearError();
   try {
-    await importItems(csv.value, chosen(), false);
+    await send(false);
     emit('imported');
   } catch (err) {
     showError(err);

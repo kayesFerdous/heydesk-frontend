@@ -30,6 +30,7 @@
     <div class="col-span-2 flex items-center justify-between sm:contents">
       <!-- Counted per size and colour: the counts say what's sold out, not a switch. -->
       <span v-if="item.variants?.length" class="text-xs whitespace-nowrap text-ink-soft">{{ t('menu.row.bySize') }}</span>
+      <span v-else-if="locked" class="text-xs whitespace-nowrap text-ink-soft">{{ item.available ? t('menu.row.on') : offWord }}</span>
       <div v-else class="flex items-center gap-2">
         <ToggleSwitch
           :model-value="item.available"
@@ -40,14 +41,19 @@
       </div>
 
       <div class="sm:text-right">
-        <button type="button" class="btn btn-quiet btn-sm" @click="$emit('edit')">{{ t('common.edit') }}</button>
+        <button v-if="!locked || kind === 'shop'" type="button" class="btn btn-quiet btn-sm" @click="$emit('edit')">
+          {{ locked ? t('menu.row.photos') : t('common.edit') }}
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Editing, in the row itself -->
   <form v-else class="border-b border-hairline bg-brand-tint/40 px-5 py-5 sm:px-8" novalidate @submit.prevent="submit">
+    <p v-if="locked" class="hint mb-4 !mt-0">{{ t('menu.sheet.onlyPhotos') }}</p>
     <div class="grid max-w-3xl gap-4 sm:grid-cols-2">
+      <!-- While a Google Sheet is the list, only photos change here (D58). -->
+      <fieldset :disabled="locked" class="contents">
       <div class="sm:col-span-2">
         <label class="label" :for="`n-${uid}`">{{ t('menu.row.name') }}</label>
         <input :id="`n-${uid}`" ref="nameInput" v-model.trim="draft.name" class="field" :class="{ 'field-invalid': errors.name }" type="text" />
@@ -95,6 +101,15 @@
             {{ t('menu.row.countBySize') }}
           </button>
         </div>
+      </template>
+      <div v-else class="sm:col-span-2">
+        <label class="label" :for="`t-${uid}`">{{ t('menu.row.tags') }}</label>
+        <input :id="`t-${uid}`" v-model="tagsText" class="field" type="text" placeholder="popular, spicy, vegetarian" />
+        <p class="hint">{{ t('menu.row.tagsHint') }}</p>
+      </div>
+      </fieldset>
+
+      <template v-if="kind === 'shop'">
 
         <!-- Photos (D57): uploaded at once, kept when the product is saved. -->
         <div class="sm:col-span-2">
@@ -122,7 +137,7 @@
         </div>
 
         <!-- Stock per size and colour: one line per count, "any" for every size or colour. -->
-        <div v-if="counts.length" class="sm:col-span-2">
+        <fieldset v-if="counts.length" :disabled="locked" class="sm:col-span-2">
           <p class="label">{{ t('menu.row.stockBySize') }}</p>
           <div class="flex flex-col gap-2">
             <div v-for="(count, index) in counts" :key="index" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5.5rem_auto] items-center gap-2">
@@ -146,20 +161,15 @@
             <PhPlus :size="14" weight="bold"></PhPlus>
             {{ t('menu.row.addCount') }}
           </button>
-        </div>
+        </fieldset>
       </template>
-      <div v-else class="sm:col-span-2">
-        <label class="label" :for="`t-${uid}`">{{ t('menu.row.tags') }}</label>
-        <input :id="`t-${uid}`" v-model="tagsText" class="field" type="text" placeholder="popular, spicy, vegetarian" />
-        <p class="hint">{{ t('menu.row.tagsHint') }}</p>
-      </div>
     </div>
 
     <div class="mt-5 flex flex-wrap items-center gap-2">
       <button type="submit" class="btn btn-primary">{{ t('common.save') }}</button>
       <button type="button" class="btn btn-quiet" @click="$emit('cancel')">{{ t('common.cancel') }}</button>
 
-      <template v-if="!isNew">
+      <template v-if="!isNew && !locked">
         <span class="flex-1"></span>
         <span v-if="confirming" class="flex items-center gap-2 text-sm">
           {{ t('menu.row.deleteThis', { noun }) }}
@@ -217,6 +227,8 @@ const props = defineProps({
   categories: { type: Array, default: () => [] },
   // The preset: "restaurant", "clinic" or "shop".
   kind: { type: String, default: null },
+  // A Google Sheet is the list: only a shop's photos change here (backend D58).
+  locked: { type: Boolean, default: false },
 });
 const emit = defineEmits(['toggle', 'edit', 'cancel', 'save', 'remove']);
 const { t } = useI18n();

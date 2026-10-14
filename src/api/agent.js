@@ -200,12 +200,48 @@ export async function suggestColumns(csv) {
 // { ourField: theirColumn }, as the owner checked it. dryRun checks the file
 // and shows what would be saved.
 export async function importItems(csv, mapping, dryRun) {
-  const kind = await agentKind();
   const path = await importPath();
   const result = await request(path, { method: 'POST', body: { csv, mapping, dry_run: dryRun } });
-  const toItem = { clinic: doctorToItem, shop: productToItem }[kind];
+  return withItems(result);
+}
+
+// An import's answer, { saved, count, preview }, with the preview as items.
+async function withItems(result) {
+  const toItem = { clinic: doctorToItem, shop: productToItem }[await agentKind()];
   const preview = toItem ? result.preview.map(toItem) : result.preview;
   return { ...result, preview };
+}
+
+// A Google Sheet kept as the list (backend D58): read every few minutes, and
+// while it's linked the list is changed there. `{url, synced_at, problem}`, or
+// null while none is linked.
+export async function fetchSheet() {
+  try {
+    return await request('/agent/sheet');
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
+}
+
+// The sheet's columns and the AI's match, as suggestColumns gives for a file.
+export function suggestSheetColumns(url) {
+  return request('/agent/sheet/suggest', { method: 'POST', body: { url } });
+}
+
+// Links the sheet and takes the list from it, answering like importItems.
+// dryRun reads it and shows what would be saved.
+export async function linkSheet(url, mapping, dryRun) {
+  const result = await request('/agent/sheet', { method: 'PUT', body: { url, mapping, dry_run: dryRun } });
+  return withItems(result);
+}
+
+export function syncSheet() {
+  return request('/agent/sheet/sync', { method: 'POST' });
+}
+
+export function unlinkSheet() {
+  return request('/agent/sheet', { method: 'DELETE' });
 }
 
 // The documents the agent reads when a question is not answered elsewhere.

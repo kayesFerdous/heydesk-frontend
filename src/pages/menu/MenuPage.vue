@@ -1,8 +1,12 @@
 <template>
   <section class="flex flex-col lg:h-full">
     <PageHeader :title="label" :subtitle="t('menu.subtitle')">
-      <template v-if="loaded" #actions>
-        <button type="button" class="btn btn-secondary" @click="importOpen = !importOpen">
+      <template v-if="loaded && !sheet" #actions>
+        <button type="button" class="btn btn-secondary" @click="openPanel('sheet')">
+          <PhTable :size="16"></PhTable>
+          {{ t('menu.sheet.button') }}
+        </button>
+        <button type="button" class="btn btn-secondary" @click="openPanel('file')">
           <PhUploadSimple :size="16"></PhUploadSimple>
           {{ t('menu.importCsv') }}
         </button>
@@ -38,11 +42,15 @@
 
     <ImportPanel
       v-if="importOpen"
+      :key="importOpen"
       :kind="agent.kind"
       :current-count="items.length"
-      @close="importOpen = false"
+      :sheet="importOpen === 'sheet'"
+      @close="importOpen = null"
       @imported="onImported"
     ></ImportPanel>
+
+    <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced" @unlinked="sheet = null"></SheetBar>
 
     <p v-if="saveError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
       <PhWarningCircle :size="16" class="shrink-0"></PhWarningCircle>
@@ -82,6 +90,7 @@
         :editing="editingCode === item.code"
         :categories="allCategories"
         :kind="agent.kind"
+        :locked="!!sheet"
         @toggle="toggle(item)"
         @edit="editingCode = item.code"
         @cancel="editingCode = null"
@@ -113,16 +122,17 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets } from '@phosphor-icons/vue';
+import { PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhTable } from '@phosphor-icons/vue';
 
 import ItemRow from '../../components/menu/ItemRow.vue';
 import ImportPanel from '../../components/menu/ImportPanel.vue';
+import SheetBar from '../../components/menu/SheetBar.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import LoadError from '../../components/ui/LoadError.vue';
-import { fetchItems, replaceItems } from '../../api/agent.js';
+import { fetchItems, fetchSheet, replaceItems } from '../../api/agent.js';
 import { makeCode } from '../../lib/slug.js';
 import { formatNumber } from '../../lib/format.js';
 import { itemNoun, itemsLabel } from '../../lib/presets.js';
@@ -145,7 +155,8 @@ const category = ref(null); // null: every category
 const query = ref('');
 const editingCode = ref(null);
 const adding = ref(false);
-const importOpen = ref(false);
+const importOpen = ref(null); // 'file' or 'sheet' while that panel is open
+const sheet = ref(null); // the linked Google Sheet, { url, synced_at, problem }, or null
 const limit = ref(PAGE_SIZE);
 
 const label = computed(() => itemsLabel(agent.kind));
@@ -201,7 +212,7 @@ async function load() {
       router.replace('/setup');
       return;
     }
-    items.value = await fetchItems();
+    [items.value, sheet.value] = await Promise.all([fetchItems(), fetchSheet()]);
     loaded.value = true;
   } catch (error) {
     loadError.value = error.message;
@@ -229,7 +240,11 @@ async function persist(next) {
 function startAdd() {
   editingCode.value = null;
   adding.value = true;
-  importOpen.value = false;
+  importOpen.value = null;
+}
+
+function openPanel(source) {
+  importOpen.value = importOpen.value === source ? null : source;
 }
 
 function toggle(item) {
@@ -249,8 +264,14 @@ async function remove(code) {
   if (await persist(items.value.filter((i) => i.code !== code))) editingCode.value = null;
 }
 
+// Read now: the list may have changed with it.
+async function onSynced(read) {
+  sheet.value = read;
+  items.value = await fetchItems();
+}
+
 async function onImported() {
-  importOpen.value = false;
+  importOpen.value = null;
   category.value = null;
   await load();
   agent.load({ force: true }).catch(() => {});
