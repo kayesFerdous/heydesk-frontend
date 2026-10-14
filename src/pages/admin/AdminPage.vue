@@ -37,7 +37,7 @@
         <p class="hidden text-sm text-ink-soft sm:block">{{ b.kind || t('shell.noAgentYet') }}</p>
         <p class="hidden text-sm sm:block">{{ t('admin.chats', { n: formatNumber(b.conversations) }, b.conversations) }}</p>
         <span class="justify-self-start">
-          <LiveStatus :paused="b.status !== 'active'" :label="t('admin.active')" :paused-label="t('admin.suspended')" :breathe="false"></LiveStatus>
+          <LiveStatus :paused="b.status !== 'active'" :label="t('admin.active')" :paused-label="t('admin.suspended')"></LiveStatus>
         </span>
         <div class="col-span-2 sm:col-span-1 sm:text-right">
           <span v-if="confirmingId === b.id" class="flex items-center gap-2 sm:justify-end">

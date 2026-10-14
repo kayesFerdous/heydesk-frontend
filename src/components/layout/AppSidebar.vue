@@ -26,7 +26,7 @@
         <BrandMark mark-only></BrandMark>
         <span v-if="!collapsed" class="min-w-0 flex-1">
           <span class="block truncate text-sm font-semibold">{{ businessName }}</span>
-          <LiveStatus v-if="showStatus" :paused="auth.isSuspended" :label="t('shell.agentLive')" :breathe="false"></LiveStatus>
+          <LiveStatus v-if="showStatus" :paused="auth.isSuspended" :label="t('shell.agentLive')"></LiveStatus>
           <span v-else class="block text-xs text-ink-soft">{{ auth.isAdmin ? t('shell.platformAdmin') : t('shell.noAgentYet') }}</span>
         </span>
       </router-link>

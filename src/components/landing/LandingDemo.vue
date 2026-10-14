@@ -41,10 +41,7 @@
           <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-semibold text-brand" aria-hidden="true">
             {{ scene.initials }}
           </span>
-          <span class="min-w-0">
-            <span class="block truncate text-sm font-semibold">{{ scene.business }}</span>
-            <LiveStatus :label="t('chat.online')" class="mt-0.5"></LiveStatus>
-          </span>
+          <span class="min-w-0 truncate text-sm font-semibold">{{ scene.business }}</span>
           <span class="ml-auto hidden items-center gap-1.5 text-xs text-ink-soft sm:inline-flex">
             <PhGlobe :size="14"></PhGlobe>
             {{ t('channelsPage.websiteChat') }}
@@ -134,7 +131,6 @@ import {
   PhTray,
 } from '@phosphor-icons/vue';
 
-import LiveStatus from '../ui/LiveStatus.vue';
 import InboxRow from './InboxRow.vue';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 

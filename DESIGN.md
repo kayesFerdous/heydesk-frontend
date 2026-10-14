@@ -133,8 +133,8 @@ Panels, inputs and secondary buttons have a rule and no shadow.
   over a `line-strong` rule and sticky while its rows scroll (add `static`
   where it should not stick, as in the landing demo).
 - **Stamp** `.chip` via `StatusChip`: icon plus word, 4px corners, a border in
-  its own colour at 24%. `LiveStatus`: a dot that breathes once every 2.4s,
-  plus a word; one breathing dot per screen.
+  its own colour at 24%. `LiveStatus`: a still dot plus a word, only where
+  the state can change (live or paused, active or suspended). Nothing blinks.
 - **Serial** `.serial`: order and booking codes.
 - **Panel** `.panel`: a ruled 10px box for a group (setup guide, the agent
   panel on Home). **Notice** `.notice`: see Colour.
@@ -228,15 +228,13 @@ Same world as the console: white sheet, rules, stamps, serials.
   serial and amount, the "New" stamp, and the proof line "Read back to the
   customer and confirmed in chat". Labelled as an example. The row is the
   landing demo's `InboxRow`, so the two never drift apart.
-- **Customer chat** (`/chat/:key`): laid out like a checkout page. On a
-  laptop a paper column (`bg-sidebar`, 22rem) holds who answers (avatar,
-  name at page-title size, Online), one line saying an AI assistant answers
-  and passes you to a person, ruled facts (any time; Bangla, Banglish or
-  English; photos, for a shop), a "Rather talk?" panel with Call, and Start
-  over at the foot. On a phone that column folds into a one-line header
-  (avatar, name, Start over icon, Call) and the AI note sits above the first
-  message. The conversation (`AgentChat`, shared with the test chat sheet):
-  a date line, then the agent's replies as plain printed text under a run
+- **Customer chat** (`/chat/:key`): one quiet column at every size. A slim
+  header lined up with the conversation (avatar, name, Start over icon,
+  Call), then one centred line above the first message: an AI assistant
+  answers any time, in Bangla, Banglish or English. No "Online" and no side
+  column of facts: a chat that opens is already answering, and anything more
+  stands between the customer and their question. The conversation
+  (`AgentChat`, shared with the test chat sheet): a date line, then the agent's replies as plain printed text under a run
   line (avatar, name, time); "From the team" when a person answered from
   Telegram; the customer's own words in a cobalt bubble. Typing dots
   carry the agent's status ("Checking the menu"). Products swipe in a row.
