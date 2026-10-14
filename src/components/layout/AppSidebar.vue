@@ -111,8 +111,6 @@
           >
             <p class="truncate text-sm font-semibold">{{ email }}</p>
             <p class="text-xs text-ink-soft">{{ roleLabel }}</p>
-            <p class="mt-4 mb-1.5 text-xs font-medium text-ink-soft">{{ t('common.language') }}</p>
-            <LanguageSwitch class="w-full"></LanguageSwitch>
             <router-link to="/account" class="menu-item mt-3 -mx-1 !w-[calc(100%+0.5rem)]" role="menuitem">
               <PhUserCircle :size="18" class="text-ink-soft"></PhUserCircle>
               {{ t('shell.accountSettings') }}
@@ -136,7 +134,6 @@ import { PhSignOut, PhChatCircleDots, PhCaretLeft, PhCaretRight, PhCaretUpDown, 
 
 import BrandMark from '../ui/BrandMark.vue';
 import LiveStatus from '../ui/LiveStatus.vue';
-import LanguageSwitch from '../ui/LanguageSwitch.vue';
 import { navGroups, isActive } from '../../lib/navigation.js';
 import { formatNumber } from '../../lib/format.js';
 import { useAuthStore } from '../../stores/auth.js';
