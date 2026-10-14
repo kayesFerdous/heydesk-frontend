@@ -63,6 +63,7 @@ job (like `TelegramConnect.vue`, `AgentChat.vue` or `VoiceCall.vue`).
 | A new colour, radius or shadow | `@theme` in `main.css`, and a line in `DESIGN.md`. Never a hex value inside a component. | `--color-attention` |
 | A formatting rule (dates, money, plurals) | `lib/format.js` | `formatAgo` |
 | A public page (no sign-in, no shell) | `pages/<area>/`, route meta `{ bare: true }` and no `requiresAuth` | `pages/chat/ChatPage.vue` |
+| A personal setting (notifications, password) | a `SettingsGroup` on `pages/account/AccountPage.vue`. Business-wide settings (team, billing) get their own page, not this one | the Language group |
 | An admin-only screen | `pages/admin/`, route meta `requiresAdmin`, the admin group in `lib/navigation.js` | `pages/admin/AdminPage.vue` |
 
 ## Recipes

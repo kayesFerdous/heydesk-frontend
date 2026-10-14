@@ -3,14 +3,16 @@ import { t, localeTag } from '../i18n/index.js';
 // How the backend's raw values are shown to an owner. Money arrives in minor
 // units (45000 means ৳450) and times arrive in UTC. Numbers and dates follow
 // the chosen language: Bangla mode shows Bangla digits.
-export function formatMoney(minorUnits) {
+// `tag` shows a value in a language other than the current one (the language
+// picker previews each language in its own digits).
+export function formatMoney(minorUnits, tag = localeTag()) {
   const whole = Math.round(minorUnits) / 100;
-  return '৳' + whole.toLocaleString(localeTag(), { maximumFractionDigits: 2 });
+  return '৳' + whole.toLocaleString(tag, { maximumFractionDigits: 2 });
 }
 
 // `{ useGrouping: false }` for a year: 2026, not 2,026.
-export function formatNumber(value, options) {
-  return Number(value).toLocaleString(localeTag(), options);
+export function formatNumber(value, options, tag = localeTag()) {
+  return Number(value).toLocaleString(tag, options);
 }
 
 export function formatTime(isoString, timeZone = 'Asia/Dhaka') {

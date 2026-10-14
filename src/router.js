@@ -20,6 +20,7 @@ const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
 const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
 const ChatPage = () => import('./pages/chat/ChatPage.vue');
 const AdminPage = () => import('./pages/admin/AdminPage.vue');
+const AccountPage = () => import('./pages/account/AccountPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
 // Every owner page needs a signed-in owner (admins have no business of their own).
@@ -71,6 +72,10 @@ const router = createRouter({
     { path: '/menu', component: MenuPage, meta: owner },
     { path: '/knowledge', component: KnowledgePage, meta: owner },
     { path: '/channels', component: ChannelsPage, meta: owner },
+
+    // The person's own settings (language, sign-in), reached from the account
+    // menu. Owners and admins both have one.
+    { path: '/account', component: AccountPage, meta: { requiresAuth: true } },
 
     {
       path: '/admin',

@@ -183,8 +183,27 @@ Panels, inputs and secondary buttons have a rule and no shadow.
   cobalt tint with a filled cobalt icon. The Conversations count is orange
   because it means someone is waiting.
 - "Try your agent" is always one click away at the bottom.
-- The account row (avatar, email, role) opens a menu with the language switch
-  and Sign out.
+- The account row (avatar, email, role) opens a menu: a quick language
+  switch, Account settings, Sign out. The row is tinted while on that page.
+
+### Where settings live
+
+Three kinds, three homes, so "Settings" never means two things:
+
+- **The agent** (what it says, hours, payments): "Settings" in the sidebar,
+  because setting up the agent is the product's daily work.
+- **The person** (language now; notifications, password later): **Your
+  account** (`/account`), from the account menu, the way Linear, Notion and
+  Stripe keep personal preferences behind the avatar. Built from
+  `SettingsGroup`s that apply at once, no Save.
+- **The business** (team, billing), when it exists: its own page, not mixed
+  into either.
+
+Language stays one click away in the account menu as well, because it is the
+escape hatch: someone who switched to a language they cannot read must find
+the way back. That is also why every language is always written in its own
+script, and the Account page previews each one in its own words and digits.
+It says plainly that the agent does not follow this choice.
 - Under 768px: a bottom tab bar (Home, Inbox, Chats, Agent, More), and More
   opens the same sidebar as a drawer.
 - Each list page fills the height; the list and the detail pane scroll on

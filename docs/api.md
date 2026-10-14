@@ -196,7 +196,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   /menu /knowledge /channels` (owner), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
-- Pages: `pages/{landing,home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat}`.
+- Pages: `pages/{landing,home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat,account}`.
   Shared pieces in `components/{ui,layout,records,conversations,menu,knowledge,agent,chat}`.
   Agent settings sections share `composables/useAgentSection.js`; each PATCHes
   only its own fields (the API leaves the rest).

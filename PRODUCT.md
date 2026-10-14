@@ -67,8 +67,10 @@ businesses, can suspend one, reset a password and read an audit log.
 - **Vue 3 with the Composition API (`<script setup>`), Pinia, Vue Router 4,
   vue-i18n, Vue CLI 5, Tailwind v4, bare `fetch`**. No TypeScript, no UI kit.
 - **English and Bangla.** HeyDesk is for businesses in Bangladesh, so every
-  screen reads in either language, switched from the sidebar (and on the
-  sign-in, landing, setup and customer chat pages). Bangla mode shows Bangla
+  screen reads in either language, chosen on Your account (`/account`, with a
+  quick switch in the account menu) and on the sign-in, landing, setup and
+  customer chat pages. It changes the console only: the agent answers each
+  customer in the language they write in. Bangla mode shows Bangla
   digits for money, counts and dates.
 - Every pattern should be one the owner can explain line by line.
 - Dev server proxies `/api` to the FastAPI app on `:8000` (no CORS setup needed).

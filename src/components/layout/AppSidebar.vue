@@ -79,12 +79,12 @@
       </button>
 
       <!-- The account: who is signed in. It opens a small menu with the
-           language and signing out. -->
+           language, the account page and signing out. -->
       <div ref="accountMenu" class="relative mt-3 border-t border-hairline pt-3">
         <button
           type="button"
           class="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] p-1 text-left transition-colors hover:bg-wash"
-          :class="{ 'justify-center': collapsed }"
+          :class="{ 'justify-center': collapsed, 'bg-brand-tint': route.path === '/account' }"
           :aria-label="collapsed ? t('shell.account') : undefined"
           :title="collapsed ? email : undefined"
           aria-haspopup="menu"
@@ -113,7 +113,11 @@
             <p class="text-xs text-ink-soft">{{ roleLabel }}</p>
             <p class="mt-4 mb-1.5 text-xs font-medium text-ink-soft">{{ t('common.language') }}</p>
             <LanguageSwitch class="w-full"></LanguageSwitch>
-            <button type="button" class="btn btn-quiet mt-3 w-full justify-start border-t border-hairline !rounded-none !px-1 pt-3" role="menuitem" @click="signOut">
+            <router-link to="/account" class="menu-item mt-3 -mx-1 !w-[calc(100%+0.5rem)]" role="menuitem">
+              <PhUserCircle :size="18" class="text-ink-soft"></PhUserCircle>
+              {{ t('shell.accountSettings') }}
+            </router-link>
+            <button type="button" class="btn btn-quiet mt-1 w-full justify-start border-t border-hairline !rounded-none !px-1 pt-3" role="menuitem" @click="signOut">
               <PhSignOut :size="18"></PhSignOut>
               {{ t('common.signOut') }}
             </button>
@@ -128,7 +132,7 @@
 import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhSignOut, PhChatCircleDots, PhCaretLeft, PhCaretRight, PhCaretUpDown } from '@phosphor-icons/vue';
+import { PhSignOut, PhChatCircleDots, PhCaretLeft, PhCaretRight, PhCaretUpDown, PhUserCircle } from '@phosphor-icons/vue';
 
 import BrandMark from '../ui/BrandMark.vue';
 import LiveStatus from '../ui/LiveStatus.vue';

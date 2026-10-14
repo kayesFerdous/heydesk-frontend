@@ -183,8 +183,16 @@ export default {
     more: 'More',
   },
 
+  account: {
+    languageTip: 'Changes the words, numbers and dates in HeyDesk on this browser.',
+    languageSample: 'Today: {n} orders worth {money}',
+    agentLanguage: 'Your agent does not follow this. It answers each customer in the language they write in, Bangla, Banglish or English.',
+    signedIn: 'Signed in as',
+  },
+
   shell: {
     account: 'Your account',
+    accountSettings: 'Account settings',
     collapse: 'Collapse sidebar',
     expand: 'Expand sidebar',
     paused: 'Your agent is paused by HeyDesk, so customers see that it is unavailable. Contact HeyDesk to turn it back on.',
