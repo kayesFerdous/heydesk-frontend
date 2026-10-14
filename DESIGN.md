@@ -228,12 +228,22 @@ Same world as the console: white sheet, rules, stamps, serials.
   serial and amount, the "New" stamp, and the proof line "Read back to the
   customer and confirmed in chat". Labelled as an example. The row is the
   landing demo's `InboxRow`, so the two never drift apart.
-- **Customer chat** (`/chat/:key`): one ruled sheet, full screen on a phone
-  and a centred column with hairline edges on a laptop. The header is who
-  answers (name, Online) with Start over and Call. Above the first message
-  the business introduces itself: its avatar and name, that an AI assistant
-  answers any time, in Bangla, Banglish or English, and that Call works too.
-  No language switch: the agent follows the customer's own language.
+- **Customer chat** (`/chat/:key`): laid out like a checkout page. On a
+  laptop a paper column (`bg-sidebar`, 22rem) holds who answers (avatar,
+  name at page-title size, Online), one line saying an AI assistant answers
+  and passes you to a person, ruled facts (any time; Bangla, Banglish or
+  English; photos, for a shop), a "Rather talk?" panel with Call, and Start
+  over at the foot. On a phone that column folds into a one-line header
+  (avatar, name, Start over icon, Call) and the AI note sits above the first
+  message. The conversation (`AgentChat`, shared with the test chat sheet):
+  a date line, then the agent's replies as plain printed text under a run
+  line (avatar, name, time); "From the team" when a person answered from
+  Telegram; the customer's own words in a cobalt bubble. Typing dots
+  carry the agent's status ("Checking the menu"). Products swipe in a row.
+  The composer is one ruled box that grows with the text; Send turns cobalt
+  only when there is something to send; Enter sends, Shift+Enter breaks a
+  line, an IME's Enter is left alone. Start over appears once there is
+  something to clear. No language switch: the agent follows the customer.
 - **Setup** (first run): three numbered steps (Choose, Your details, Try it).
   The kinds of agent are ruled rows with a radio at the end, not cards. The
   last step puts the live chat beside the chat link and a notice listing what
@@ -286,7 +296,8 @@ Landing motion (every piece explains something, all of it off under
 
 150-250ms, exponential ease-out (`--ease-settle`). The sidebar folds in 200ms;
 sheets and the drawer slide 24px; the save bar rises in; the sign-in example
-plays once. Everything is off under `prefers-reduced-motion`.
+plays once; a chat message settles 6px up as it arrives. Everything is off
+under `prefers-reduced-motion`.
 
 ## Copy
 
