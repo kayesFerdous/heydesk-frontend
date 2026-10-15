@@ -1,7 +1,7 @@
 <template>
   <!-- Settings that belong to the person signed in, not to the business or
-       the agent: their language, their sign-in. Future personal settings
-       (notifications, password) are one more SettingsGroup here. -->
+       the agent: their language, their password, their sign-in. Future personal
+       settings (notifications) are one more SettingsGroup here. -->
   <section>
     <PageHeader :title="t('shell.account')"></PageHeader>
 
@@ -37,6 +37,41 @@
         </p>
       </SettingsGroup>
 
+      <SettingsGroup :title="t('account.password')" :tip="t('account.passwordTip')">
+        <form class="flex max-w-sm flex-col gap-5" novalidate @submit.prevent="savePassword">
+          <div>
+            <label class="label" for="current-password">{{ t('account.currentPassword') }}</label>
+            <input id="current-password" v-model="currentPassword" class="field" type="password" autocomplete="current-password" />
+          </div>
+          <div>
+            <label class="label" for="new-password">{{ t('account.newPassword') }}</label>
+            <input
+              id="new-password"
+              v-model="newPassword"
+              class="field"
+              :class="{ 'field-invalid': !newPasswordValid }"
+              type="password"
+              autocomplete="new-password"
+              @blur="newPasswordValid = true"
+            />
+            <p class="hint">{{ t('signIn.passwordHint') }}</p>
+          </div>
+
+          <p v-if="passwordError" class="flex items-start gap-2 text-sm text-danger" role="alert">
+            <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
+            {{ passwordError }}
+          </p>
+          <p v-if="passwordChanged" class="flex items-start gap-2 text-sm text-success" role="status">
+            <PhCheckCircle :size="18" weight="fill" class="mt-px shrink-0"></PhCheckCircle>
+            {{ t('account.passwordChanged') }}
+          </p>
+
+          <button type="submit" class="btn btn-primary self-start" :disabled="savingPassword || !currentPassword">
+            {{ savingPassword ? t('common.saving') : t('account.changePassword') }}
+          </button>
+        </form>
+      </SettingsGroup>
+
       <SettingsGroup :title="t('account.signedIn')">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="flex min-w-0 items-center gap-3">
@@ -59,10 +94,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhChatCircleDots, PhCheckCircle, PhCircle, PhSignOut } from '@phosphor-icons/vue';
+import { PhChatCircleDots, PhCheckCircle, PhCircle, PhSignOut, PhWarningCircle } from '@phosphor-icons/vue';
+
+import { changePassword } from '../../api/auth.js';
 
 import PageHeader from '../../components/ui/PageHeader.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';
@@ -83,6 +120,30 @@ function sample(option) {
     { n: formatNumber(3, undefined, option.tag), money: formatMoney(184000, option.tag) },
     { locale: option.code },
   );
+}
+
+const currentPassword = ref('');
+const newPassword = ref('');
+const newPasswordValid = ref(true);
+const savingPassword = ref(false);
+const passwordError = ref(null);
+const passwordChanged = ref(false);
+
+async function savePassword() {
+  passwordError.value = null;
+  passwordChanged.value = false;
+  newPasswordValid.value = newPassword.value.length >= 8;
+  if (!newPasswordValid.value) return;
+  savingPassword.value = true;
+  try {
+    await changePassword(currentPassword.value, newPassword.value);
+    currentPassword.value = '';
+    newPassword.value = '';
+    passwordChanged.value = true;
+  } catch (error) {
+    passwordError.value = error.message; // the backend's own words, such as a wrong current one
+  }
+  savingPassword.value = false;
 }
 
 function signOut() {

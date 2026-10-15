@@ -37,6 +37,7 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 |---|---|
 | `POST /auth/signup` `{email, password>=8, workspace_name}` | New business + owner. Returns `{token}` |
 | `POST /auth/login` `{email, password}` | Returns `{token}` |
+| `PUT /auth/password` `{current_password, new_password}` | Your own password (owner or admin); the new one at least 8 characters. 204, or 403 `forbidden` if the current one is wrong; 429 counts with the login limit |
 | `GET /auth/me` | `{email, role, business: {id, name, status: active/suspended} \| null}` |
 
 ### Agent (`agent.js`)
@@ -175,7 +176,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | `GET /businesses` | `[{id, name, status, preset, owner_email, conversations, last_activity_at, created_at}]` |
 | `PATCH /businesses/{workspace_id}` `{status}` | Suspend or reactivate. 204 |
 | `GET /users` | `[{id, email, role, workspace_id, business_name, created_at}]` |
-| `POST /users/{id}/password` | `{password}` temporary, shown once |
+| `POST /users/{id}/password` | `{password}` temporary, shown once. An owner's only: 403 `forbidden` for an admin (theirs is reset on the backend's command line) |
 | `GET /audit?workspace_id=` | `[{id, actor_email, workspace_id, action, target, at}]` |
 
 `GET /health` exists too (not used).

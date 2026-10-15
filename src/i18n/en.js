@@ -189,6 +189,12 @@ export default {
     languageSample: 'Today: {n} orders worth {money}',
     agentLanguage: 'Your agent does not follow this. It answers each customer in the language they write in, Bangla, Banglish or English.',
     signedIn: 'Signed in as',
+    password: 'Your password',
+    passwordTip: 'Got a temporary password from HeyDesk? Change it here.',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    changePassword: 'Change password',
+    passwordChanged: 'Password changed. Use the new one next time you sign in.',
   },
 
   shell: {
