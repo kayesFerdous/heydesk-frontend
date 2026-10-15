@@ -769,6 +769,18 @@ export default {
     admin: 'অ্যাডমিন',
     nothingYet: 'এখনো কিছু ঘটেনি।',
     open: 'খুলুন',
+    searchBusinesses: 'নাম বা মালিকের ইমেইল দিয়ে খুঁজুন',
+    searchOwners: 'ইমেইল বা ব্যবসা দিয়ে খুঁজুন',
+    status: 'অবস্থা',
+    anyStatus: 'যেকোনো অবস্থা',
+    desk: 'ব্যবসার ধরন',
+    anyDesk: 'যেকোনো ধরন',
+    sort: 'ক্রম',
+    sortNewest: 'নতুনটা আগে',
+    sortActivity: 'সম্প্রতি সক্রিয়টা আগে',
+    shown: '{total}টির মধ্যে {n}টি',
+    noMatch: 'কিছু মেলেনি। অন্য শব্দ বা ফিল্টার দিয়ে দেখুন।',
+    because: 'স্থগিত: {reason}',
   },
 
   // One business's page, for an admin (pages/admin/BusinessPage.vue).
@@ -803,6 +815,10 @@ export default {
     sheetNotYet: 'Google Sheet যুক্ত, এখনো পড়া হয়নি।',
     sheetProblem: 'যুক্ত Google Sheet-এ সমস্যা: {problem}',
     activityTip: 'এই ব্যবসায় HeyDesk অ্যাডমিনরা যা করেছেন, নতুনটা আগে।',
+    reason: 'কেন স্থগিত করছেন?',
+    reasonExample: 'কাস্টমারদের স্প্যাম রিপোর্ট',
+    reasonHint: 'শুধু HeyDesk অ্যাডমিনরা এটা দেখেন। মালিক দেখেন ব্যবসাটি স্থগিত, কারণ নয়।',
+    reactivateHint: 'এর এজেন্ট সঙ্গে সঙ্গে আবার কাস্টমারদের উত্তর দেবে, আর কারণটি মুছে যাবে।',
   },
 
   notFound: {

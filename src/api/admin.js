@@ -4,11 +4,12 @@ export function fetchBusinesses() {
   return request('/admin/businesses');
 }
 
-// status is "active" or "suspended"; the API answers 204.
-export function setBusinessStatus(workspaceId, status) {
+// status is "active" or "suspended"; suspending needs a reason (backend D70), for
+// admins only. The API answers 204.
+export function setBusinessStatus(workspaceId, status, reason = '') {
   return request(`/admin/businesses/${workspaceId}`, {
     method: 'PATCH',
-    body: { status },
+    body: { status, reason },
   });
 }
 

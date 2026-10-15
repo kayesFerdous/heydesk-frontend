@@ -772,6 +772,18 @@ export default {
     admin: 'Admin',
     nothingYet: 'Nothing has happened yet.',
     open: 'Open',
+    searchBusinesses: 'Search by name or owner email',
+    searchOwners: 'Search by email or business',
+    status: 'Status',
+    anyStatus: 'Any status',
+    desk: 'Kind of business',
+    anyDesk: 'Any kind',
+    sort: 'Order',
+    sortNewest: 'Newest first',
+    sortActivity: 'Last active first',
+    shown: '{n} of {total}',
+    noMatch: 'Nothing matches. Try other words or filters.',
+    because: 'Suspended: {reason}',
   },
 
   // One business's page, for an admin (pages/admin/BusinessPage.vue).
@@ -806,6 +818,10 @@ export default {
     sheetNotYet: 'Linked Google Sheet, not read yet.',
     sheetProblem: 'The linked Google Sheet has a problem: {problem}',
     activityTip: 'What HeyDesk admins did in this business, newest first.',
+    reason: 'Why suspend it?',
+    reasonExample: 'Spam reports from customers',
+    reasonHint: 'Only HeyDesk admins see this. The owner sees that the business is suspended, not why.',
+    reactivateHint: 'Its agent answers customers again straight away, and the reason is cleared.',
   },
 
   notFound: {

@@ -10,23 +10,45 @@
           <span>{{ t('business.since', { date: formatDay(business.created_at) }) }}</span>
           <LiveStatus :paused="business.status !== 'active'" :label="t('admin.active')" :paused-label="t('admin.suspended')"></LiveStatus>
         </p>
+        <p v-if="business.suspended_reason" class="mt-1 text-sm text-attention">
+          {{ t('admin.because', { reason: business.suspended_reason }) }}
+        </p>
       </template>
       <template v-if="business" #actions>
         <button type="button" class="btn btn-primary" @click="open">
           <PhEye :size="16"></PhEye>
           {{ t('business.open') }}
         </button>
-        <template v-if="confirming">
-          <button type="button" class="btn" :class="business.status === 'active' ? 'btn-danger' : 'btn-primary'" @click="toggleStatus">
-            {{ business.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
-          </button>
-          <button type="button" class="btn btn-secondary" @click="confirming = false">{{ t('admin.keepAsIs') }}</button>
-        </template>
-        <button v-else type="button" class="btn btn-secondary" @click="confirming = true">
+        <button v-if="!confirming" type="button" class="btn btn-secondary" @click="confirming = true">
           {{ business.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
         </button>
       </template>
     </PageHeader>
+
+    <!-- Suspending says why (backend D70): kept for admins, never shown to the owner. -->
+    <form
+      v-if="business && confirming"
+      class="mx-5 mb-6 flex max-w-2xl flex-col gap-3 rounded-[var(--radius-panel)] border border-hairline bg-wash p-4 sm:mx-8"
+      @submit.prevent="toggleStatus"
+    >
+      <template v-if="business.status === 'active'">
+        <label class="label" for="suspend-reason">{{ t('business.reason') }}</label>
+        <input id="suspend-reason" v-model.trim="reason" class="field" maxlength="300" :placeholder="t('business.reasonExample')" />
+        <p class="hint">{{ t('business.reasonHint') }}</p>
+      </template>
+      <p v-else class="text-sm">{{ t('business.reactivateHint') }}</p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          class="btn"
+          :class="business.status === 'active' ? 'btn-danger' : 'btn-primary'"
+          :disabled="business.status === 'active' && !reason"
+        >
+          {{ business.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
+        </button>
+        <button type="button" class="btn btn-secondary" @click="confirming = false">{{ t('admin.keepAsIs') }}</button>
+      </div>
+    </form>
 
     <LoadError v-if="error" :message="error" @retry="load"></LoadError>
 
@@ -144,6 +166,7 @@ const business = ref(null);
 const audit = ref([]);
 const error = ref(null);
 const confirming = ref(false);
+const reason = ref('');
 
 const stats = computed(() => [
   { label: t('business.all'), value: business.value.conversations },
@@ -177,8 +200,10 @@ function open() {
 async function toggleStatus() {
   const next = business.value.status === 'active' ? 'suspended' : 'active';
   try {
-    await setBusinessStatus(business.value.id, next);
+    await setBusinessStatus(business.value.id, next, reason.value);
     business.value.status = next;
+    business.value.suspended_reason = next === 'suspended' ? reason.value : '';
+    reason.value = '';
     confirming.value = false;
     audit.value = await fetchAudit({ limit: ACTIVITY, workspaceId: business.value.id });
   } catch (err) {
