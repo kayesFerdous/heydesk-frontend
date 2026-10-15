@@ -205,4 +205,4 @@ next steps.
   See [performance.md](performance.md).
 - **Shared classes before new CSS.** Reach for `.btn`, `.field`, `.label`,
   `.hint`, `.tabs`, `.segmented`, `.row`, `.panel`, `.notice`, `.chip`, `.count` first.
-- Run `npm run lint` and `npm run build` before you commit.
+- Run `pnpm run lint` and `pnpm run build` before you commit.

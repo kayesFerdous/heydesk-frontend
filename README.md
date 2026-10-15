@@ -17,8 +17,8 @@ uv run uvicorn heydesk.main:app --reload   # http://localhost:8000
 Then:
 
 ```bash
-npm install
-npm run serve                               # http://localhost:8080
+pnpm install
+pnpm run serve                               # http://localhost:8080
 ```
 
 `/api/*` is proxied to `:8000` by [vite.config.js](vite.config.js), so there is no

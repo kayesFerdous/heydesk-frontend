@@ -17,6 +17,10 @@ session.
   vue-i18n, bare `fetch`. Shared behaviour is a composable in
   `src/composables/`. The owner is learning and should be able to explain every
   line. Keep it simple, build the normal path well.
+- **Vite and pnpm.** Build config is `vite.config.js` (dev proxy included),
+  lint config is `eslint.config.js`. Install and run with pnpm only, never
+  npm or yarn; `pnpm-lock.yaml` is the one lockfile. Env vars the app reads
+  start with `VITE_` and come from `import.meta.env`.
 - **Two languages, English and Bangla.** No user-facing words in templates or
   scripts: every string is a key in `src/i18n/en.js` with the same key in
   `src/i18n/bn.js`. Components use `const { t } = useI18n()`; plain JS in
@@ -54,9 +58,9 @@ session.
 ## Commands
 
 ```bash
-npm run serve   # :8080, proxies /api to :8000
-npm run lint
-npm run build
+pnpm run serve   # :8080, proxies /api to :8000
+pnpm run lint
+pnpm run build
 ```
 
 Design detector (run once when UI work is done):
