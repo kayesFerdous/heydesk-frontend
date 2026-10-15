@@ -13,9 +13,10 @@ export async function fetchMessenger() {
   }
 }
 
-// Checks the token with Facebook and starts answering the Page's messages.
-export function connectMessenger(pageToken) {
-  return request('/agent/messenger', { method: 'PUT', body: { token: pageToken } });
+// Subscribes the Page (its id and access token, which Facebook checks as a pair)
+// and starts answering its messages.
+export function connectMessenger(pageId, pageToken) {
+  return request('/agent/messenger', { method: 'PUT', body: { page_id: pageId, token: pageToken } });
 }
 
 export function disconnectMessenger() {

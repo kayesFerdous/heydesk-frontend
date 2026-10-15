@@ -45,8 +45,19 @@
       <button type="button" class="btn btn-secondary mt-3" @click="open = true">{{ t('messenger.setUp') }}</button>
     </div>
 
-    <!-- Not connected: paste the Page token -->
+    <!-- Not connected: the Page id and its token -->
     <form v-else class="flex flex-col gap-3" @submit.prevent="connect">
+      <label class="text-sm font-semibold" for="page-id">{{ t('messenger.pageId') }}</label>
+      <p class="-mt-2 text-sm text-ink-soft">{{ t('messenger.pageIdText') }}</p>
+      <input
+        id="page-id"
+        v-model="pageId"
+        class="field"
+        inputmode="numeric"
+        placeholder="1234567890"
+        lang="en"
+        :disabled="busy"
+      />
       <label class="text-sm font-semibold" for="page-token">{{ t('messenger.token') }}</label>
       <p class="-mt-2 text-sm text-ink-soft">{{ t('messenger.tokenText') }}</p>
       <textarea
@@ -60,7 +71,7 @@
       ></textarea>
       <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
       <div class="flex flex-wrap items-center gap-3">
-        <button type="submit" class="btn btn-primary" :disabled="busy || token.trim().length < 20">
+        <button type="submit" class="btn btn-primary" :disabled="busy || !/^\d+$/.test(pageId.trim()) || token.trim().length < 20">
           {{ busy ? t('messenger.connecting') : t('messenger.connect') }}
         </button>
         <button type="button" class="text-sm font-semibold text-ink-soft hover:underline" @click="close">{{ t('common.notNow') }}</button>
@@ -85,6 +96,7 @@ const page = ref(null);
 const loading = ref(true);
 const loadError = ref(null);
 const open = ref(false);
+const pageId = ref('');
 const token = ref('');
 const busy = ref(false);
 const error = ref(null);
@@ -103,6 +115,7 @@ async function load() {
 
 function close() {
   open.value = false;
+  pageId.value = '';
   token.value = '';
   error.value = null;
 }
@@ -111,10 +124,10 @@ async function connect() {
   busy.value = true;
   error.value = null;
   try {
-    page.value = await connectMessenger(token.value.trim());
+    page.value = await connectMessenger(pageId.value.trim(), token.value.trim());
     close();
   } catch (err) {
-    error.value = err.fields?.token || err.message;
+    error.value = err.fields?.token || err.fields?.page_id || err.message;
   }
   busy.value = false;
 }

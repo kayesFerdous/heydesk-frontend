@@ -554,6 +554,8 @@ export default {
   messenger: {
     intro: 'কাস্টমারদের আপনার Facebook পেজে, Messenger-এ এজেন্টকে মেসেজ দিতে দিন।',
     setUp: 'Messenger সেট আপ করুন',
+    pageId: 'পেজ আইডি',
+    pageIdText: 'আপনার Facebook পেজের নম্বর: পেজ > About > Page transparency, অথবা Meta অ্যাপে পেজের নামের পাশে।',
     token: 'পেজ অ্যাক্সেস টোকেন',
     tokenText: 'HeyDesk-এর Meta অ্যাপে আপনার পেজের জন্য একটি টোকেন বানিয়ে এখানে পেস্ট করুন। আপনার অ্যালার্ট আগের মতোই Telegram-এ আসবে।',
     connect: 'পেজ যুক্ত করুন',

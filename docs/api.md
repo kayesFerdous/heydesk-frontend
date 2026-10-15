@@ -131,12 +131,12 @@ and connects as soon as one is there. Conversations from Telegram have
 `channel: "telegram"` (`lib/channels.js` labels web, voice and Telegram).
 
 ### Messenger (`messenger.js`, card `components/agent/MessengerConnect.vue`)
-The business's Facebook Page (backend D60). The Page access token is sent once
+The business's Facebook Page (backend D60). The Page id and access token are sent together; the token is sent once
 and never returned. Alerts for the owner stay on Telegram.
 | Call | What it does |
 |---|---|
 | `GET /agent/messenger` | `{page_id, link}` (`https://m.me/<page_id>`). 404 while no Page is connected |
-| `PUT /agent/messenger` `{token}` | Checks it with Facebook and subscribes the Page; connecting again replaces it. 422 `invalid_config` with `fields.token` for a token Facebook refuses or a Page another business has; 400 if the server has no `META_APP_SECRET` |
+| `PUT /agent/messenger` `{token, page_id}` | Subscribes the Page's `messages` (Facebook accepts that only for the right token and Page, backend D61); connecting again replaces it. 422 `invalid_config` with `fields.token` for a token Facebook refuses for that Page, or `fields.page_id` for a Page another business has; 400 if the server has no `META_APP_SECRET` |
 | `DELETE /agent/messenger` | 204. The Page stops being answered |
 
 Conversations from Messenger have `channel: "messenger"`.

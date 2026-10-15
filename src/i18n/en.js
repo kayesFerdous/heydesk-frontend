@@ -557,6 +557,8 @@ export default {
   messenger: {
     intro: 'Let customers message your agent on your Facebook Page, in Messenger.',
     setUp: 'Set up Messenger',
+    pageId: 'Page ID',
+    pageIdText: 'The number on your Facebook Page: Page > About > Page transparency, or next to the Page in the Meta app.',
     token: 'Page access token',
     tokenText: "Make one for your Page in HeyDesk's Meta app and paste it here. Alerts for you still come to Telegram.",
     connect: 'Connect Page',
