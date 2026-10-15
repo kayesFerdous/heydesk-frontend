@@ -42,7 +42,7 @@ export function itemsLabel(presetId) {
 // one, so a link copied on localhost still opens on a customer's phone; else on
 // this page's own address.
 export function chatLink(publicKey) {
-  const base = process.env.VUE_APP_PUBLIC_URL || window.location.origin;
+  const base = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
   return `${base.replace(/\/$/, '')}/chat/${publicKey}`;
 }
 

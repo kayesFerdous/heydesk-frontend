@@ -1,30 +1,31 @@
-const { defineConfig } = require('@vue/cli-service');
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite';
 
 // The FastAPI app runs on :8000 and the dev server on :8080. Every /api call is
 // proxied to it, so the browser only ever talks to one origin and the backend
 // needs no CORS setup in development. Unlike store-manager-vue, the prefix is
 // NOT stripped: HeyDesk's own routes already start with /api.
-module.exports = defineConfig({
-  transpileDependencies: true,
+export default defineConfig({
+  plugins: [vue(), tailwindcss()],
   // vue-i18n's build flags: Composition API only, no legacy API, no devtools in production.
-  chainWebpack: (config) => {
-    config.plugin('define').tap(([definitions]) => [
-      {
-        ...definitions,
-        __VUE_I18N_FULL_INSTALL__: JSON.stringify(true),
-        __VUE_I18N_LEGACY_API__: JSON.stringify(false),
-        __INTLIFY_PROD_DEVTOOLS__: JSON.stringify(false),
-      },
-    ]);
+  define: {
+    __VUE_I18N_FULL_INSTALL__: JSON.stringify(true),
+    __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+    __INTLIFY_PROD_DEVTOOLS__: JSON.stringify(false),
   },
-  devServer: {
-    // Allow the Cloudflare Tunnel's host name, so one public link reaches this dev server.
-    allowedHosts: 'all',
+  server: {
+    port: 8080,
+    strictPort: true,
+    // Listen on every address, as Vue CLI did, so the tunnel reaches it on 127.0.0.1 too.
+    host: true,
+    // Allow the Cloudflare Tunnel's and ngrok's host names, so one public link reaches this dev server.
+    allowedHosts: true,
     proxy: {
       // The backend's own chat and voice page, at <link>/demo/ (its scripts load relative to it).
       '/demo': {
         target: 'http://localhost:8000',
-        pathRewrite: { '^/demo': '' },
+        rewrite: (path) => path.replace(/^\/demo/, ''),
       },
       '/api': {
         target: 'http://localhost:8000',

@@ -3,9 +3,8 @@
 The business owner's side of [HeyDesk](../heydesk): set up the AI front desk,
 then watch what it took (orders, messages, hand-offs).
 
-**Vue 3 runtime, Options API only**, Vuex 4, Vue Router 4, Vue CLI 5,
-Tailwind CSS v4, bare `fetch`. The same stack and style as
-`../../store-manager-vue`, on purpose (Gigalogy runs Vue 2).
+**Vue 3 with `<script setup>`**, Pinia, Vue Router 4, vue-i18n, Vite,
+Tailwind CSS v4, bare `fetch`.
 
 ## Running it
 
@@ -22,7 +21,7 @@ npm install
 npm run serve                               # http://localhost:8080
 ```
 
-`/api/*` is proxied to `:8000` by [vue.config.js](vue.config.js), so there is no
+`/api/*` is proxied to `:8000` by [vite.config.js](vite.config.js), so there is no
 CORS setup. Create a login with `uv run heydesk create-user you@example.com "a long password"`
 in the backend repo, or use "Create your business account" on the sign-in page.
 
