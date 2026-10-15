@@ -53,6 +53,7 @@ export default {
   },
 
   format: {
+    seconds: '{n} s',
     goodMorning: 'Good morning',
     goodAfternoon: 'Good afternoon',
     goodEvening: 'Good evening',
@@ -797,13 +798,20 @@ export default {
     cost: 'Cost',
     firstReply: 'Typical first reply',
     slowFirstReply: 'Slow first reply (1 in 20)',
-    seconds: '{n} s',
     costNote: 'Cost counts Groq only: Gigalogy has no price yet, so its replies show tokens and cost nothing here.',
     perDay: 'Replies a day',
     dayTitle: '{turns} replies, {failed} failed',
     turns: '{n} reply | {n} replies',
     busiest: 'Busiest businesses this week',
     quiet: 'No replies this week.',
+  },
+
+  // Failed replies, on the Overview and a business's page (pages/admin/FailedTurns.vue).
+  failed: {
+    title: 'Failed replies',
+    tip: 'The AI could not answer, so the customer got the hand-off line instead. Open one to see the conversation.',
+    open: 'Open chat',
+    none: 'None. Every reply went through.',
   },
 
   // One business's page, for an admin (pages/admin/BusinessPage.vue).
@@ -816,6 +824,7 @@ export default {
     waiting: 'Waiting for a person',
     lastActivity: 'Last activity {when}.',
     noActivity: 'No conversations yet.',
+    usage: 'Last 7 days',
     agent: 'Agent',
     chatLink: 'Chat link',
     noAgent: 'No agent yet: the owner has not finished setting up.',

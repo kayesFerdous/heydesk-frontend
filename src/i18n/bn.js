@@ -54,6 +54,7 @@ export default {
   },
 
   format: {
+    seconds: '{n} সেকেন্ড',
     goodMorning: 'সুপ্রভাত',
     goodAfternoon: 'শুভ অপরাহ্ন',
     goodEvening: 'শুভ সন্ধ্যা',
@@ -794,13 +795,20 @@ export default {
     cost: 'খরচ',
     firstReply: 'সাধারণ প্রথম উত্তর',
     slowFirstReply: 'ধীর প্রথম উত্তর (২০টিতে ১টি)',
-    seconds: '{n} সেকেন্ড',
     costNote: 'খরচ শুধু Groq-এর: Gigalogy-র দাম এখনো জানা নেই, তাই এর উত্তরে টোকেন দেখায়, খরচ শূন্য।',
     perDay: 'দিনে উত্তর',
     dayTitle: '{turns}টি উত্তর, {failed}টি ব্যর্থ',
     turns: '{n}টি উত্তর | {n}টি উত্তর',
     busiest: 'এই সপ্তাহের ব্যস্ততম ব্যবসা',
     quiet: 'এই সপ্তাহে কোনো উত্তর নেই।',
+  },
+
+  // Failed replies, on the Overview and a business's page (pages/admin/FailedTurns.vue).
+  failed: {
+    title: 'ব্যর্থ উত্তর',
+    tip: 'AI উত্তর দিতে পারেনি, তাই কাস্টমার হ্যান্ড-অফ লাইন পেয়েছেন। কথোপকথন দেখতে খুলুন।',
+    open: 'চ্যাট খুলুন',
+    none: 'নেই। সব উত্তর গেছে।',
   },
 
   // One business's page, for an admin (pages/admin/BusinessPage.vue).
@@ -813,6 +821,7 @@ export default {
     waiting: 'মানুষের অপেক্ষায়',
     lastActivity: 'শেষ সাড়া {when}।',
     noActivity: 'এখনো কোনো কথোপকথন নেই।',
+    usage: 'গত ৭ দিন',
     agent: 'এজেন্ট',
     chatLink: 'চ্যাট লিংক',
     noAgent: 'এখনো এজেন্ট নেই: মালিক সেটআপ শেষ করেননি।',

@@ -89,12 +89,14 @@ import { fetchConversations, fetchConversation } from '../../api/conversations.j
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber } from '../../lib/format.js';
+import { useAuthStore } from '../../stores/auth.js';
 import { useInboxStore } from '../../stores/inbox.js';
 import { useUiStore } from '../../stores/ui.js';
 
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
+const auth = useAuthStore();
 const inbox = useInboxStore();
 const ui = useUiStore();
 
@@ -152,7 +154,10 @@ function fetchPage(before) {
 
 // Previews for one page of rows, filled in as they arrive. The list does
 // not wait for them, and a missing preview is only an empty line.
+// Not for an admin inside a business: each preview reads a whole conversation,
+// which the audit log would record as opened (backend D23).
 function loadPreviews(conversations) {
+  if (auth.isViewing) return;
   conversations.forEach(async (c) => {
     if (details.value[c.id]) return;
     try {

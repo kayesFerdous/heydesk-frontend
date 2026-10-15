@@ -5,6 +5,17 @@ export function fetchOverview() {
   return request('/admin/overview');
 }
 
+// Replies that ended with the polite line, newest first (backend D73); one business's with
+// `workspaceId`. The next page is `before` the last one's `at`.
+export function fetchFailedTurns({ limit, before, workspaceId } = {}) {
+  const params = new URLSearchParams();
+  if (limit) params.set('limit', limit);
+  if (before) params.set('before', before);
+  if (workspaceId) params.set('workspace_id', workspaceId);
+  const query = params.toString();
+  return request('/admin/failed-turns' + (query ? `?${query}` : ''));
+}
+
 export function fetchBusinesses() {
   return request('/admin/businesses');
 }

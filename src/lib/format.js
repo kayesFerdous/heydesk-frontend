@@ -15,6 +15,16 @@ export function formatNumber(value, options, tag = localeTag()) {
   return Number(value).toLocaleString(tag, options);
 }
 
+// What the AI cost, for the admin: millionths of a dollar, a turn being a fraction of a cent.
+export function formatDollars(micros) {
+  return formatNumber(micros / 1e6, { style: 'currency', currency: 'USD', maximumFractionDigits: 4 });
+}
+
+// A wait in milliseconds as seconds: "2.6 s". A dash when there is nothing to show.
+export function formatSeconds(ms) {
+  return ms == null ? '–' : t('format.seconds', { n: formatNumber(ms / 1000, { maximumFractionDigits: 1 }) });
+}
+
 export function formatTime(isoString, timeZone = 'Asia/Dhaka') {
   return new Date(isoString).toLocaleTimeString(localeTag(), {
     hour: 'numeric',

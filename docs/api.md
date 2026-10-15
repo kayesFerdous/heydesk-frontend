@@ -177,10 +177,11 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | Call | What it does |
 |---|---|
 | `GET /overview?days=7` | What every agent did, from the saved turns (D72): `{days, today: Totals, period: Totals, per_day: [{day, turns, conversations, cost_micros, failed, handed_off}], busiest: [{id, name, turns, cost_micros}]}`. `Totals`: `{turns, conversations, input_tokens, output_tokens, cost_micros, failed, handed_off, first_reply_ms, slow_first_reply_ms}` (the median and 95th percentile; null with no turns). `days` 1 to 30; a day is Dhaka's; `cost_micros` counts Groq only |
+| `GET /failed-turns?workspace_id=&limit=&before=` | Replies that ended with the polite line (D73), newest first: `[{id, at, workspace_id, business_name, business_status, conversation_id, channel, llm, error}]`. Next page: `before` = the last `at`. Open one as the business at `/conversations?open=<conversation_id>` |
 | `GET /businesses` | `[{id, name, status, suspended_reason, kind, owner_email, conversations, last_activity_at, created_at}]`, newest first, at most 200 |
 | `PATCH /businesses/{workspace_id}` `{status, reason}` | Suspend or reactivate. 204. Suspending needs a `reason` (422 without one, D70); it's kept as `suspended_reason`, for admins only, and reactivating clears it |
 | `GET /users` | `[{id, email, role, workspace_id, business_name, created_at}]` |
-| `GET /businesses/{id}` | One business at a glance (D69): `{id, name, status, suspended_reason, kind, agent_name, public_key, created_at, owners: [{email, created_at}], channels: [{kind: telegram/messenger, address, created_at}], payments: sandbox/live/null, documents, sheet: {synced_at, problem} \| null, conversations, conversations_7_days, waiting, last_activity_at}`. 404 for an unknown id. Not audited |
+| `GET /businesses/{id}` | One business at a glance (D69; `usage`: its last 7 days as `Totals`, D73): `{id, name, status, suspended_reason, kind, agent_name, public_key, created_at, owners: [{email, created_at}], channels: [{kind: telegram/messenger, address, created_at}], payments: sandbox/live/null, documents, sheet: {synced_at, problem} \| null, conversations, conversations_7_days, waiting, last_activity_at}`. 404 for an unknown id. Not audited |
 | `POST /users/{id}/password` | `{password}` temporary, shown once. An owner's only: 403 `forbidden` for an admin (theirs is reset on the backend's command line) |
 | `GET /audit?workspace_id=` | `[{id, actor_email, workspace_id, action, target, at}]` |
 

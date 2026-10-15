@@ -36,6 +36,12 @@
     </section>
 
     <section>
+      <h2 class="section-title mb-1">{{ t('failed.title') }}</h2>
+      <p class="mb-2 text-sm text-ink-soft">{{ t('failed.tip') }}</p>
+      <FailedTurns></FailedTurns>
+    </section>
+
+    <section>
       <h2 class="section-title mb-3">{{ t('overview.busiest') }}</h2>
       <ul class="flex flex-col gap-2 text-sm">
         <li v-for="b in overview.busiest" :key="b.id" class="flex flex-wrap justify-between gap-x-4">
@@ -57,21 +63,13 @@ import { useI18n } from 'vue-i18n';
 import LoadError from '../../components/ui/LoadError.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import { fetchOverview } from '../../api/admin.js';
-import { formatDay, formatNumber } from '../../lib/format.js';
+import { formatDay, formatDollars as dollars, formatNumber, formatSeconds as seconds } from '../../lib/format.js';
+import FailedTurns from './FailedTurns.vue';
 
 const { t } = useI18n();
 
 const overview = ref(null);
 const error = ref(null);
-
-// Cost arrives in millionths of a dollar; a turn costs a fraction of a cent.
-function dollars(micros) {
-  return formatNumber(micros / 1e6, { style: 'currency', currency: 'USD', maximumFractionDigits: 4 });
-}
-
-function seconds(ms) {
-  return ms == null ? '–' : t('overview.seconds', { n: formatNumber(ms / 1000, { maximumFractionDigits: 1 }) });
-}
 
 const count = (n) => formatNumber(n);
 

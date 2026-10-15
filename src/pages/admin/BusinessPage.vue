@@ -67,6 +67,19 @@
         </p>
       </SettingsGroup>
 
+      <SettingsGroup :title="t('business.usage')" :tip="t('overview.costNote')">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div v-for="stat in usage" :key="stat.label">
+            <p class="text-lg font-semibold tabular-nums" :class="{ 'text-danger': stat.bad && business.usage[stat.field] }">{{ stat.value }}</p>
+            <p class="text-sm text-ink-soft">{{ stat.label }}</p>
+          </div>
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup :title="t('failed.title')" :tip="t('failed.tip')">
+        <FailedTurns :workspace-id="business.id"></FailedTurns>
+      </SettingsGroup>
+
       <SettingsGroup :title="t('business.agent')">
         <template v-if="business.public_key">
           <p class="text-sm font-semibold">{{ business.agent_name }}</p>
@@ -152,7 +165,8 @@ import LoadError from '../../components/ui/LoadError.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import { fetchBusiness, fetchAudit, setBusinessStatus } from '../../api/admin.js';
 import { chatLink, presetLabel } from '../../lib/presets.js';
-import { formatAgo, formatDay, formatNumber, formatTime } from '../../lib/format.js';
+import { formatAgo, formatDay, formatDollars, formatNumber, formatSeconds, formatTime } from '../../lib/format.js';
+import FailedTurns from './FailedTurns.vue';
 import { useAuthStore } from '../../stores/auth.js';
 
 const ACTIVITY = 20; // the latest few; the Activity tab has them all
@@ -173,6 +187,19 @@ const stats = computed(() => [
   { label: t('business.lastWeek'), value: business.value.conversations_7_days },
   { label: t('business.waiting'), value: business.value.waiting, attention: true },
 ]);
+
+// Its replies in the last 7 days, the Overview's numbers for this business (backend D73).
+const usage = computed(() => {
+  const u = business.value.usage;
+  return [
+    { label: t('overview.turnsLabel'), field: 'turns', value: formatNumber(u.turns) },
+    { label: t('overview.failed'), field: 'failed', value: formatNumber(u.failed), bad: true },
+    { label: t('overview.handedOff'), field: 'handed_off', value: formatNumber(u.handed_off) },
+    { label: t('overview.tokens'), field: 'tokens', value: formatNumber(u.input_tokens + u.output_tokens) },
+    { label: t('overview.cost'), field: 'cost', value: formatDollars(u.cost_micros) },
+    { label: t('overview.firstReply'), field: 'first', value: formatSeconds(u.first_reply_ms) },
+  ];
+});
 
 function deskLabel(kind) {
   return presetLabel({ id: kind, label: kind });
