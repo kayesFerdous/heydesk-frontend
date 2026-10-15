@@ -31,7 +31,7 @@
         class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_13rem] sm:px-8"
       >
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold">{{ b.name }}</p>
+          <router-link :to="`/admin/businesses/${b.id}`" class="block truncate text-sm font-semibold hover:underline">{{ b.name }}</router-link>
           <p class="truncate text-sm text-ink-soft">{{ b.owner_email || t('admin.noOwner') }}</p>
         </div>
         <p class="hidden text-sm text-ink-soft sm:block">{{ b.kind || t('shell.noAgentYet') }}</p>
@@ -106,8 +106,8 @@
         >
           <p class="min-w-0">
             <span class="font-semibold">{{ event.actor_email }}</span>
-            <span class="text-ink-soft"> {{ event.action }}</span>
-            <span v-if="event.target" class="text-ink-soft"> ({{ event.target }})</span>
+            <span class="ml-1 text-ink-soft">{{ event.action }}</span>
+            <span v-if="event.target" class="ml-1 text-ink-soft">({{ event.target }})</span>
           </p>
           <p class="text-ink-soft">{{ formatTime(event.at) }}</p>
         </div>

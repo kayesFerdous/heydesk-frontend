@@ -20,6 +20,7 @@ const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
 const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
 const ChatPage = () => import('./pages/chat/ChatPage.vue');
 const AdminPage = () => import('./pages/admin/AdminPage.vue');
+const BusinessPage = () => import('./pages/admin/BusinessPage.vue');
 const AccountPage = () => import('./pages/account/AccountPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
@@ -80,6 +81,11 @@ const router = createRouter({
     {
       path: '/admin',
       component: AdminPage,
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/admin/businesses/:id',
+      component: BusinessPage,
       meta: { requiresAuth: true, requiresAdmin: true },
     },
     { path: '/:notFound(.*)', component: NotFound, meta: { bare: true } },

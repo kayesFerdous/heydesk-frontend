@@ -179,6 +179,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | `GET /businesses` | `[{id, name, status, preset, owner_email, conversations, last_activity_at, created_at}]` |
 | `PATCH /businesses/{workspace_id}` `{status}` | Suspend or reactivate. 204 |
 | `GET /users` | `[{id, email, role, workspace_id, business_name, created_at}]` |
+| `GET /businesses/{id}` | One business at a glance (D69): `{id, name, status, kind, agent_name, public_key, created_at, owners: [{email, created_at}], channels: [{kind: telegram/messenger, address, created_at}], payments: sandbox/live/null, documents, sheet: {synced_at, problem} \| null, conversations, conversations_7_days, waiting, last_activity_at}`. 404 for an unknown id. Not audited |
 | `POST /users/{id}/password` | `{password}` temporary, shown once. An owner's only: 403 `forbidden` for an admin (theirs is reset on the backend's command line) |
 | `GET /audit?workspace_id=` | `[{id, actor_email, workspace_id, action, target, at}]` |
 
