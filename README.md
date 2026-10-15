@@ -25,6 +25,14 @@ pnpm run serve                               # http://localhost:8080
 CORS setup. Create a login with `uv run heydesk create-user you@example.com "a long password"`
 in the backend repo, or use "Create your business account" on the sign-in page.
 
+## Deploying
+
+Vercel builds every push to `main`. [vercel.json](vercel.json) does in production
+what the Vite proxy does in development: `/api`, `/media`, `/pay` and `/demo` are
+forwarded to the backend's public URL (an ngrok tunnel today), and every other
+path serves `index.html` so a refresh on `/inbox` still works. When the backend
+moves, change the URL in those four rewrites.
+
 ## Where things are
 
 | | |

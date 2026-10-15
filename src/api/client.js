@@ -40,6 +40,9 @@ export async function request(path, { method = 'GET', body } = {}) {
   }
   // The language the owner reads, should the backend learn to answer in it.
   headers['Accept-Language'] = i18n.global.locale.value;
+  // On Vercel the backend sits behind a free ngrok tunnel, which answers
+  // browsers with a warning page unless this header is present.
+  headers['ngrok-skip-browser-warning'] = '1';
 
   let response;
   try {
