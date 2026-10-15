@@ -25,8 +25,11 @@ Last synced 4 Oct 2026 (after agent jobs + document ingest); paging added 9 Oct 
   `unreadable_document` 422, `unreadable_photo` 422, `knowledge_unavailable` 503 (nothing saved, retry),
   `internal` 500.
 - Money is minor units, times are UTC (see CLAUDE.md for the helpers).
-- Roles: `owner` (own business) and `admin` (all, no business). Owners cannot
-  send `instructions` or `preset` in a PATCH (403).
+- Roles: `owner` (own business) and `admin` (all, no business). An admin uses the
+  owner routes for one business by sending its id as `X-Business` (an owner's is
+  ignored); without it they answer 400 `business_required`. The admin's writes, and
+  opening one conversation, go to the audit log. `api/client.js` sends the header
+  while an admin has a business open (`auth.view()`).
 
 ## Endpoints
 

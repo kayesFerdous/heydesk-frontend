@@ -23,7 +23,7 @@ const AdminPage = () => import('./pages/admin/AdminPage.vue');
 const AccountPage = () => import('./pages/account/AccountPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
-// Every owner page needs a signed-in owner (admins have no business of their own).
+// Every owner page needs a signed-in owner, or an admin who opened a business.
 const owner = { requiresAuth: true, requiresOwner: true };
 
 const router = createRouter({
@@ -38,7 +38,7 @@ const router = createRouter({
       beforeEnter: () => {
         const auth = useAuthStore();
         if (!auth.isAuthenticated) return true;
-        return auth.isAdmin ? '/admin' : '/home';
+        return auth.seesBusiness ? '/home' : '/admin';
       },
     },
     {
@@ -87,12 +87,14 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const { isAuthenticated, isAdmin } = useAuthStore();
-  if (to.meta.requiresAuth && !isAuthenticated) return '/sign-in';
-  if (to.meta.requiresUnauth && isAuthenticated) return '/';
-  if (to.meta.requiresAdmin && !isAdmin) return '/home';
-  // Admins have no business of their own, so the owner screens have no data.
-  if (to.meta.requiresOwner && isAdmin) return '/admin';
+  const auth = useAuthStore();
+  if (to.meta.requiresAuth && !auth.isAuthenticated) return '/sign-in';
+  if (to.meta.requiresUnauth && auth.isAuthenticated) return '/';
+  if (to.meta.requiresAdmin && !auth.isAdmin) return '/home';
+  // Back on the admin's own pages, the business they had open is closed.
+  if (to.meta.requiresAdmin) auth.stopViewing();
+  // An admin has no business of their own: the owner screens need one opened first.
+  if (to.meta.requiresOwner && !auth.seesBusiness) return '/admin';
 });
 
 export default router;

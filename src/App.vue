@@ -12,8 +12,21 @@
     ></AppSidebar>
 
     <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface pb-24 md:border-l md:border-hairline md:pb-0">
+      <!-- An admin inside a business: whose it is, and the way out. -->
+      <div
+        v-if="auth.isViewing"
+        class="sticky top-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 bg-ink px-5 py-2.5 text-sm text-surface sm:px-8"
+        role="status"
+      >
+        <PhEye :size="18" weight="bold" class="shrink-0"></PhEye>
+        <span class="min-w-0 flex-1">
+          {{ t('shell.viewing', { name: auth.viewing.name }) }}
+          <span v-if="auth.isSuspended" class="font-semibold">{{ t('shell.viewingSuspended') }}</span>
+        </span>
+        <router-link to="/admin" class="btn btn-secondary btn-sm">{{ t('shell.exitViewing') }}</router-link>
+      </div>
       <p
-        v-if="auth.isSuspended"
+        v-else-if="auth.isSuspended"
         class="flex items-center gap-2 border-b border-hairline bg-attention-tint px-5 py-3 text-sm font-medium text-ink sm:px-8"
         role="status"
       >
@@ -45,7 +58,7 @@
 import { computed, watch, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhPauseCircle } from '@phosphor-icons/vue';
+import { PhEye, PhPauseCircle } from '@phosphor-icons/vue';
 
 import AppSidebar from './components/layout/AppSidebar.vue';
 import AppTabBar from './components/layout/AppTabBar.vue';

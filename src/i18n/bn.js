@@ -204,6 +204,9 @@ export default {
     paused: 'HeyDesk আপনার এজেন্টকে বিরতিতে রেখেছে, তাই কাস্টমাররা দেখছেন এটি এখন পাওয়া যাচ্ছে না। আবার চালু করতে HeyDesk-এর সাথে যোগাযোগ করুন।',
     agentLive: 'এজেন্ট চালু',
     platformAdmin: 'প্ল্যাটফর্ম অ্যাডমিন',
+    viewing: 'HeyDesk অ্যাডমিন হিসেবে {name} দেখছেন। এখানে যা বদলাবেন, তা অ্যাক্টিভিটি লগে থাকবে।',
+    viewingSuspended: 'স্থগিত: এর কাস্টমাররা এজেন্টকে বন্ধ দেখছেন।',
+    exitViewing: 'বের হোন',
     noAgentYet: 'এখনো এজেন্ট নেই',
     heyDeskAdmin: 'HeyDesk অ্যাডমিন',
     owner: 'মালিক',
@@ -765,6 +768,7 @@ export default {
     resetPassword: 'পাসওয়ার্ড রিসেট',
     admin: 'অ্যাডমিন',
     nothingYet: 'এখনো কিছু ঘটেনি।',
+    open: 'খুলুন',
   },
 
   notFound: {

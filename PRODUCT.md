@@ -23,7 +23,9 @@ customers. English UI today; the customer-facing agent may talk to visitors in
 other languages, which the owner should see in transcripts verbatim.
 
 A second, rare user: a **HeyDesk admin** (platform staff) who sees all
-businesses, can suspend one, reset a password and read an audit log.
+businesses, can suspend one, reset a password and read an audit log. To help an
+owner, the admin **opens** their business and uses the owner's own pages, under a
+banner that says whose business it is; every change is in the audit log.
 
 ## What the owner does, in order of frequency
 
@@ -51,9 +53,9 @@ businesses, can suspend one, reset a password and read an audit log.
   order in the inbox is already confirmed by the customer.
 - Money is in minor units (paisa): 45000 means ৳450. Display `৳450`, never raw.
 - Timezone is per agent (`Asia/Dhaka`); show times in it.
-- Roles: `owner` (their business) and `admin` (all). An owner **cannot** edit
-  `instructions`, `tools` or `preset`; they write `notes`. Hide, do not disable,
-  what they cannot do, and say where to ask.
+- Roles: `owner` (their business) and `admin` (all). The agent's prompt and
+  tools come from its desk, in the backend's code (backend D41): nobody edits
+  them here. The owner writes `notes` for tone and rules.
 - A suspended business (`status: suspended`) has an agent that no longer
   answers. The UI must say so plainly, at the top.
 - Errors come back as `{ error: { code, message, fields? } }`. Show the

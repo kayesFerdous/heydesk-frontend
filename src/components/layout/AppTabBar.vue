@@ -49,7 +49,7 @@ const ui = useUiStore();
 // The first group (daily work) plus the agent's settings.
 const items = computed(() => {
   const groups = navGroups({
-    isAdmin: auth.isAdmin,
+    isAdmin: !auth.seesBusiness,
     preset: agent.kind,
     waitingTotal: inbox.waitingTotal,
     needsHuman: inbox.needsHuman,

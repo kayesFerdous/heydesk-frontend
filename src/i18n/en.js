@@ -205,6 +205,9 @@ export default {
     paused: 'Your agent is paused by HeyDesk, so customers see that it is unavailable. Contact HeyDesk to turn it back on.',
     agentLive: 'Agent live',
     platformAdmin: 'Platform admin',
+    viewing: 'Viewing {name} as HeyDesk admin. What you change here is saved in the activity log.',
+    viewingSuspended: 'Suspended: its customers see the agent as unavailable.',
+    exitViewing: 'Exit',
     noAgentYet: 'No agent yet',
     heyDeskAdmin: 'HeyDesk admin',
     owner: 'Owner',
@@ -768,6 +771,7 @@ export default {
     resetPassword: 'Reset password',
     admin: 'Admin',
     nothingYet: 'Nothing has happened yet.',
+    open: 'Open',
   },
 
   notFound: {

@@ -27,7 +27,7 @@
         <span v-if="!collapsed" class="min-w-0 flex-1">
           <span class="block truncate text-sm font-semibold">{{ businessName }}</span>
           <LiveStatus v-if="showStatus" :paused="auth.isSuspended" :label="t('shell.agentLive')"></LiveStatus>
-          <span v-else class="block text-xs text-ink-soft">{{ auth.isAdmin ? t('shell.platformAdmin') : t('shell.noAgentYet') }}</span>
+          <span v-else class="block text-xs text-ink-soft">{{ auth.seesBusiness ? t('shell.noAgentYet') : t('shell.platformAdmin') }}</span>
         </span>
       </router-link>
     </div>
@@ -66,7 +66,7 @@
     <div class="shrink-0 p-3">
       <!-- The key check an owner makes: what does a customer see? -->
       <button
-        v-if="!auth.isAdmin"
+        v-if="auth.seesBusiness"
         type="button"
         class="btn btn-secondary w-full"
         :class="{ 'btn-icon': collapsed }"
@@ -159,7 +159,7 @@ const ui = useUiStore();
 const collapsed = computed(() => props.collapsible && ui.sidebarCollapsed);
 const email = computed(() => auth.me?.email ?? '');
 const initial = computed(() => email.value.charAt(0).toUpperCase());
-const showStatus = computed(() => !auth.isAdmin && agent.hasAgent);
+const showStatus = computed(() => auth.seesBusiness && agent.hasAgent);
 const roleLabel = computed(() => (auth.isAdmin ? t('shell.heyDeskAdmin') : t('shell.owner')));
 // The name customers know (from the agent), else the account's name.
 const businessName = computed(
@@ -167,7 +167,7 @@ const businessName = computed(
 );
 const groups = computed(() =>
   navGroups({
-    isAdmin: auth.isAdmin,
+    isAdmin: !auth.seesBusiness,
     preset: agent.kind,
     waitingTotal: inbox.waitingTotal,
     needsHuman: inbox.needsHuman,
@@ -175,12 +175,18 @@ const groups = computed(() =>
 );
 
 // The badges are best effort. If the API is down the pages say so; the
-// sidebar just shows no numbers.
-if (!auth.isAdmin) {
-  inbox.load().catch(() => {});
-  agent.loadPresets().catch(() => {});
-  agent.load().catch(() => {});
-}
+// sidebar just shows no numbers. Loaded for the business on screen, and again
+// when an admin opens another one.
+watch(
+  () => auth.seesBusiness && (auth.viewing?.id ?? 'own'),
+  (business) => {
+    if (!business) return;
+    inbox.load().catch(() => {});
+    agent.loadPresets().catch(() => {});
+    agent.load().catch(() => {});
+  },
+  { immediate: true },
+);
 
 function active(item) {
   return isActive(item, route.path);

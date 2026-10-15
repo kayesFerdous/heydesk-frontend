@@ -65,6 +65,7 @@ job (like `TelegramConnect.vue`, `AgentChat.vue` or `VoiceCall.vue`).
 | A public page (no sign-in, no shell) | `pages/<area>/`, route meta `{ bare: true }` and no `requiresAuth` | `pages/chat/ChatPage.vue` |
 | A personal setting (notifications, password) | a `SettingsGroup` on `pages/account/AccountPage.vue`. Business-wide settings (team, billing) get their own page, not this one | the Language group |
 | An admin-only screen | `pages/admin/`, route meta `requiresAdmin`, the admin group in `lib/navigation.js` | `pages/admin/AdminPage.vue` |
+| An admin inside a business | nothing new: `auth.view(business)` sends `X-Business`, the owner's pages and sidebar open (`auth.seesBusiness`), `App.vue` shows the banner; going to an admin page closes it | `open()` in `pages/admin/AdminPage.vue` |
 
 ## Recipes
 

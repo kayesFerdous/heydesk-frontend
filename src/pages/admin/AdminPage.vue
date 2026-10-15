@@ -28,7 +28,7 @@
       <div
         v-for="b in businesses"
         :key="b.id"
-        class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_9rem] sm:px-8"
+        class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_8rem_7rem_8rem_13rem] sm:px-8"
       >
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold">{{ b.name }}</p>
@@ -46,9 +46,12 @@
             </button>
             <button type="button" class="btn btn-secondary btn-sm" @click="confirmingId = null">{{ t('admin.keepAsIs') }}</button>
           </span>
-          <button v-else type="button" class="btn btn-quiet btn-sm" @click="confirmingId = b.id">
-            {{ b.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
-          </button>
+          <span v-else class="flex items-center gap-2 sm:justify-end">
+            <button type="button" class="btn btn-secondary btn-sm" @click="open(b)">{{ t('admin.open') }}</button>
+            <button type="button" class="btn btn-quiet btn-sm" @click="confirmingId = b.id">
+              {{ b.status === 'active' ? t('admin.suspend') : t('admin.reactivate') }}
+            </button>
+          </span>
         </div>
       </div>
       <p v-if="!businesses.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">{{ t('admin.noBusinesses') }}</p>
@@ -118,6 +121,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
@@ -133,10 +137,13 @@ import {
 } from '../../api/admin.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber, formatTime } from '../../lib/format.js';
+import { useAuthStore } from '../../stores/auth.js';
 
 const TABS = ['businesses', 'owners', 'activity'];
 
 const { t } = useI18n();
+const router = useRouter();
+const auth = useAuthStore();
 
 const tab = ref('businesses');
 const businesses = ref([]);
@@ -206,6 +213,12 @@ async function reset(user) {
     error.value = err.message;
   }
   resettingId.value = null;
+}
+
+// See the business as its owner does. Every change made there is in the Activity tab.
+function open(business) {
+  auth.view(business);
+  router.push('/home');
 }
 
 load();

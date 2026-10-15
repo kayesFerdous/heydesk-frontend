@@ -11,10 +11,17 @@ const BASE_URL = '/api';
 // should happen when it is rejected, so this file never imports a store (the
 // stores import this file).
 let authToken = null;
+let viewedBusiness = null;
 let onUnauthorized = () => {};
 
 export function setAuthToken(token) {
   authToken = token;
+}
+
+// The business an admin is looking at (backend D23): sent as X-Business, so the
+// owner's pages show that business. null for owners and for the admin's own pages.
+export function setViewedBusiness(businessId) {
+  viewedBusiness = businessId;
 }
 
 export function getAuthToken() {
@@ -37,6 +44,9 @@ export async function request(path, { method = 'GET', body } = {}) {
   }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (viewedBusiness) {
+    headers['X-Business'] = viewedBusiness;
   }
   // The language the owner reads, should the backend learn to answer in it.
   headers['Accept-Language'] = i18n.global.locale.value;
