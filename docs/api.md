@@ -176,6 +176,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ### Admin (`admin.js`, role admin only, under `/api/admin`)
 | Call | What it does |
 |---|---|
+| `GET /overview?days=7` | What every agent did, from the saved turns (D72): `{days, today: Totals, period: Totals, per_day: [{day, turns, conversations, cost_micros, failed, handed_off}], busiest: [{id, name, turns, cost_micros}]}`. `Totals`: `{turns, conversations, input_tokens, output_tokens, cost_micros, failed, handed_off, first_reply_ms, slow_first_reply_ms}` (the median and 95th percentile; null with no turns). `days` 1 to 30; a day is Dhaka's; `cost_micros` counts Groq only |
 | `GET /businesses` | `[{id, name, status, suspended_reason, kind, owner_email, conversations, last_activity_at, created_at}]`, newest first, at most 200 |
 | `PATCH /businesses/{workspace_id}` `{status, reason}` | Suspend or reactivate. 204. Suspending needs a `reason` (422 without one, D70); it's kept as `suspended_reason`, for admins only, and reactivating clears it |
 | `GET /users` | `[{id, email, role, workspace_id, business_name, created_at}]` |

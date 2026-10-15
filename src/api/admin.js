@@ -1,5 +1,10 @@
 import { request } from './client.js';
 
+// What every agent did today and in the last 7 days, from the saved turns (backend D72).
+export function fetchOverview() {
+  return request('/admin/overview');
+}
+
 export function fetchBusinesses() {
   return request('/admin/businesses');
 }

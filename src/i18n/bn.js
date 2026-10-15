@@ -752,9 +752,9 @@ export default {
   },
 
   admin: {
-    title: 'ব্যবসাসমূহ',
-    subtitle: 'HeyDesk-এর প্রতিটি ব্যবসা, তার মালিক, আর সম্প্রতি কী ঘটেছে।',
-    tabs: { businesses: 'ব্যবসাসমূহ', owners: 'মালিক', activity: 'কার্যক্রম' },
+    title: 'HeyDesk অ্যাডমিন',
+    subtitle: 'এজেন্টরা কেমন চলছে, প্রতিটি ব্যবসা ও তার মালিক, আর অ্যাডমিনরা কী করেছেন।',
+    tabs: { overview: 'সারসংক্ষেপ', businesses: 'ব্যবসাসমূহ', owners: 'মালিক', activity: 'কার্যক্রম' },
     noOwner: 'মালিক নেই',
     chats: '{n}টি চ্যাট',
     active: 'সক্রিয়',
@@ -781,6 +781,26 @@ export default {
     shown: '{total}টির মধ্যে {n}টি',
     noMatch: 'কিছু মেলেনি। অন্য শব্দ বা ফিল্টার দিয়ে দেখুন।',
     because: 'স্থগিত: {reason}',
+  },
+
+  // The admin's Overview tab (pages/admin/OverviewSection.vue).
+  overview: {
+    week: '৭ দিনে {value}',
+    turnsLabel: 'উত্তর',
+    conversations: 'শুরু হওয়া কথোপকথন',
+    failed: 'ব্যর্থ উত্তর',
+    handedOff: 'মানুষের কাছে পাঠানো',
+    tokens: 'টোকেন',
+    cost: 'খরচ',
+    firstReply: 'সাধারণ প্রথম উত্তর',
+    slowFirstReply: 'ধীর প্রথম উত্তর (২০টিতে ১টি)',
+    seconds: '{n} সেকেন্ড',
+    costNote: 'খরচ শুধু Groq-এর: Gigalogy-র দাম এখনো জানা নেই, তাই এর উত্তরে টোকেন দেখায়, খরচ শূন্য।',
+    perDay: 'দিনে উত্তর',
+    dayTitle: '{turns}টি উত্তর, {failed}টি ব্যর্থ',
+    turns: '{n}টি উত্তর | {n}টি উত্তর',
+    busiest: 'এই সপ্তাহের ব্যস্ততম ব্যবসা',
+    quiet: 'এই সপ্তাহে কোনো উত্তর নেই।',
   },
 
   // One business's page, for an admin (pages/admin/BusinessPage.vue).

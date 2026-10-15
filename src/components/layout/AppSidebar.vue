@@ -163,7 +163,7 @@ const showStatus = computed(() => auth.seesBusiness && agent.hasAgent);
 const roleLabel = computed(() => (auth.isAdmin ? t('shell.heyDeskAdmin') : t('shell.owner')));
 // The name customers know (from the agent), else the account's name.
 const businessName = computed(
-  () => agent.config?.business_name || auth.business?.name || 'HeyDesk',
+  () => (auth.seesBusiness && (agent.config?.business_name || auth.business?.name)) || 'HeyDesk',
 );
 const groups = computed(() =>
   navGroups({

@@ -19,7 +19,10 @@
       </template>
     </PageHeader>
 
-    <LoadError v-if="error" :message="error" @retry="load"></LoadError>
+    <!-- The overview loads its own numbers; the other tabs share the lists below. -->
+    <OverviewSection v-if="tab === 'overview'"></OverviewSection>
+
+    <LoadError v-else-if="error" :message="error" @retry="load"></LoadError>
 
     <SkeletonRows v-else-if="!loaded"></SkeletonRows>
 
@@ -161,6 +164,7 @@ import PageHeader from '../../components/ui/PageHeader.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import LiveStatus from '../../components/ui/LiveStatus.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
+import OverviewSection from './OverviewSection.vue';
 import {
   fetchBusinesses,
   fetchUsers,
@@ -172,13 +176,13 @@ import { formatNumber, formatTime } from '../../lib/format.js';
 import { presetLabel } from '../../lib/presets.js';
 import { useAuthStore } from '../../stores/auth.js';
 
-const TABS = ['businesses', 'owners', 'activity'];
+const TABS = ['overview', 'businesses', 'owners', 'activity'];
 
 const { t } = useI18n();
 const router = useRouter();
 const auth = useAuthStore();
 
-const tab = ref('businesses');
+const tab = ref('overview');
 const businesses = ref([]);
 const users = ref([]);
 const audit = ref([]); // the activity log only grows, so it comes a page at a time

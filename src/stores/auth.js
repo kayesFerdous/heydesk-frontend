@@ -82,11 +82,13 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(VIEWING_KEY, JSON.stringify(viewing.value));
   }
 
+  // The stores keep the closed business's data: the page being left may still draw
+  // from them while it goes. Opening the next business (view) empties them first.
   function stopViewing() {
     if (!viewing.value) return;
-    clearBusinessData();
     setViewing(null);
     sessionStorage.removeItem(VIEWING_KEY);
+    useUiStore().testSheetOpen = false;
   }
 
   function logout() {

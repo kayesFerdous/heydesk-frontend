@@ -755,9 +755,9 @@ export default {
   },
 
   admin: {
-    title: 'Businesses',
-    subtitle: 'Every business on HeyDesk, its owner, and what happened lately.',
-    tabs: { businesses: 'Businesses', owners: 'Owners', activity: 'Activity' },
+    title: 'HeyDesk admin',
+    subtitle: 'How the agents are doing, every business and its owner, and what admins did.',
+    tabs: { overview: 'Overview', businesses: 'Businesses', owners: 'Owners', activity: 'Activity' },
     noOwner: 'No owner',
     chats: '{n} chat | {n} chats',
     active: 'Active',
@@ -784,6 +784,26 @@ export default {
     shown: '{n} of {total}',
     noMatch: 'Nothing matches. Try other words or filters.',
     because: 'Suspended: {reason}',
+  },
+
+  // The admin's Overview tab (pages/admin/OverviewSection.vue).
+  overview: {
+    week: '{value} in 7 days',
+    turnsLabel: 'Replies',
+    conversations: 'Conversations started',
+    failed: 'Failed replies',
+    handedOff: 'Handed to a person',
+    tokens: 'Tokens',
+    cost: 'Cost',
+    firstReply: 'Typical first reply',
+    slowFirstReply: 'Slow first reply (1 in 20)',
+    seconds: '{n} s',
+    costNote: 'Cost counts Groq only: Gigalogy has no price yet, so its replies show tokens and cost nothing here.',
+    perDay: 'Replies a day',
+    dayTitle: '{turns} replies, {failed} failed',
+    turns: '{n} reply | {n} replies',
+    busiest: 'Busiest businesses this week',
+    quiet: 'No replies this week.',
   },
 
   // One business's page, for an admin (pages/admin/BusinessPage.vue).
