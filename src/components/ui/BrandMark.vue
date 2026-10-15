@@ -1,27 +1,25 @@
 <template>
-  <span class="inline-flex items-center gap-2">
-    <!-- The mark echoes Gigalogy's logo, a constellation of connected dots:
-         here five nodes joined into a speech bubble. -->
-    <svg viewBox="0 0 32 32" class="shrink-0" :class="markOnly ? 'h-8 w-8' : 'h-7 w-7'" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="var(--color-brand)" />
-      <path
-        d="M9 9.5H23V19.5L13 24.5L9 19.5Z"
-        fill="none"
-        stroke="#fff"
-        stroke-opacity=".7"
-        stroke-width="1.4"
-        stroke-linejoin="round"
-      />
-      <g fill="#fff">
-        <circle cx="9" cy="9.5" r="2" />
-        <circle cx="23" cy="9.5" r="2" />
-        <circle cx="23" cy="19.5" r="2" />
-        <circle cx="13" cy="24.5" r="2" />
-        <circle cx="9" cy="19.5" r="2" />
-      </g>
-    </svg>
-    <span v-if="!markOnly" class="text-[1.0625rem] font-semibold tracking-[-0.02em]">HeyDesk</span>
-  </span>
+  <!-- The HeyDesk logo: an h that speaks. The foot of the h is a speech
+       bubble's tail, and its counter is the open front of a desk.
+       The files live in public/brand/ (made in ../heydesk/brand/).
+       Full: the mark and the "heydesk" wordmark, on the front door pages.
+       markOnly: the app icon tile, where the name already sits beside it. -->
+  <img
+    v-if="markOnly"
+    src="/brand/heydesk-icon.svg"
+    alt=""
+    width="32"
+    height="32"
+    class="h-8 w-8 shrink-0"
+  />
+  <img
+    v-else
+    src="/brand/heydesk-logo.svg"
+    alt="HeyDesk"
+    width="118"
+    height="26"
+    class="h-[26px] w-auto shrink-0"
+  />
 </template>
 
 <script setup>

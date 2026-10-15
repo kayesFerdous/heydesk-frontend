@@ -8,7 +8,8 @@ block must agree.
 v4 (14 Oct 2026) replaces v3 ("Cobalt on paper"). v3 was calm but generic: a
 soft dashboard of cards and round pills that could belong to any SaaS. v4
 gives the console one idea of its own, the bank passbook, and keeps
-Gigalogy's cobalt and the node mark.
+Gigalogy's cobalt. On 15 Oct 2026 the node mark gave way to the HeyDesk logo
+(see Signature details).
 
 **Design read:** a product console for non-technical small-business owners
 in Dhaka, used on a counter laptop or a phone between customers, in daylight.
@@ -279,7 +280,15 @@ Landing motion (every piece explains something, all of it off under
 
 ## Signature details
 
-1. **The node mark**: Gigalogy's constellation of dots, drawn as a speech bubble.
+1. **The logo, an h that speaks**: a heavy lowercase h whose foot is a speech
+   bubble's tail and whose counter is the open front of a desk. Cobalt on
+   white, white on a cobalt tile for the app icon. `BrandMark` shows the mark
+   and the "heydesk" wordmark on the front door pages (sign-in, setup,
+   landing), and the tile alone where a name already sits beside it (sidebar,
+   Home's first run, 404). The favicon and the phone home-screen icon are the
+   same tile. The files are in `public/brand/`, made from `../heydesk/brand/`
+   (its `logo.html` shows the construction). The customer chat carries the
+   business's name, not ours.
 2. **Today's statement** on Home, the passbook's balance line.
 3. **The ledger**: columns that never move, codes as serials, money at the
    right margin, a stamp at the end.

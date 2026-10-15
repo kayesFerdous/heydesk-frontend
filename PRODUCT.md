@@ -97,7 +97,7 @@ banner that says whose business it is; every change is in the audit log.
 - **The v1 HeyDesk theme** (pale stone canvas, floating white card, pill nav,
   green accent), rejected by the owner as "what most AI tools produce".
   HeyDesk is instead an **upgrade of Gigalogy's own identity** (cobalt
-  `#004AAC`, indigo navy, dot-network logo), built on the research in
+  `#004AAC`, indigo navy), with its own logo, an h that speaks, built on the research in
   [docs/research.md](docs/research.md).
 
 ## Success looks like
