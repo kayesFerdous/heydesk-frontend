@@ -59,6 +59,10 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 | `GET /agent/sheet` | `{url, synced_at, problem}`: `synced_at` is the last clean read; `problem` (empty: fine) says why the list didn't change. 404 while none is linked |
 | `POST /agent/sheet/sync` | Reads it now; the same answer as `GET` |
 | `DELETE /agent/sheet` | 204. Stops syncing; the list stays and can be edited again |
+| `PUT /agent/woo` `{url, key, secret}` | A shop's WooCommerce store (D75): `url` its `https://` address, a REST key made Read/Write. Checks the key can read and write (nothing is written), links it and takes its products as the list. `{url, products, synced_at, problem}`. 422 `invalid_config` with `fields.url` (not `https://`) or `fields.key` (refused, or Read only); 409 while a sheet is linked; 404 for a desk that isn't a shop |
+| `GET /agent/woo` | `{url, products, synced_at, problem}` (never the key or secret). 404 while none is linked |
+| `POST /agent/woo/sync` | Writes the orders that changed into the store, then reads its products; the same answer as `GET`. The server does this every 2 minutes by itself |
+| `DELETE /agent/woo` | 204. Stops syncing; the list stays and can be edited again, and orders already in the store stay there |
 
 `Item`: `{code, name, description, price (minor units), category, tags[], available, attributes{}}`.
 
@@ -68,6 +72,12 @@ each product's `photos`. A shop's stock in the sheet is what's on the shelf:
 the server takes off orders not shipped yet, and only when a product's stock
 cell changed (D58). The Products/Menu/Doctors page shows `SheetBar` and locks
 the rows (`ItemRow` `locked`: a shop can still change photos).
+
+A shop can link its WooCommerce store instead of a sheet (D75), never both: the
+same 409 `sheet_linked` and photos-only `PUT /products` apply. Its stock is the
+store's, and the orders placed here are written into the store, so the owner sees
+them in WooCommerce too. The Products page has "From WooCommerce" in the Import
+menu (`WooPanel`) and shows `WooBar` while one is linked.
 
 `config` (AgentConfig): `preset, name, business_name, timezone ("Asia/Dhaka"),
 country, currency, greeting, instructions (admin), notes (owner, 4000),

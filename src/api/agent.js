@@ -244,6 +244,32 @@ export function unlinkSheet() {
   return request('/agent/sheet', { method: 'DELETE' });
 }
 
+// A shop's WooCommerce store (backend D75): its products are the list, and the
+// orders placed here are written into it, synced every 2 minutes.
+// `{url, products, synced_at, problem}`, or null while none is linked.
+export async function fetchWoo() {
+  try {
+    return await request('/agent/woo');
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
+}
+
+// Checks the key can read and write, links the store and takes its products.
+// A wrong key or address is a 422 with `fields.key` or `fields.url`.
+export function linkWoo(url, key, secret) {
+  return request('/agent/woo', { method: 'PUT', body: { url, key, secret } });
+}
+
+export function syncWoo() {
+  return request('/agent/woo/sync', { method: 'POST' });
+}
+
+export function unlinkWoo() {
+  return request('/agent/woo', { method: 'DELETE' });
+}
+
 // The documents the agent reads when a question is not answered elsewhere.
 // Newest first. A document is searchable as soon as the call returns.
 export function fetchDocuments() {

@@ -1,8 +1,8 @@
 <template>
   <section class="flex flex-col lg:h-full">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
-      <template v-if="loaded && !sheet" #actions>
-        <!-- Two ways to bring a whole list in, behind one button. -->
+      <template v-if="loaded && !linked" #actions>
+        <!-- The ways to bring a whole list in, behind one button. -->
         <div ref="importRoot" class="relative">
           <button type="button" class="btn btn-secondary" aria-haspopup="menu" :aria-expanded="importMenu" @click="importMenu = !importMenu">
             <PhUploadSimple :size="16"></PhUploadSimple>
@@ -17,6 +17,10 @@
             <button type="button" class="menu-item" role="menuitem" @click="openPanel('sheet')">
               <PhTable :size="18" class="text-ink-soft"></PhTable>
               {{ t('menu.sheet.fromSheet') }}
+            </button>
+            <button v-if="agent.kind === 'shop'" type="button" class="menu-item" role="menuitem" @click="openPanel('woo')">
+              <PhStorefront :size="18" class="text-ink-soft"></PhStorefront>
+              {{ t('menu.woo.fromWoo') }}
             </button>
           </div>
         </div>
@@ -46,8 +50,15 @@
       </p>
     </div>
 
+    <WooPanel
+      v-if="importOpen === 'woo'"
+      :current-count="items.length"
+      @close="importOpen = null"
+      @linked="onWooLinked"
+    ></WooPanel>
+
     <ImportPanel
-      v-if="importOpen"
+      v-else-if="importOpen"
       :key="importOpen"
       :kind="agent.kind"
       :current-count="items.length"
@@ -56,7 +67,8 @@
       @imported="onImported"
     ></ImportPanel>
 
-    <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced" @unlinked="sheet = null"></SheetBar>
+    <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
+    <WooBar v-if="woo" :woo="woo" @synced="onSynced('woo', $event)" @unlinked="woo = null"></WooBar>
 
     <p v-if="saveError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
       <PhWarningCircle :size="16" class="shrink-0"></PhWarningCircle>
@@ -93,7 +105,7 @@
         :editing="editingCode === item.code"
         :categories="allCategories"
         :kind="agent.kind"
-        :locked="!!sheet"
+        :locked="linked"
         @toggle="toggle(item)"
         @edit="editingCode = item.code"
         @cancel="editingCode = null"
@@ -122,17 +134,19 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhTable } from '@phosphor-icons/vue';
+import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable } from '@phosphor-icons/vue';
 
 import ItemRow from '../../components/menu/ItemRow.vue';
 import ImportPanel from '../../components/menu/ImportPanel.vue';
 import SheetBar from '../../components/menu/SheetBar.vue';
+import WooBar from '../../components/menu/WooBar.vue';
+import WooPanel from '../../components/menu/WooPanel.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import LoadError from '../../components/ui/LoadError.vue';
-import { fetchItems, fetchSheet, replaceItems } from '../../api/agent.js';
+import { fetchItems, fetchSheet, fetchWoo, replaceItems } from '../../api/agent.js';
 import { makeCode } from '../../lib/slug.js';
 import { formatNumber } from '../../lib/format.js';
 import { itemNoun, itemsLabel } from '../../lib/presets.js';
@@ -156,10 +170,13 @@ const category = ref(null); // null: every category
 const query = ref('');
 const editingCode = ref(null);
 const adding = ref(false);
-const importOpen = ref(null); // 'file' or 'sheet' while that panel is open
+const importOpen = ref(null); // 'file', 'sheet' or 'woo' while that panel is open
 const sheet = ref(null); // the linked Google Sheet, { url, synced_at, problem }, or null
+const woo = ref(null); // a shop's linked WooCommerce store, { url, products, synced_at, problem }, or null
 const limit = ref(PAGE_SIZE);
 
+// The list comes from a sheet or a store: it's changed there, so the rows are locked.
+const linked = computed(() => !!sheet.value || !!woo.value);
 const label = computed(() => itemsLabel(agent.kind));
 const noun = computed(() => itemNoun(agent.kind));
 const allCategories = computed(() => [...new Set(items.value.map((item) => item.category))]);
@@ -217,7 +234,11 @@ async function load() {
       router.replace('/setup');
       return;
     }
-    [items.value, sheet.value] = await Promise.all([fetchItems(), fetchSheet()]);
+    [items.value, sheet.value, woo.value] = await Promise.all([
+      fetchItems(),
+      fetchSheet(),
+      agent.kind === 'shop' ? fetchWoo() : null,
+    ]);
     loaded.value = true;
   } catch (error) {
     loadError.value = error.message;
@@ -271,10 +292,17 @@ async function remove(code) {
   if (await persist(items.value.filter((i) => i.code !== code))) editingCode.value = null;
 }
 
-// Read now: the list may have changed with it.
-async function onSynced(read) {
-  sheet.value = read;
+// The sheet read or the store synced now: the list may have changed with it.
+async function onSynced(source, read) {
+  if (source === 'sheet') sheet.value = read;
+  else woo.value = read;
   items.value = await fetchItems();
+}
+
+// The store's products are the list now.
+async function onWooLinked(linkedStore) {
+  woo.value = linkedStore;
+  await onImported();
 }
 
 async function onImported() {
