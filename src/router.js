@@ -19,6 +19,7 @@ const MenuPage = () => import('./pages/menu/MenuPage.vue');
 const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
 const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
 const ChatPage = () => import('./pages/chat/ChatPage.vue');
+const EmbedPage = () => import('./pages/chat/EmbedPage.vue');
 const AdminPage = () => import('./pages/admin/AdminPage.vue');
 const BusinessPage = () => import('./pages/admin/BusinessPage.vue');
 const AccountPage = () => import('./pages/account/AccountPage.vue');
@@ -49,6 +50,8 @@ const router = createRouter({
     },
     // The customer's chat page: public, the key in the link is the credential.
     { path: '/chat/:key', component: ChatPage, meta: { bare: true } },
+    // The same chat in the window public/widget.js opens on a business's website (backend D82).
+    { path: '/embed/:key', component: EmbedPage, meta: { bare: true } },
     { path: '/setup', component: SetupPage, meta: { ...owner, bare: true } },
 
     // Daily work

@@ -234,6 +234,9 @@ export default {
     unavailable: 'This chat is not available right now',
     badLink: 'This chat link does not work',
     couldNotOpen: 'We could not open the chat',
+    repliesInstantly: 'Replies instantly',
+    close: 'Close',
+    poweredBy: 'Powered by HeyDesk',
   },
 
   voice: {

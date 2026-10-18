@@ -122,6 +122,7 @@ Searched by the agent when a question is not answered elsewhere. Needs an
 agent (404 before). Indexed before the call returns (a few seconds).
 | Call | What it does |
 |---|---|
+| `POST /agent/logo` (multipart `file`) | The website chat's logo (D82): saved as a 256 px JPEG and set as `config.widget.logo` → `{url}`. `PATCH /agent {widget}` sets the rest; a `logo` that isn't one of ours is a 422 |
 | `GET /agent/documents` | `[{id, title, filename, kind: text/markdown/pdf, chunk_count, created_at}]`, newest first |
 | `POST /agent/documents` `{title<=200, text<=400k}` | Add pasted text. 201. `kind` is markdown if text starts with `#` |
 | `POST /agent/documents/file` multipart `file`, `title?` | `.txt .md .markdown .pdf`, 10 MB, UTF-8, PDF needs a text layer, no passwords. Empty title uses the file name. 201 |
@@ -176,7 +177,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ### Visitor chat (`chat.js`, public, the public key is the credential)
 | Call | What it does |
 |---|---|
-| `GET /chat/{public_key}` | `{name, greeting, photos}`. `photos`: true when the visitor can send a photo (a shop, D57). 404 unknown, 404 `unavailable` if suspended |
+| `GET /chat/{public_key}` | `{name, greeting, photos, widget}`. `photos`: true when the visitor can send a photo (a shop, D57). `widget`: the website chat's look (D82), `{colour: '#rrggbb', side: 'right'/'left', nudge, starters: [up to 4], logo: '' or '/media/…'}`, with `{business_name}` filled in. 404 unknown, 404 `unavailable` if suspended |
 | `POST /chat/{public_key}` `{message, conversation_id?, visitor_id, photo?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `photos{items:[{name, price, url}]}` (products the agent shows, D57), `done{interrupted}`, `error{message}`. `photo`: a JPEG or PNG as base64 or a data URL, at most 2 MB (`lib/photo.js` makes it a 1024 px JPEG first); `message` may then be empty. A photo to an agent without `photos`, or one that isn't a picture, is a 422 `unreadable_photo`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
 | `GET /voice/ice` | ICE servers for a call: STUN, plus a Cloudflare TURN relay when the backend has keys |
 | `POST /voice/offer?key=<public_key>&visitor=<token>` `{sdp, type}` | WebRTC voice. `visitor` is the same token as the chat's; a limited visitor gets the chat's 429 before the call connects. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. Client: `api/voice.js`, `components/chat/VoiceCall.vue` |

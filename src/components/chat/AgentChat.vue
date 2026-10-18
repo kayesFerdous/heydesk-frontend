@@ -77,6 +77,19 @@
           </div>
         </div>
 
+        <!-- Tap-to-ask buttons the business chose (backend D82), until the first message. -->
+        <div v-if="starters.length && messages.length === 1 && !sending" class="msg mt-4 flex flex-wrap gap-2 pl-8">
+          <button
+            v-for="starter in starters"
+            :key="starter"
+            type="button"
+            class="rounded-full border border-line-strong bg-surface px-3.5 py-1.5 text-left text-sm font-medium text-ink transition-colors duration-200 hover:border-brand hover:text-brand"
+            @click="ask(starter)"
+          >
+            {{ starter }}
+          </button>
+        </div>
+
         <div v-if="handoff" class="notice msg mt-6" role="status">
           <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
           <div class="min-w-0">
@@ -189,6 +202,7 @@ import { initials } from '../../lib/group.js';
 import { shrinkPhoto } from '../../lib/photo.js';
 
 const TEAM_CHECK_MS = 4000;
+const REMEMBERED_FOR_MS = 24 * 60 * 60 * 1000; // a day: after that, a new conversation
 
 const props = defineProps({
   publicKey: { type: String, required: true },
@@ -197,7 +211,14 @@ const props = defineProps({
   // The customer's own page: no test note under the input, and the page puts
   // Start over in its header (it calls the exposed `restart`).
   customer: { type: Boolean, default: false },
+  // Tap-to-ask buttons under the greeting (backend D82).
+  starters: { type: Array, default: () => [] },
+  // Keep the conversation in this browser, so it is still there after a reload
+  // or on the website's next page (the website chat, backend D82).
+  remember: { type: Boolean, default: false },
 });
+// `reply`: the agent finished a reply or the team wrote, for the website's unread dot.
+const emit = defineEmits(['reply']);
 const { t } = useI18n();
 
 const messages = ref([]);
@@ -240,6 +261,49 @@ function isPending(index) {
   return sending.value && index === messages.value.length - 1;
 }
 
+// The remembered conversation lives in localStorage, under the agent's key.
+// Storage can be blocked (a private window): then the chat just isn't remembered.
+const savedKey = () => `heydesk-chat:${props.publicKey}`;
+
+function saved() {
+  try {
+    const found = JSON.parse(localStorage.getItem(savedKey()));
+    return found && Date.now() - found.savedAt < REMEMBERED_FOR_MS ? found : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function save() {
+  if (!props.remember) return;
+  const data = {
+    savedAt: Date.now(),
+    conversationId: conversationId.value,
+    messages: messages.value,
+    teamSeen,
+    handoff: handoff.value,
+  };
+  try {
+    localStorage.setItem(savedKey(), JSON.stringify(data));
+  } catch (err) {
+    // Too big with the photos the visitor sent: keep the words.
+    data.messages = data.messages.map((m) => ({ ...m, photo: null }));
+    try {
+      localStorage.setItem(savedKey(), JSON.stringify(data));
+    } catch (again) {
+      // Storage is blocked: nothing to do.
+    }
+  }
+}
+
+function forget() {
+  try {
+    localStorage.removeItem(savedKey());
+  } catch (err) {
+    // Storage is blocked: nothing was kept.
+  }
+}
+
 // The greeting is shown on load; the first turn stores it (backend D8).
 async function start() {
   messages.value = [];
@@ -255,13 +319,24 @@ async function start() {
     const agent = props.agent || (await fetchChatAgent(props.publicKey));
     takesPhotos.value = Boolean(agent.photos);
     agentName.value = agent.name;
-    say('agent', agent.greeting);
+    const before = props.remember && saved();
+    if (before) {
+      messages.value = before.messages;
+      conversationId.value = before.conversationId;
+      teamSeen = before.teamSeen;
+      handoff.value = before.handoff;
+      if (conversationId.value) watchTeam();
+      scrollDown(true);
+    } else {
+      say('agent', agent.greeting);
+    }
   } catch (err) {
     error.value = err.message;
   }
 }
 
 function restart() {
+  forget();
   draft.value = '';
   fitInput();
   start();
@@ -308,8 +383,12 @@ async function checkTeam() {
     const replies = await fetchTeamReplies(props.publicKey, id);
     if (id !== conversationId.value) return; // started over meanwhile
     replies.slice(teamSeen).forEach((text) => say('team', text));
-    if (replies.length > teamSeen) scrollDown();
+    if (replies.length > teamSeen) {
+      scrollDown();
+      emit('reply');
+    }
     teamSeen = replies.length;
+    save();
   } catch (err) {
     // A missed check is fine: the next one catches up.
   }
@@ -326,6 +405,11 @@ async function pickPhoto(event) {
     error.value = t('chat.notAPhoto');
   }
   nextTick(() => input.value && input.value.focus());
+}
+
+function ask(text) {
+  draft.value = text;
+  send();
 }
 
 async function send() {
@@ -378,13 +462,19 @@ async function send() {
   status.value = null;
   sending.value = false;
   scrollDown();
+  save();
+  if (reply.text || reply.photos) emit('reply');
+  focus();
+}
+
+function focus() {
   nextTick(() => input.value && input.value.focus());
 }
 
 watch(() => props.publicKey, start, { immediate: true });
 onBeforeUnmount(() => clearInterval(teamTimer));
 
-defineExpose({ restart, started });
+defineExpose({ restart, started, focus });
 </script>
 
 <style scoped>

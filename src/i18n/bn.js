@@ -233,6 +233,9 @@ export default {
     unavailable: 'এই চ্যাট এখন পাওয়া যাচ্ছে না',
     badLink: 'এই চ্যাট লিংকটি কাজ করছে না',
     couldNotOpen: 'চ্যাটটি খোলা যায়নি',
+    repliesInstantly: 'সাথে সাথে উত্তর দেয়',
+    close: 'বন্ধ করুন',
+    poweredBy: 'HeyDesk দিয়ে চালিত',
   },
 
   voice: {
