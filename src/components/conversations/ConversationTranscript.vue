@@ -28,10 +28,23 @@
             <template v-else>{{ t('conversations.readThenReach') }}</template>
           </p>
         </div>
-        <a v-if="phone" :href="`tel:${phone}`" class="btn btn-primary">
-          <PhPhone :size="16"></PhPhone>
-          {{ t('conversations.callBack') }}
-        </a>
+        <div class="flex flex-wrap gap-2">
+          <a v-if="phone" :href="`tel:${phone}`" class="btn btn-primary">
+            <PhPhone :size="16"></PhPhone>
+            {{ t('conversations.callBack') }}
+          </a>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            :title="t('conversations.handledHint')"
+            :disabled="busy"
+            @click="$emit('handled')"
+          >
+            <PhCheck :size="16"></PhCheck>
+            {{ t('conversations.markHandled') }}
+          </button>
+        </div>
+        <p v-if="error" class="w-full text-sm text-danger" role="alert">{{ error }}</p>
       </div>
 
       <div class="mx-auto flex max-w-2xl flex-col gap-3">
@@ -94,7 +107,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhArrowLeft, PhPhone, PhUserSound } from '@phosphor-icons/vue';
+import { PhArrowLeft, PhCheck, PhPhone, PhUserSound } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
 import { channelOf } from '../../lib/channels.js';
@@ -102,8 +115,10 @@ import { formatMoney, formatTime, formatDay } from '../../lib/format.js';
 
 const props = defineProps({
   conversation: { type: Object, required: true },
+  busy: { type: Boolean, default: false }, // marking the hand-off handled
+  error: { type: String, default: null },
 });
-defineEmits(['back']);
+defineEmits(['back', 'handled']);
 const { t } = useI18n();
 
 const channel = computed(() => channelOf(props.conversation.channel));

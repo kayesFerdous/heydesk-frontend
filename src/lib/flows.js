@@ -18,7 +18,7 @@ export const FLOWS = {
   // A shop's order: the shop phones to confirm, then a courier takes it (backend D45).
   shop_order: {
     unpaid: { primary: { to: 'new', label: 'markPaid' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
-    new: { primary: { to: 'confirmed', label: 'markConfirmed' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
+    new: { primary: { to: 'confirmed', label: 'acceptOrder' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
     confirmed: { primary: { to: 'shipped', label: 'markShipped' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
     shipped: { primary: { to: 'delivered', label: 'markDelivered' }, others: [{ to: 'returned', label: 'markReturned' }] },
     delivered: { primary: null, others: [] },
@@ -27,7 +27,7 @@ export const FLOWS = {
   },
   appointment: {
     unpaid: { primary: { to: 'new', label: 'markPaid' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
-    new: { primary: { to: 'confirmed', label: 'markConfirmed' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
+    new: { primary: { to: 'confirmed', label: 'confirmTime' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
     confirmed: { primary: { to: 'done', label: 'markDone' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
     done: { primary: null, others: [] },
     cancelled: { primary: null, others: [] },

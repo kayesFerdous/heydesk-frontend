@@ -56,7 +56,10 @@
       <ConversationTranscript
         v-if="detail"
         :conversation="detail"
+        :busy="isHandling"
+        :error="handleError"
         @back="select(null)"
+        @handled="handled"
       ></ConversationTranscript>
       <LoadError v-else-if="detailError" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
       <div v-else-if="selectedId" class="p-8" aria-hidden="true">
@@ -85,7 +88,7 @@ import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
-import { fetchConversations, fetchConversation } from '../../api/conversations.js';
+import { fetchConversations, fetchConversation, markHandled } from '../../api/conversations.js';
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber } from '../../lib/format.js';
@@ -109,6 +112,8 @@ const moreError = ref(null);
 const loaded = ref(false);
 const error = ref(null);
 const detailError = ref(null);
+const isHandling = ref(false);
+const handleError = ref(null);
 
 const filter = computed(() => (route.query.filter === 'needs_human' ? 'needs_human' : 'all'));
 const selectedId = computed(() => route.query.open || null);
@@ -202,6 +207,27 @@ async function loadDetail(id) {
   }
 }
 
+// The owner dealt with a hand-off: the agent answers again, and it leaves
+// "Needs a person" (the filter, the badges and Home's "Waiting for you").
+async function handled() {
+  const id = selectedId.value;
+  isHandling.value = true;
+  handleError.value = null;
+  try {
+    const updated = await markHandled(id);
+    details.value[id] = { ...details.value[id], status: updated.status };
+    list.value =
+      filter.value === 'needs_human'
+        ? list.value.filter((c) => c.id !== id)
+        : list.value.map((c) => (c.id === id ? { ...c, ...updated } : c));
+    inbox.load().catch(() => {});
+  } catch (err) {
+    // e.g. 409: someone already gave it back on Telegram. Show the sentence.
+    handleError.value = err.message;
+  }
+  isHandling.value = false;
+}
+
 // The next page: conversations quieter than the oldest one on screen.
 async function showMore() {
   const asked = filter.value;
@@ -226,6 +252,7 @@ watch(
   selectedId,
   (id) => {
     detailError.value = null;
+    handleError.value = null;
     if (id && !details.value[id]) loadDetail(id);
   },
   { immediate: true },
