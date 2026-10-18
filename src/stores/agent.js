@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-import { fetchAgent, fetchPresets, createAgent, updateAgent } from '../api/agent.js';
+import { fetchAgent, fetchPresets, createAgent, updateAgent, uploadLogo } from '../api/agent.js';
 
 export const useAgentStore = defineStore('agent', () => {
   const info = ref(null); // { public_key, config, jobs, missing }
@@ -78,6 +78,11 @@ export const useAgentStore = defineStore('agent', () => {
     setAgent(await updateAgent(patch));
   }
 
+  // The website chat's logo goes up on its own and is saved at once (backend D82).
+  async function saveLogo(file) {
+    setAgent(await uploadLogo(file));
+  }
+
   function clear() {
     info.value = null;
     noAgent.value = false;
@@ -87,6 +92,6 @@ export const useAgentStore = defineStore('agent', () => {
   return {
     info, noAgent, loaded, presets,
     hasAgent, config, publicKey, jobs, missing, preset, kind,
-    load, loadPresets, create, save, clear,
+    load, loadPresets, create, save, saveLogo, clear,
   };
 });

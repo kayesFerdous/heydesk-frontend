@@ -15,6 +15,7 @@ const ProfileSection = () => import('./pages/agent/ProfileSection.vue');
 const HoursSection = () => import('./pages/agent/HoursSection.vue');
 const AnswersSection = () => import('./pages/agent/AnswersSection.vue');
 const PaymentsSection = () => import('./pages/agent/PaymentsSection.vue');
+const BubbleSection = () => import('./pages/agent/BubbleSection.vue');
 const MenuPage = () => import('./pages/menu/MenuPage.vue');
 const KnowledgePage = () => import('./pages/knowledge/KnowledgePage.vue');
 const ChannelsPage = () => import('./pages/channels/ChannelsPage.vue');
@@ -71,6 +72,7 @@ const router = createRouter({
         { path: 'hours', component: HoursSection, meta: owner },
         { path: 'answers', component: AnswersSection, meta: owner },
         { path: 'payments', component: PaymentsSection, meta: owner },
+        { path: 'bubble', component: BubbleSection, meta: owner },
       ],
     },
     { path: '/menu', component: MenuPage, meta: owner },

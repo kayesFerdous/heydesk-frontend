@@ -16,6 +16,10 @@
               {{ t('channelsPage.openChatPage') }}
             </a>
           </div>
+          <router-link to="/agent/bubble" class="link inline-flex items-center gap-1.5 text-sm font-medium">
+            <PhChatCircleDots :size="16"></PhChatCircleDots>
+            {{ t('channelsPage.bubbleLink') }}
+          </router-link>
         </template>
         <div v-else class="skeleton h-10 w-full" aria-hidden="true"></div>
       </SettingsGroup>
@@ -37,7 +41,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhArrowSquareOut } from '@phosphor-icons/vue';
+import { PhArrowSquareOut, PhChatCircleDots } from '@phosphor-icons/vue';
 
 import PageHeader from '../../components/ui/PageHeader.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';

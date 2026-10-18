@@ -238,6 +238,52 @@ export default {
     poweredBy: 'HeyDesk দিয়ে চালিত',
   },
 
+  bubble: {
+    preview: 'প্রিভিউ',
+    previewTip: 'আপনার ওয়েবসাইটে কাস্টমার যা দেখবেন। খুলতে ও বন্ধ করতে বাবলে ক্লিক করুন।',
+    previewOpen: 'প্রিভিউতে চ্যাট খুলুন',
+    previewClose: 'প্রিভিউতে চ্যাট বন্ধ করুন',
+    yourWebsite: 'your-website.com',
+    look: 'দেখতে কেমন',
+    colour: 'রং',
+    otherColour: 'অন্য রং',
+    colourCode: 'রঙের কোড',
+    badColour: '#0f766e এর মতো একটি রঙের কোড দিন।',
+    side: 'পেজের কোন পাশে',
+    left: 'বাঁ',
+    right: 'ডান',
+    logo: 'লোগো',
+    logoHint: 'চারকোনা ছবি সবচেয়ে ভালো দেখায়। বেছে নেওয়ার সাথে সাথেই সেভ হয়।',
+    addLogo: 'লোগো যোগ করুন',
+    changeLogo: 'বদলান',
+    removeLogo: 'সরান',
+    uploading: 'আপলোড হচ্ছে',
+    firstWords: 'প্রথম কথা',
+    nudge: 'পপ-আউট লাইন',
+    nudgeTip: 'কেউ আপনার ওয়েবসাইট খোলার কয়েক সেকেন্ড পর বাবল থেকে বের হয়, দিনে একবার।',
+    nudgeEmpty: 'না চাইলে খালি রাখুন',
+    starters: 'দ্রুত প্রশ্ন',
+    startersTip: 'শুভেচ্ছার নিচে সর্বোচ্চ ৪টি বোতাম। ট্যাপ করলে সেই প্রশ্নটি পাঠানো হয়।',
+    addStarter: 'প্রশ্ন যোগ করুন',
+    removeStarter: 'এই প্রশ্নটি সরান',
+    addToSite: 'আপনার ওয়েবসাইটে যোগ করুন',
+    addToSiteTip: 'এই এক লাইন একবার পেস্ট করুন। এখানে যা সেভ করবেন, ওয়েবসাইটে নিজে থেকেই দেখাবে।',
+    code: 'আপনার কোড',
+    wordpress: {
+      name: 'WordPress',
+      how: 'ফ্রি WPCode প্লাগইন দিয়ে Code Snippets, তারপর Header & Footer খুলুন, Footer বক্সে লাইনটি পেস্ট করে সেভ করুন।',
+    },
+    wix: {
+      name: 'Wix',
+      how: 'Settings, তারপর Custom code, তারপর Add custom code খুলুন। লাইনটি পেস্ট করুন, All pages ও Body - end বেছে Apply চাপুন।',
+    },
+    shopify: {
+      name: 'Shopify',
+      how: 'Online Store, তারপর Themes, তারপর Edit code খুলুন। theme.liquid এ </body> এর ঠিক উপরে লাইনটি পেস্ট করে সেভ করুন।',
+    },
+    savedFirst: 'আগে পরিবর্তনগুলো সেভ করুন: ওয়েবসাইট সেভ করা জিনিসই দেখায়।',
+  },
+
   voice: {
     call: 'কল',
     connecting: 'সংযোগ হচ্ছে',
@@ -410,6 +456,7 @@ export default {
   },
 
   agent: {
+    bubble: 'চ্যাট বাবল',
     tryIt: 'চালিয়ে দেখুন',
     title: 'এজেন্ট সেটিংস',
     sections: 'সেটিংসের অংশ',
@@ -767,6 +814,7 @@ export default {
   },
 
   channelsPage: {
+    bubbleLink: 'আপনার ওয়েবসাইটে চ্যাট বাবল বসান',
     title: 'চ্যানেল',
     subtitle: 'কাস্টমাররা যেখানে আপনার এজেন্টকে পান। দিনরাত প্রতিটিতে এটি উত্তর দেয়।',
     websiteChat: 'ওয়েবসাইট চ্যাট',

@@ -7,7 +7,7 @@ import { t } from '../i18n/index.js';
 // restaurant's menu or a clinic's doctors are the "items".
 
 // Fields every agent has; anything else in a desk's schema is its own.
-const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff'];
+const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff', 'widget'];
 // What each kind of agent does. The words are `jobs.<kind>.<job>` in the language files.
 const JOBS = {
   restaurant: ['order', 'message'],
@@ -157,6 +157,15 @@ export async function uploadProductPhoto(file) {
   const form = new FormData();
   form.append('file', file);
   return request('/products/photos', { method: 'POST', body: form });
+}
+
+// The website chat's logo (backend D82): saved small and set on the agent's
+// `widget` straight away, so the answer is the whole agent, like a save.
+export async function uploadLogo(file) {
+  const form = new FormData();
+  form.append('file', file);
+  await request('/agent/logo', { method: 'POST', body: form });
+  return fetchAgent();
 }
 
 export async function fetchItems() {

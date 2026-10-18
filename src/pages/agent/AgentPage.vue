@@ -92,6 +92,7 @@ const sections = computed(() => {
   if (['restaurant', 'shop'].includes(agent.kind)) {
     list.push({ to: '/agent/payments', label: t('agent.deliveryAndPayments') });
   }
+  list.push({ to: '/agent/bubble', label: t('agent.bubble') });
   return list;
 });
 

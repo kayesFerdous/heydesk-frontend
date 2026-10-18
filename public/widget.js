@@ -94,8 +94,7 @@
 
   /* A phone: the chat takes the whole screen, and its own close button closes it. */
   @media (max-width: 480px) {
-    .panel { inset: 0; width: auto; height: 100%; border-radius: 0; }
-    .left .panel { left: 0; }
+    .panel, .left .panel { inset: 0; width: auto; height: 100%; border-radius: 0; }
     .open .bubble, .open .nudge { opacity: 0; pointer-events: none; }
   }
   @media (prefers-reduced-motion: reduce) {

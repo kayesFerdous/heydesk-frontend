@@ -239,6 +239,52 @@ export default {
     poweredBy: 'Powered by HeyDesk',
   },
 
+  bubble: {
+    preview: 'Preview',
+    previewTip: 'What a customer sees on your website. Click the bubble to open and close it.',
+    previewOpen: 'Open the chat in the preview',
+    previewClose: 'Close the chat in the preview',
+    yourWebsite: 'your-website.com',
+    look: 'Look',
+    colour: 'Colour',
+    otherColour: 'Another colour',
+    colourCode: 'Colour code',
+    badColour: 'Use a colour code like #0f766e.',
+    side: 'Side of the page',
+    left: 'Left',
+    right: 'Right',
+    logo: 'Logo',
+    logoHint: 'A square picture works best. It is saved as soon as you pick it.',
+    addLogo: 'Add a logo',
+    changeLogo: 'Change',
+    removeLogo: 'Remove',
+    uploading: 'Uploading',
+    firstWords: 'First words',
+    nudge: 'Pop-out line',
+    nudgeTip: 'Pops out of the bubble a few seconds after someone opens your website, once a day.',
+    nudgeEmpty: 'Leave empty for none',
+    starters: 'Quick questions',
+    startersTip: 'Up to 4 buttons under the greeting. A tap sends that question.',
+    addStarter: 'Add a question',
+    removeStarter: 'Remove this question',
+    addToSite: 'Add it to your website',
+    addToSiteTip: 'Paste this one line once. Changes you save here show up on your website by themselves.',
+    code: 'Your code',
+    wordpress: {
+      name: 'WordPress',
+      how: 'with the free WPCode plugin, open Code Snippets, then Header & Footer, paste the line in the Footer box and save.',
+    },
+    wix: {
+      name: 'Wix',
+      how: 'open Settings, then Custom code, then Add custom code. Paste the line, pick All pages and Body - end, then Apply.',
+    },
+    shopify: {
+      name: 'Shopify',
+      how: 'open Online Store, then Themes, then Edit code. In theme.liquid, paste the line just above </body> and save.',
+    },
+    savedFirst: 'Save your changes first: the website shows what is saved.',
+  },
+
   voice: {
     call: 'Call',
     connecting: 'Connecting',
@@ -412,6 +458,7 @@ export default {
   },
 
   agent: {
+    bubble: 'Chat bubble',
     tryIt: 'Try it',
     title: 'Agent settings',
     sections: 'Settings sections',
@@ -770,6 +817,7 @@ export default {
   },
 
   channelsPage: {
+    bubbleLink: 'Put a chat bubble on your website',
     title: 'Channels',
     subtitle: 'Where customers reach your agent. It answers on each of these, day and night.',
     websiteChat: 'Website chat',

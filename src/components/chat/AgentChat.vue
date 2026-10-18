@@ -26,6 +26,7 @@
               aria-hidden="true"
             >
               <PhUser v-if="message.role === 'team'" :size="13" weight="bold"></PhUser>
+              <img v-else-if="agentLogo" :src="agentLogo" alt="" class="h-6 w-6 rounded-full object-cover ring-1 ring-hairline" />
               <template v-else>{{ initials(agentName) }}</template>
             </span>
             <span class="font-semibold">{{ message.role === 'team' ? t('chat.fromTeam') : agentName }}</span>
@@ -233,6 +234,7 @@ const input = ref(null);
 const takesPhotos = ref(false); // a shop's chat takes a photo with a message (D57)
 const photo = ref(null); // the picked photo, made small, as a data URL
 const agentName = ref('');
+const agentLogo = ref(''); // the business's logo for the website chat (backend D82)
 let teamSeen = 0;
 let teamTimer = null;
 
@@ -319,6 +321,7 @@ async function start() {
     const agent = props.agent || (await fetchChatAgent(props.publicKey));
     takesPhotos.value = Boolean(agent.photos);
     agentName.value = agent.name;
+    agentLogo.value = agent.widget?.logo || '';
     const before = props.remember && saved();
     if (before) {
       messages.value = before.messages;
