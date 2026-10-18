@@ -19,6 +19,8 @@
         <FieldLabel html-for="greeting" :tip="t('profile.greetingHint', { placeholder: '{business_name}' })">{{ t('profile.greeting') }}</FieldLabel>
         <textarea id="greeting" v-model="form.greeting" class="field" :class="{ 'field-invalid': errors.greeting }" rows="2"></textarea>
         <p v-if="errors.greeting" class="error-text">{{ errors.greeting }}</p>
+        <!-- The {business_name} placeholder is a system word: show what it becomes. -->
+        <p v-else-if="greetingPreview" class="hint">{{ t('profile.greetingPreview', { text: greetingPreview }) }}</p>
       </div>
     </SettingsGroup>
 
@@ -83,7 +85,7 @@ const PAYMENT_FIELDS = ['delivers', 'delivery_charge', 'deposit', 'pay_first', '
 
 // Fields with friendlier words than the schema's names (`profile.fields.<key>`);
 // the long ones get a textarea.
-const KNOWN_FIELDS = ['address', 'policies', 'about', 'services', 'emergency_phone', 'size_guide'];
+const KNOWN_FIELDS = ['address', 'policies', 'about', 'services', 'emergency_phone', 'size_guide', 'exchange_days'];
 const LONG_FIELDS = ['policies', 'about', 'services', 'size_guide'];
 
 const { t, te } = useI18n();
@@ -99,12 +101,19 @@ const fields = computed(() => {
       const helpKey = `profile.fields.${key}.help`;
       return {
         key,
-        label: known ? t(`profile.fields.${key}.label`) : properties[key].title || key,
+        label: known ? t(`profile.fields.${key}.label`) : sentenceCase(properties[key].title || key),
         long: LONG_FIELDS.includes(key),
         help: known && te(helpKey, 'en') ? t(helpKey) : '',
       };
     });
 });
+
+// A field this page has no words for yet shows the schema's title ("Exchange
+// Days", "exchange_days") in sentence case: "Exchange days".
+function sentenceCase(title) {
+  const words = title.replaceAll('_', ' ').toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 const { form, isDirty, isSaving, saveError, problems, errors, savedNote, save, resetForm } = useAgentSection({
   formFrom: (config) => {
@@ -118,6 +127,13 @@ const { form, isDirty, isSaving, saveError, problems, errors, savedNote, save, r
     };
   },
   patchFrom: (f) => ({ ...f }),
+});
+
+// The greeting as a customer reads it, when it uses the placeholder.
+const greetingPreview = computed(() => {
+  const greeting = form.value?.greeting ?? '';
+  if (!greeting.includes('{business_name}')) return '';
+  return greeting.replaceAll('{business_name}', form.value.business_name || t('common.businessName'));
 });
 
 // The preset (and so the fields) can arrive after the config.

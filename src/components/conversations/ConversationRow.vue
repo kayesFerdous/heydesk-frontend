@@ -11,7 +11,9 @@
       :class="tint"
       aria-hidden="true"
     >
-      {{ initials(row.name) }}
+      <!-- A visitor with no name yet shows where they wrote from, not a row of "V"s. -->
+      <template v-if="row.named">{{ initials(row.name) }}</template>
+      <component :is="channel.icon" v-else :size="18"></component>
     </span>
 
     <span class="min-w-0">
@@ -22,8 +24,9 @@
     <span class="flex flex-col items-end gap-1">
       <span class="text-xs text-ink-soft">{{ formatTime(row.updated_at) }}</span>
       <StatusChip v-if="row.status === 'needs_human'" status="needs_human"></StatusChip>
-      <span v-else class="chip bg-hover !font-medium text-ink-soft">
-        <component :is="channel.icon" :size="14"></component>
+      <!-- Web chat is the usual case: only another channel is worth a word. -->
+      <span v-else-if="row.channel !== 'web'" class="flex items-center gap-1 text-xs text-ink-soft">
+        <component :is="channel.icon" :size="14" class="text-ink-faint"></component>
         {{ channel.label }}
       </span>
     </span>
@@ -46,6 +49,6 @@ const props = defineProps({
 defineEmits(['select']);
 const { t } = useI18n();
 
-const tint = computed(() => avatarTint(props.row.name));
+const tint = computed(() => (props.row.named ? avatarTint(props.row.name) : 'bg-hover text-ink-soft'));
 const channel = computed(() => channelOf(props.row.channel));
 </script>

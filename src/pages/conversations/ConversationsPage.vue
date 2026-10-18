@@ -127,6 +127,7 @@ const rows = computed(() =>
     return {
       ...c,
       name: record?.customer_name || t('conversations.visitor'),
+      named: Boolean(record?.customer_name),
       preview: messages.length ? messages[messages.length - 1].text : '',
     };
   }),

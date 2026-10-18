@@ -9,7 +9,8 @@
    and selection. Green, orange and red are states (live, needs a person,
    destructive), never decoration. */
 @theme {
-  --font-sans: 'Geist', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Noto Color Emoji';
   /* Order and booking codes only (A-104, #12): a serial, like a cheque number. */
   --font-serial: 'Geist Mono', 'Noto Sans Bengali', ui-monospace, monospace;
 
@@ -155,6 +156,13 @@
 
   textarea.field {
     @apply h-auto py-2.5 leading-relaxed;
+  }
+
+  /* A dropdown looks like the other fields: the browser's arrow gives way to
+     Phosphor's CaretDown in ink-soft. */
+  select.field {
+    @apply cursor-pointer appearance-none bg-[length:14px] bg-[right_0.75rem_center] bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%234D5A70'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E");
   }
 
   .field-invalid {

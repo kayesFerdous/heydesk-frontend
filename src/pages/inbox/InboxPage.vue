@@ -1,6 +1,7 @@
 <template>
   <section class="flex flex-col lg:h-full">
-    <PageHeader :title="t('inbox.title')" :subtitle="t('inbox.subtitle')">
+    <!-- On a phone an opened record takes the whole screen, with a way back. -->
+    <PageHeader :class="{ 'max-lg:hidden': opened }" :title="t('inbox.title')" :subtitle="t('inbox.subtitle')">
       <template #actions>
         <label class="relative block w-full sm:w-72">
           <span class="sr-only">{{ t('inbox.search') }}</span>
@@ -12,7 +13,7 @@
             v-model.trim="query"
             class="field pl-9"
             type="search"
-            :placeholder="t('inbox.search')"
+            :placeholder="t('inbox.searchHint')"
             @input="searchSoon"
           />
         </label>
@@ -40,7 +41,7 @@
       v-if="inbox.needsHuman > 0"
       to="/conversations?filter=needs_human"
       class="notice mx-5 mb-4 items-center transition-colors hover:bg-wash sm:mx-8"
-      :class="{ 'mt-4': inbox.jobs.length > 1 }"
+      :class="{ 'mt-4': inbox.jobs.length > 1, 'max-lg:hidden': opened }"
     >
       <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
       <span class="min-w-0 flex-1">
@@ -81,7 +82,7 @@
       v-else
       class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_25rem]"
     >
-      <div class="lg:min-h-0 lg:overflow-y-auto">
+      <div class="lg:min-h-0 lg:overflow-y-auto" :class="{ 'max-lg:hidden': opened }">
         <div class="ledger ledger-head px-5 pt-3 sm:px-8" :class="{ 'ledger-money': isOrders }" aria-hidden="true">
           <span>{{ t('home.columns.when') }}</span>
           <span class="col-span-2">{{ t('home.columns.entry') }}</span>
@@ -107,8 +108,13 @@
 
       <aside
         v-if="selected"
-        class="border-t border-hairline bg-wash lg:min-h-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
+        class="lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-hairline lg:bg-wash"
+        :class="{ 'max-lg:hidden': !opened }"
       >
+        <button type="button" class="btn btn-quiet mx-3 mt-3 lg:hidden" @click="opened = false">
+          <PhArrowLeft :size="18"></PhArrowLeft>
+          {{ t('inbox.back') }}
+        </button>
         <RecordDetail
           :record="selected"
           :busy="isMoving"
@@ -125,6 +131,7 @@ import { ref, computed, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
+  PhArrowLeft,
   PhArrowRight,
   PhMagnifyingGlass,
   PhSparkle,
@@ -152,6 +159,9 @@ const inbox = useInboxStore();
 // ?job=order&open=<id> opens one record straight away (links from Home).
 const currentJob = ref(route.query.job || null);
 const selectedId = ref(route.query.open || null);
+// Desktop always shows the selected record beside the list; a phone shows it
+// only once it was picked (or a link opened it), instead of under the list.
+const opened = ref(Boolean(route.query.open));
 const query = ref('');
 const records = ref([]); // the pages loaded so far, newest first
 const linked = ref(null); // the record a link asked for, when it is older than the first page
@@ -267,12 +277,15 @@ async function showMore() {
 
 function select(id) {
   selectedId.value = id;
+  opened.value = true;
   moveError.value = null;
+  window.scrollTo(0, 0); // a phone starts the record at its top
 }
 
 function selectJob(job) {
   currentJob.value = job;
   selectedId.value = null;
+  opened.value = false;
   reload();
 }
 

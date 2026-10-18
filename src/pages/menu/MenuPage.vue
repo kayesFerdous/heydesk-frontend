@@ -34,9 +34,9 @@
     <!-- Find a dish: words, then a category. The count says how big the list is. -->
     <div v-if="loaded && items.length" class="flex flex-wrap items-center gap-2 px-5 pb-4 sm:px-8">
       <label class="relative block w-full sm:w-64">
-        <span class="sr-only">{{ t('menu.search', { list: label }) }}</span>
+        <span class="sr-only">{{ t('menu.search', { list: label.toLowerCase() }) }}</span>
         <PhMagnifyingGlass :size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"></PhMagnifyingGlass>
-        <input v-model.trim="query" class="field !h-9 pl-9" type="search" :placeholder="t('menu.search', { list: label })" />
+        <input v-model.trim="query" class="field !h-9 pl-9" type="search" :placeholder="t('menu.search', { list: label.toLowerCase() })" />
       </label>
       <label class="w-full sm:w-auto">
         <span class="sr-only">{{ t('menu.row.category') }}</span>
