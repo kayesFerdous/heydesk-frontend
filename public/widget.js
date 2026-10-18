@@ -6,7 +6,9 @@
 // Everything sits in a shadow root, so the website's styles and ours never mix.
 // The look comes from the chat itself: the iframe loads once the page is idle and
 // sends its settings (heydesk:ready), and then the bubble appears. So the website
-// isn't slowed down, and the first click opens the chat at once.
+// isn't slowed down, and the first click opens the chat at once. The look is also
+// kept in the browser, so from the visitor's second page the bubble shows at once,
+// and is updated when the chat sends the latest.
 // Plain JS, no build step: Vite copies this file as it is.
 (() => {
   const script = document.currentScript;
@@ -118,9 +120,11 @@
   const bubble = $('.bubble');
   const nudge = $('.nudge');
   let isOpen = false;
+  let greeted = false; // the open window came back, or the nudge was planned: once a page
 
   function open() {
     if (!box.classList.contains('ready')) return;
+    load(); // clicked before the browser was idle: load the chat now
     isOpen = true;
     box.classList.add('open');
     box.classList.remove('unread', 'nudging');
@@ -151,22 +155,29 @@
     }, NUDGE_AFTER_MS);
   }
 
-  // The chat's settings arrived: show the bubble in the business's look.
-  function ready(data) {
+  // Show the bubble in the business's look: the remembered one, then the latest.
+  function show(data) {
     const widget = data.widget || {};
     if (widget.colour) {
       box.style.setProperty('--c', widget.colour);
       box.style.setProperty('--on', isLight(widget.colour) ? '#1c1917' : '#fff');
     }
     box.classList.toggle('left', widget.side === 'left');
-    if (widget.logo) {
-      $('.logo').src = new URL(widget.logo, origin).href;
-      box.classList.add('has-logo');
-    }
+    if (widget.logo) $('.logo').src = new URL(widget.logo, origin).href;
+    box.classList.toggle('has-logo', Boolean(widget.logo));
     if (data.name) frame.title = data.name;
     box.classList.add('ready');
+  }
+
+  // The chat loaded and sent its settings: show them, keep them for the next page,
+  // and bring back the open window or plan the nudge.
+  function ready(data) {
+    show(data);
+    stored('localStorage', `heydesk-look:${key}`, JSON.stringify({ name: data.name, widget: data.widget }));
+    if (greeted) return;
+    greeted = true;
     if (stored('sessionStorage', `heydesk-open:${key}`) === '1') open();
-    else maybeNudge(widget.nudge);
+    else maybeNudge((data.widget || {}).nudge);
   }
 
   window.addEventListener('message', (event) => {
@@ -187,11 +198,17 @@
   document.addEventListener('keydown', (event) => event.key === 'Escape' && isOpen && close());
 
   function load() {
-    frame.src = `${origin}/embed/${encodeURIComponent(key)}`;
+    if (!frame.src) frame.src = `${origin}/embed/${encodeURIComponent(key)}`;
   }
 
   function start() {
     document.body.appendChild(host);
+    try {
+      const look = JSON.parse(stored('localStorage', `heydesk-look:${key}`));
+      if (look) show(look);
+    } catch (err) {
+      // Nothing kept, or something unreadable: wait for the chat's settings.
+    }
     if (window.requestIdleCallback) requestIdleCallback(load, { timeout: 3000 });
     else setTimeout(load, 1000);
   }
