@@ -81,6 +81,8 @@ import { useAgentSection } from '../../composables/useAgentSection.js';
 import { useAgentStore } from '../../stores/agent.js';
 
 // Edited on the Delivery and payments section, not here.
+// Fields with a section of their own: hours, and a shop's calls (backend D89).
+const OWN_SECTION = ['hours', 'calls'];
 const PAYMENT_FIELDS = ['delivers', 'delivery_charge', 'deposit', 'pay_first', 'delivery', 'free_delivery_over'];
 
 // Fields with friendlier words than the schema's names (`profile.fields.<key>`);
@@ -95,7 +97,7 @@ const agent = useAgentStore();
 const fields = computed(() => {
   const properties = agent.preset?.knowledge_schema.properties ?? {};
   return Object.keys(properties)
-    .filter((key) => key !== 'hours' && !PAYMENT_FIELDS.includes(key))
+    .filter((key) => !OWN_SECTION.includes(key) && !PAYMENT_FIELDS.includes(key))
     .map((key) => {
       const known = KNOWN_FIELDS.includes(key);
       const helpKey = `profile.fields.${key}.help`;

@@ -17,6 +17,11 @@ import {
   PhHourglass,
   PhTruck,
   PhArrowUUpLeft,
+  PhPhoneCall,
+  PhPhoneIncoming,
+  PhPhoneX,
+  PhQuestion,
+  PhProhibit,
 } from '@phosphor-icons/vue';
 
 import { statusLabel } from '../../lib/flows.js';
@@ -37,6 +42,14 @@ const LOOKS = {
   archived: { icon: PhArchive, classes: 'bg-hover text-ink-soft' },
   needs_human: { icon: PhUserSound, classes: 'bg-attention-tint text-ink', iconClass: 'text-attention' },
   active: { icon: PhChecks, classes: 'bg-hover text-ink-soft' },
+  // A call to confirm a shop order (backend D89): where it is, then how it went.
+  queued: { icon: PhClock, classes: 'bg-hover text-ink-soft' },
+  ringing: { icon: PhPhoneIncoming, classes: 'bg-brand-tint text-brand' },
+  talking: { icon: PhPhoneCall, classes: 'bg-success-tint text-success' },
+  no_answer: { icon: PhPhoneX, classes: 'bg-attention-tint text-ink', iconClass: 'text-attention' },
+  no_decision: { icon: PhQuestion, classes: 'bg-attention-tint text-ink', iconClass: 'text-attention' },
+  skipped: { icon: PhProhibit, classes: 'bg-hover text-ink-soft' },
+  stopped: { icon: PhXCircle, classes: 'bg-hover text-ink-soft' },
 };
 
 const props = defineProps({

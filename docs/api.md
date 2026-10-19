@@ -108,14 +108,36 @@ for such a product.
 A shop's config adds `delivery[{name, charge, days, places[]}]` (`places`: what buyers say instead
 of the area's name, "Mirpur" for Inside Dhaka; the agent works out the area from them),
 `free_delivery_over`, `policies`, `size_guide` (free text; the agent suggests a size only from it)
-and `pay_first`. The Delivery and payments section sends the whole `delivery`, places included; the
-profile section shows `policies` and `size_guide` as long fields.
+`pay_first` and `calls` (below). The Delivery and payments section sends the whole `delivery`, places included; the
+profile section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section.
 
 Jobs (`presets/jobs.yaml`): `order` (pickup order, makes an `order` record),
 `appointment` and `message` (both make a `request` record). The owner cannot toggle
 them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
 `GET /jobs` and `config.jobs` are gone, and `GET /agent` returns the read-only
 `jobs` list. The Agent page shows it as plain rows.
+
+### Calls to confirm a shop's orders (`calls.js`, page `pages/calls`, D88, D89)
+| Call | What it does |
+|---|---|
+| `GET /calls?view=waiting` | The calls ringing or talking, then the queue in the order it's called; each queued call has `place` (1 is next) |
+| `GET /calls?view=done` | The last 100 finished calls, newest first |
+| `GET /calls?order_id=` | One order's calls, newest first (the order's call line in the Inbox) |
+| `POST /calls` `{order_id}` | Call a new order now, first in the queue → 201 `Call`. 409 `conflict` while calls are off, or when the order isn't new or already has a call waiting |
+| `POST /calls/{id}/now` | A queued call moves to the front and is due now. 409 unless it's queued |
+| `DELETE /calls/{id}` | Cancels a queued call: done, outcome `stopped`; the order stays as it is. 409 unless it's queued |
+
+`Call`: `{id, order_id, code ("O-104"), name, phone, status (queued, ringing, talking, done),
+outcome ("" until done; then confirmed, cancelled, no_answer, no_decision, skipped: the order moved
+on first, or stopped: the owner cancelled it), tries (rings so far), next_try_at, conversation_id
+(the call's transcript, once answered), created_at, updated_at, place (queued only)}`.
+
+A shop's config has `calls: {enabled (false), wait_minutes (1), start ("10:00:00"), end
+("20:00:00"), tries (2), retry_minutes (30), opening}`, edited whole by the Calls section of Agent
+settings. `opening` is the call's first line; the backend fills in `{business_name}`, `{code}` and
+`{total}`. `end` must be after `start` (422 on `calls`). The phone is the backend's `/phone` page,
+reached through the dev server at `/demo/phone` (`phoneLink()` in `lib/calls.js`): there is no
+phone carrier.
 
 ### Documents / knowledge base (`agent.js`, page `pages/knowledge`)
 Searched by the agent when a question is not answered elsewhere. Needs an
@@ -222,19 +244,20 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   conversation. Inbox, Conversations and the admin Activity log fetch one page
   (`PAGE_SIZE`) and `ShowMore` fetches the next. A link to a record older than
   the first page (`/inbox?job=&open=`) fetches that one record (`fetchRecord`).
-- `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /agent/{profile,hours,answers}
-  /menu /knowledge /channels` (owner), `/admin` (admin), `/setup`, `/sign-in`.
+- `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /calls /agent/{profile,hours,answers,payments,bubble,calls}
+  /menu /knowledge /channels` (owner; `/calls` and its section for a shop), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
-- Pages: `pages/{landing,home,inbox,conversations,agent,menu,knowledge,channels,setup,admin,auth,chat,account}`.
-  Shared pieces in `components/{ui,layout,records,conversations,menu,knowledge,agent,chat}`.
+- Pages: `pages/{landing,home,inbox,conversations,calls,agent,menu,knowledge,channels,setup,admin,auth,chat,account}`.
+  Shared pieces in `components/{ui,layout,records,conversations,calls,menu,knowledge,agent,chat}`.
   Agent settings sections share `composables/useAgentSection.js`; each PATCHes
   only its own fields (the API leaves the rest).
 - `src/lib/`: `flows.js` (status buttons), `format.js` (money, time, day,
   greeting, ago), `group.js` (Today/Yesterday, avatars), `records.js`
   (one-line summaries), `navigation.js` (the sidebar and tab bar), `setup.js`
   (Home checklist, where each `missing` item is fixed), `hours.js`,
-  `presets.js` (icons, nouns, chat link), `channels.js`, `slug.js`.
+  `presets.js` (icons, nouns, chat link), `channels.js`, `slug.js`, `calls.js` (the demo
+  phone link, a call's chip, Call again).
 - `src/i18n/`: `index.js` (vue-i18n setup, `setLocale`, `localeTag`, `t` for
   plain JS), `en.js` and `bn.js` (every word on screen, same keys).
 - Full guide: [architecture.md](architecture.md).

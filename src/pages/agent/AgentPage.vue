@@ -93,6 +93,8 @@ const sections = computed(() => {
     list.push({ to: '/agent/payments', label: t('agent.deliveryAndPayments') });
   }
   list.push({ to: '/agent/bubble', label: t('agent.bubble') });
+  // A shop can phone its buyers to confirm their orders (backend D89).
+  if (agent.kind === 'shop') list.push({ to: '/agent/calls', label: t('agent.calls') });
   return list;
 });
 

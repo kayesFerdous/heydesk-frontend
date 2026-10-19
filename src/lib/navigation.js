@@ -6,6 +6,7 @@ import {
   PhBooks,
   PhBroadcast,
   PhBuildings,
+  PhPhoneCall,
 } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
@@ -37,6 +38,8 @@ export function navGroups({ isAdmin, preset, waitingTotal, needsHuman }) {
           count: needsHuman,
           attention: true,
         },
+        // A shop's calls to confirm its orders (backend D89).
+        ...(preset === 'shop' ? [{ to: '/calls', match: '/calls', label: t('nav.calls'), icon: PhPhoneCall }] : []),
       ],
     },
     {

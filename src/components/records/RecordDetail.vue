@@ -81,6 +81,9 @@
         <input id="tracking" v-model.trim="tracking" class="field" type="text" placeholder="Steadfast 12345678" />
         <p class="hint">{{ t('records.trackingHint') }}</p>
       </div>
+
+      <!-- The shop's call to the buyer to confirm it (backend D89). -->
+      <OrderCall v-if="record.flow === 'shop_order'" :order="record"></OrderCall>
     </template>
 
     <template v-else>
@@ -139,6 +142,7 @@ import { useI18n } from 'vue-i18n';
 import { PhClock, PhMapPin, PhPhone, PhSealCheck, PhTruck } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
+import OrderCall from '../calls/OrderCall.vue';
 import { formatMoney, formatNumber, formatTime, formatDay } from '../../lib/format.js';
 import { nextSteps } from '../../lib/flows.js';
 
