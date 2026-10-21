@@ -116,7 +116,7 @@
         <p class="hidden truncate text-sm text-ink-soft sm:block">{{ u.business_name || t('shell.heyDeskAdmin') }}</p>
         <div class="text-right">
           <button
-            v-if="u.role === 'owner'"
+            v-if="u.role !== 'admin'"
             type="button"
             class="btn btn-quiet btn-sm"
             :disabled="resettingId === u.id"

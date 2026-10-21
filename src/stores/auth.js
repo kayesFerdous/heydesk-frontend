@@ -19,9 +19,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value);
   const isAdmin = computed(() => me.value?.role === 'admin');
+  // Someone the owner added to the team (backend D97): the inbox, the records and the
+  // lists, but not the agent's settings, the channels or the team.
+  const isModerator = computed(() => me.value?.role === 'moderator');
   const isViewing = computed(() => isAdmin.value && !!viewing.value);
   // Whether the owner's pages are what this person sees: an owner, or an admin inside a business.
   const seesBusiness = computed(() => !isAdmin.value || isViewing.value);
+  // Whether the business's settings and team are theirs: an owner, or an admin inside a business.
+  const canManage = computed(() => seesBusiness.value && !isModerator.value);
   const business = computed(() => me.value?.business ?? (isViewing.value ? viewing.value : null));
   const isSuspended = computed(() => business.value?.status === 'suspended');
 
@@ -111,7 +116,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     token, me, viewing,
-    isAuthenticated, isAdmin, isViewing, seesBusiness, business, isSuspended,
+    isAuthenticated, isAdmin, isModerator, isViewing, seesBusiness, canManage, business, isSuspended,
     tryLogin, signIn, signUp, verify, reset, logout, view, stopViewing,
   };
 });

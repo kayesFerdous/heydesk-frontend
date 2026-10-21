@@ -80,7 +80,7 @@
             </span>
             <span class="min-w-0">
               <span class="block truncate text-sm font-semibold">{{ email }}</span>
-              <span class="block text-sm text-ink-soft">{{ auth.isAdmin ? t('shell.heyDeskAdmin') : t('shell.owner') }}</span>
+              <span class="block text-sm text-ink-soft">{{ roleName(auth.me?.role) }}</span>
             </span>
           </div>
           <button type="button" class="btn btn-secondary" @click="signOut">
@@ -105,6 +105,7 @@ import PageHeader from '../../components/ui/PageHeader.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';
 import { LOCALES, setLocale } from '../../i18n/index.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
+import { roleName } from '../../lib/team.js';
 import { useAuthStore } from '../../stores/auth.js';
 
 const router = useRouter();

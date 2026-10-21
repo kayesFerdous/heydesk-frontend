@@ -43,9 +43,23 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 | `POST /auth/verify` `{email, code}` | The signup code. Returns `{token}`; 403 if wrong or expired; 429 after 5 tries in 15 minutes |
 | `POST /auth/verify/resend` `{email}` | Always 204; emails the code again if the account exists and is not verified. 3 an hour per email |
 | `POST /auth/forgot` `{email}` | Always 204; emails a reset code if the account exists. 3 an hour per email |
-| `POST /auth/reset` `{email, code, new_password>=8}` | Returns `{token}`; 403 if the code is wrong, expired or already used |
+| `POST /auth/reset` `{email, code, new_password>=8}` | Returns `{token}`; 403 if the code is wrong, expired or already used. An invited moderator joins here, with the code in their invite (D97) |
 | `PUT /auth/password` `{current_password, new_password}` | Your own password (owner or admin); the new one at least 8 characters. 204, or 403 `forbidden` if the current one is wrong; 429 counts with the login limit |
-| `GET /auth/me` | `{email, role, business: {id, name, status: active/suspended} \| null}` |
+| `GET /auth/me` | `{email, role: owner/moderator/admin, business: {id, name, status: active/suspended} \| null}` |
+
+### Team (`team.js`, owner only, D97)
+
+A moderator runs the inbox (conversations, messages, orders, bookings, appointments, calls, the
+lists) and can read the settings, but gets 403 `forbidden` on any change under `/api/agent`, on
+`/api/agent/telegram` and on `/api/team`. A removed moderator's next request is a 401.
+
+| Call | What it does |
+|---|---|
+| `GET /team/members` | `[{id, email, role: owner/moderator, status: active/invited, invited_at, joined_at}]`, owners first |
+| `POST /team/members` `{email}` | 201 with the member (`invited`); an email with a code goes to them. 409 `conflict` if the email has an account or the team has 10 moderators; 429 counts with the code emails |
+| `POST /team/members/{id}/invite` | Sends the invite again with a new code. 204; 409 once they've joined |
+| `DELETE /team/members/{id}` | Removes a moderator (invited or joined). 204; 404 for an owner |
+| `GET /team/activity?limit=&before=` | `[{actor_email, action, target, at}]`, newest first: each owner's and moderator's write that succeeded. `action` is `"PATCH /api/orders/{order_id}"`, `target` the ids (`order_id=…`) |
 
 ### Agent (`agent.js`)
 | Call | What it does |
@@ -218,7 +232,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | `GET /failed-turns?workspace_id=&limit=&before=` | Replies that ended with the polite line (D73), newest first: `[{id, at, workspace_id, business_name, business_status, conversation_id, channel, llm, error}]`. Next page: `before` = the last `at`. Open one as the business at `/conversations?open=<conversation_id>` |
 | `GET /businesses` | `[{id, name, status, suspended_reason, kind, owner_email, conversations, last_activity_at, created_at}]`, newest first, at most 200 |
 | `PATCH /businesses/{workspace_id}` `{status, reason}` | Suspend or reactivate. 204. Suspending needs a `reason` (422 without one, D70); it's kept as `suspended_reason`, for admins only, and reactivating clears it |
-| `GET /users` | `[{id, email, role, workspace_id, business_name, created_at}]` |
+| `GET /users` | `[{id, email, role: admin/owner/moderator, workspace_id, business_name, created_at}]` |
 | `GET /businesses/{id}` | One business at a glance (D69; `usage`: its last 7 days as `Totals`, D73): `{id, name, status, suspended_reason, kind, agent_name, public_key, created_at, owners: [{email, created_at}], channels: [{kind: telegram/messenger, address, created_at}], payments: sandbox/live/null, documents, sheet: {synced_at, problem} \| null, conversations, conversations_7_days, waiting, last_activity_at}`. 404 for an unknown id. Not audited |
 | `POST /users/{id}/password` | `{password}` temporary, shown once. An owner's only: 403 `forbidden` for an admin (theirs is reset on the backend's command line) |
 | `GET /audit?workspace_id=` | `[{id, actor_email, workspace_id, action, target, at}]` |
@@ -249,10 +263,10 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
   (`PAGE_SIZE`) and `ShowMore` fetches the next. A link to a record older than
   the first page (`/inbox?job=&open=`) fetches that one record (`fetchRecord`).
 - `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /calls /agent/{profile,hours,answers,payments,bubble,calls}
-  /menu /knowledge /channels` (owner; `/calls` and its section for a shop), `/admin` (admin), `/setup`, `/sign-in`.
+  /menu /knowledge /channels /team` (owner; `/calls` and its section for a shop; `/agent`, `/knowledge`, `/channels`, `/team` and `/setup` are `requiresManager`: a moderator is sent Home, D97), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
-- Pages: `pages/{landing,home,inbox,conversations,calls,agent,menu,knowledge,channels,setup,admin,auth,chat,account}`.
+- Pages: `pages/{landing,home,inbox,conversations,calls,agent,menu,knowledge,channels,team,setup,admin,auth,chat,account}`.
   Shared pieces in `components/{ui,layout,records,conversations,calls,menu,knowledge,agent,chat}`.
   Agent settings sections share `composables/useAgentSection.js`; each PATCHes
   only its own fields (the API leaves the rest).

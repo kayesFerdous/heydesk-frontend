@@ -50,6 +50,7 @@ const ui = useUiStore();
 const items = computed(() => {
   const groups = navGroups({
     isAdmin: !auth.seesBusiness,
+    canManage: auth.canManage,
     preset: agent.kind,
     waitingTotal: inbox.waitingTotal,
     needsHuman: inbox.needsHuman,

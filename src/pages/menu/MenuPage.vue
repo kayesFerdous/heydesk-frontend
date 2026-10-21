@@ -1,7 +1,7 @@
 <template>
   <section class="flex flex-col lg:h-full">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
-      <template v-if="loaded && !linked" #actions>
+      <template v-if="loaded && !linked && auth.canManage" #actions>
         <!-- The ways to bring a whole list in, behind one button. -->
         <div ref="importRoot" class="relative">
           <button type="button" class="btn btn-secondary" aria-haspopup="menu" :aria-expanded="importMenu" @click="importMenu = !importMenu">
@@ -151,6 +151,7 @@ import { makeCode } from '../../lib/slug.js';
 import { formatNumber } from '../../lib/format.js';
 import { itemNoun, itemsLabel } from '../../lib/presets.js';
 import { useAgentStore } from '../../stores/agent.js';
+import { useAuthStore } from '../../stores/auth.js';
 import { usePopover } from '../../composables/usePopover.js';
 
 // The whole list comes in one request (the backend stores and saves it as one
@@ -161,6 +162,7 @@ const PAGE_SIZE = 50;
 const router = useRouter();
 const { t } = useI18n();
 const agent = useAgentStore();
+const auth = useAuthStore();
 
 const items = ref([]);
 const loaded = ref(false);

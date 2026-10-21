@@ -16,7 +16,7 @@
         <BrandMark mark-only></BrandMark>
         <h2 class="mt-5 text-xl font-semibold tracking-[-0.015em]">{{ t('common.letsSetUp') }}</h2>
         <p class="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">{{ t('home.setUpText') }}</p>
-        <router-link to="/setup" class="btn btn-primary mt-6">
+        <router-link v-if="auth.canManage" to="/setup" class="btn btn-primary mt-6">
           {{ t('common.setUpYourAgent') }}
           <PhArrowRight :size="16" weight="bold"></PhArrowRight>
         </router-link>
@@ -61,7 +61,7 @@
         <div class="min-w-0">
           <!-- The setup guide: the shortest road to a first real customer. It
                goes away once every step is done. -->
-          <div v-if="!setupDone" class="panel mb-10 overflow-hidden">
+          <div v-if="!setupDone && auth.canManage" class="panel mb-10 overflow-hidden">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4">
               <div>
                 <h2 class="section-title">{{ t('setup.finish') }}</h2>
@@ -187,14 +187,14 @@
               <dt class="flex items-center gap-2 text-ink-soft"><PhGlobe :size="16"></PhGlobe> {{ t('channelsPage.websiteChat') }}</dt>
               <dd class="font-medium">{{ t('common.on') }}</dd>
             </div>
-            <div class="flex items-center justify-between gap-3 border-t border-hairline py-3">
+            <div v-if="auth.canManage" class="flex items-center justify-between gap-3 border-t border-hairline py-3">
               <dt class="flex items-center gap-2 text-ink-soft"><PhTelegramLogo :size="16"></PhTelegramLogo> Telegram</dt>
               <dd>
                 <span v-if="telegram" class="font-medium">@{{ telegram.username }}</span>
                 <router-link v-else to="/channels" class="link">{{ t('connect.connect') }}</router-link>
               </dd>
             </div>
-            <div class="flex items-center justify-between gap-3 border-y border-hairline py-3">
+            <div v-if="auth.canManage" class="flex items-center justify-between gap-3 border-y border-hairline py-3">
               <dt class="flex items-center gap-2 text-ink-soft"><PhBooks :size="16"></PhBooks> {{ t('nav.knowledge') }}</dt>
               <dd>
                 <router-link to="/knowledge" class="font-medium hover:underline">
@@ -208,7 +208,7 @@
             <CopyField :label="t('common.chatLink')" :value="link" @copied="onCopied"></CopyField>
           </div>
 
-          <router-link to="/agent" class="btn btn-secondary mt-5 w-full">
+          <router-link v-if="auth.canManage" to="/agent" class="btn btn-secondary mt-5 w-full">
             <PhSlidersHorizontal :size="16"></PhSlidersHorizontal>
             {{ t('home.editSettings') }}
           </router-link>
@@ -384,8 +384,9 @@ async function load() {
     const [recordList, conversationList, bot, documents] = await Promise.all([
       fetchRecords(),
       fetchConversations(),
-      fetchTelegram().catch(() => null),
-      fetchDocuments().catch(() => []),
+      // A moderator has no Telegram or Knowledge to set up (backend D97).
+      auth.canManage ? fetchTelegram().catch(() => null) : null,
+      auth.canManage ? fetchDocuments().catch(() => []) : [],
     ]);
     records.value = recordList;
     conversations.value = conversationList;

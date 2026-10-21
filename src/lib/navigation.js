@@ -7,6 +7,7 @@ import {
   PhBroadcast,
   PhBuildings,
   PhPhoneCall,
+  PhUsersThree,
 } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
@@ -17,7 +18,8 @@ import { listLinks } from './presets.js';
 //
 // `match` is the path prefix that lights the item up: /agent/hours still
 // highlights "Settings". `count` and `attention` drive the small badge.
-export function navGroups({ isAdmin, preset, waitingTotal, needsHuman }) {
+// A moderator (`canManage` false, backend D97) sees the daily work and the lists only.
+export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, needsHuman }) {
   if (isAdmin) {
     return [{ label: null, items: [{ to: '/admin', match: '/admin', label: t('nav.businesses'), icon: PhBuildings }] }];
   }
@@ -45,13 +47,19 @@ export function navGroups({ isAdmin, preset, waitingTotal, needsHuman }) {
     {
       // Setting the agent up: what it knows and where customers find it.
       label: t('nav.yourAgent'),
-      items: [
-        { to: '/agent', match: '/agent', label: t('nav.settings'), short: t('nav.agent'), icon: PhSlidersHorizontal },
-        ...listLinks(preset).map((link) => ({ ...link, match: link.to })),
-        { to: '/knowledge', match: '/knowledge', label: t('nav.knowledge'), icon: PhBooks },
-        { to: '/channels', match: '/channels', label: t('nav.channels'), icon: PhBroadcast },
-      ],
+      items: canManage
+        ? [
+            { to: '/agent', match: '/agent', label: t('nav.settings'), short: t('nav.agent'), icon: PhSlidersHorizontal },
+            ...listLinks(preset).map((link) => ({ ...link, match: link.to })),
+            { to: '/knowledge', match: '/knowledge', label: t('nav.knowledge'), icon: PhBooks },
+            { to: '/channels', match: '/channels', label: t('nav.channels'), icon: PhBroadcast },
+          ]
+        : listLinks(preset).map((link) => ({ ...link, match: link.to })),
     },
+    // The business itself: who works in it.
+    ...(canManage
+      ? [{ label: t('nav.business'), items: [{ to: '/team', match: '/team', label: t('nav.team'), icon: PhUsersThree }] }]
+      : []),
   ];
 }
 

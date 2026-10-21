@@ -26,10 +26,13 @@ const EmbedPage = () => import('./pages/chat/EmbedPage.vue');
 const AdminPage = () => import('./pages/admin/AdminPage.vue');
 const BusinessPage = () => import('./pages/admin/BusinessPage.vue');
 const AccountPage = () => import('./pages/account/AccountPage.vue');
+const TeamPage = () => import('./pages/team/TeamPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
 // Every owner page needs a signed-in owner, or an admin who opened a business.
 const owner = { requiresAuth: true, requiresOwner: true };
+// The agent's settings, channels and team: not for a moderator (backend D97).
+const manager = { ...owner, requiresManager: true };
 
 const router = createRouter({
   history: createWebHistory(),
@@ -55,7 +58,7 @@ const router = createRouter({
     { path: '/chat/:key', component: ChatPage, meta: { bare: true } },
     // The same chat in the window public/widget.js opens on a business's website (backend D82).
     { path: '/embed/:key', component: EmbedPage, meta: { bare: true } },
-    { path: '/setup', component: SetupPage, meta: { ...owner, bare: true } },
+    { path: '/setup', component: SetupPage, meta: { ...manager, bare: true } },
 
     // Daily work
     { path: '/home', component: HomePage, meta: owner },
@@ -68,20 +71,22 @@ const router = createRouter({
     {
       path: '/agent',
       component: AgentPage,
-      meta: owner,
+      meta: manager,
       redirect: '/agent/profile',
       children: [
-        { path: 'profile', component: ProfileSection, meta: owner },
-        { path: 'hours', component: HoursSection, meta: owner },
-        { path: 'answers', component: AnswersSection, meta: owner },
-        { path: 'payments', component: PaymentsSection, meta: owner },
-        { path: 'bubble', component: BubbleSection, meta: owner },
-        { path: 'calls', component: CallsSection, meta: owner },
+        { path: 'profile', component: ProfileSection, meta: manager },
+        { path: 'hours', component: HoursSection, meta: manager },
+        { path: 'answers', component: AnswersSection, meta: manager },
+        { path: 'payments', component: PaymentsSection, meta: manager },
+        { path: 'bubble', component: BubbleSection, meta: manager },
+        { path: 'calls', component: CallsSection, meta: manager },
       ],
     },
     { path: '/menu', component: MenuPage, meta: owner },
-    { path: '/knowledge', component: KnowledgePage, meta: owner },
-    { path: '/channels', component: ChannelsPage, meta: owner },
+    { path: '/knowledge', component: KnowledgePage, meta: manager },
+    { path: '/channels', component: ChannelsPage, meta: manager },
+    // The owner's team: moderators and what everyone changed (backend D97).
+    { path: '/team', component: TeamPage, meta: manager },
 
     // The person's own settings (language, sign-in), reached from the account
     // menu. Owners and admins both have one.
@@ -110,6 +115,7 @@ router.beforeEach((to) => {
   if (to.meta.requiresAdmin) auth.stopViewing();
   // An admin has no business of their own: the owner screens need one opened first.
   if (to.meta.requiresOwner && !auth.seesBusiness) return '/admin';
+  if (to.meta.requiresManager && !auth.canManage) return '/home';
 });
 
 export default router;

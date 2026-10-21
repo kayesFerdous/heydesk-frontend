@@ -136,6 +136,7 @@ import BrandMark from '../ui/BrandMark.vue';
 import LiveStatus from '../ui/LiveStatus.vue';
 import { navGroups, isActive } from '../../lib/navigation.js';
 import { formatNumber } from '../../lib/format.js';
+import { roleName } from '../../lib/team.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { useAgentStore } from '../../stores/agent.js';
 import { useInboxStore } from '../../stores/inbox.js';
@@ -160,7 +161,7 @@ const collapsed = computed(() => props.collapsible && ui.sidebarCollapsed);
 const email = computed(() => auth.me?.email ?? '');
 const initial = computed(() => email.value.charAt(0).toUpperCase());
 const showStatus = computed(() => auth.seesBusiness && agent.hasAgent);
-const roleLabel = computed(() => (auth.isAdmin ? t('shell.heyDeskAdmin') : t('shell.owner')));
+const roleLabel = computed(() => roleName(auth.me?.role));
 // The name customers know (from the agent), else the account's name.
 const businessName = computed(
   () => (auth.seesBusiness && (agent.config?.business_name || auth.business?.name)) || 'HeyDesk',
@@ -168,6 +169,7 @@ const businessName = computed(
 const groups = computed(() =>
   navGroups({
     isAdmin: !auth.seesBusiness,
+    canManage: auth.canManage,
     preset: agent.kind,
     waitingTotal: inbox.waitingTotal,
     needsHuman: inbox.needsHuman,

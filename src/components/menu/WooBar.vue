@@ -16,7 +16,8 @@
         </p>
       </div>
     </div>
-    <div class="flex gap-2">
+    <!-- Reading it again and unlinking are the owner's (backend D97). -->
+    <div v-if="auth.canManage" class="flex gap-2">
       <button type="button" class="btn btn-secondary btn-sm" :disabled="busy" @click="sync">
         <PhArrowsClockwise :size="14"></PhArrowsClockwise>
         {{ busy ? t('menu.woo.syncing') : t('menu.woo.syncNow') }}
@@ -33,6 +34,7 @@ import { PhArrowsClockwise, PhStorefront, PhWarningCircle } from '@phosphor-icon
 
 import { syncWoo, unlinkWoo } from '../../api/agent.js';
 import { formatAgo } from '../../lib/format.js';
+import { useAuthStore } from '../../stores/auth.js';
 
 defineProps({
   woo: { type: Object, required: true }, // { url, products, synced_at, problem }
@@ -40,6 +42,7 @@ defineProps({
 // `synced`: the store as synced now; `unlinked`: the list is edited here again.
 const emit = defineEmits(['synced', 'unlinked']);
 const { t } = useI18n();
+const auth = useAuthStore();
 
 const busy = ref(false);
 const error = ref(null);
