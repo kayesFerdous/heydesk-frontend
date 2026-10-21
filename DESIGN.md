@@ -243,6 +243,14 @@ Same world as the console: white sheet, rules, stamps, serials.
   only when there is something to send; Enter sends, Shift+Enter breaks a
   line, an IME's Enter is left alone. Start over appears once there is
   something to clear. No language switch: the agent follows the customer.
+- **The code steps** (verify the email, forgot password, set a new one) live
+  on the sign-in page beside the same cobalt field. A step starts with a quiet
+  Back, a cobalt-tint icon tile (an envelope for the code, a lock for forgot),
+  the title, and the address the code went to in ink. `CodeInput` shows the
+  code as six ruled cells set as serials: one real input underneath, so paste,
+  one-time-code autofill and Bangla digits all work; the sixth digit submits.
+  A wrong code turns the cells red, shakes once and empties them. "Send it
+  again" waits a minute, counting down. Password fields can be shown.
 - **Setup** (first run): three numbered steps (Choose, Your details, Try it).
   The kinds of agent are ruled rows with a radio at the end, not cards. The
   last step puts the live chat beside the chat link and a notice listing what
