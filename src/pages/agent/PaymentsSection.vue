@@ -62,12 +62,16 @@
             <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" :placeholder="t('payments.daysPlaceholder')" />
           </div>
           <div class="col-span-3">
+            <FieldLabel :html-for="`zone-districts-${index}`" :tip="t('payments.districtsHint')">{{ t('payments.districts') }}</FieldLabel>
+            <input :id="`zone-districts-${index}`" v-model="zone.districts" class="field" type="text" :placeholder="t('payments.districtsPlaceholder')" />
+          </div>
+          <div class="col-span-3">
             <FieldLabel :html-for="`zone-places-${index}`" :tip="t('payments.placesHint')">{{ t('payments.places') }}</FieldLabel>
             <input :id="`zone-places-${index}`" v-model="zone.places" class="field" type="text" :placeholder="t('payments.placesPlaceholder')" />
           </div>
         </div>
         <div>
-          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', places: '' })">
+          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: '', places: '' })">
             <PhPlus :size="16" weight="bold"></PhPlus>
             {{ t('payments.addArea') }}
           </button>
@@ -171,16 +175,21 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         name: z.name,
         charge: toTaka(z.charge),
         days: z.days || '',
+        // Districts it covers, and places that go here instead of their district's (backend D98).
+        districts: (z.districts || []).join(', '),
         places: (z.places || []).join(', '),
       })),
       freeOver: toTaka(k.free_delivery_over),
-      pay_first: !!k.pay_first,
+      // A shop pays first per area (backend D92); this one switch is on if any area is.
+      pay_first: !!k.pay_first || (k.delivery || []).some((z) => z.pay_first),
     };
   },
   // Only this desk's own fields. Paying first stays as the owner left it while the
   // SSLCommerz account is missing: the agent asks for nothing until one is connected.
   patchFrom: (f) => {
-    const patch = { pay_first: f.pay_first && !nothingToTake.value };
+    const payFirst = f.pay_first && !nothingToTake.value;
+    // A shop has no switch of its own since backend D92: it's set on every area.
+    const patch = kind.value === 'shop' ? {} : { pay_first: payFirst };
     if (kind.value === 'restaurant') {
       patch.delivers = f.delivers;
       patch.delivery_charge = toPaisa(f.charge);
@@ -191,7 +200,9 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         name: z.name,
         charge: toPaisa(z.charge),
         days: z.days,
+        districts: toList(z.districts),
         places: toList(z.places),
+        pay_first: payFirst,
       }));
       patch.free_delivery_over = toPaisa(f.freeOver);
     }
