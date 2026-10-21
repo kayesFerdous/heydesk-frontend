@@ -181,6 +181,17 @@ changes), and warned in the console that this is wasted work for a
 component that never changes. `markRaw(...)` tells Vue to leave them alone.
 The warning is gone.
 
+## 10. The live inbox polls counts only (`App.vue`, `stores/inbox.js`)
+
+New orders and hand-offs show without a reload: every 25 seconds the shell
+asks `inbox/load` again. That is the badge requests only, J + 1 of them
+(the waiting records per kind, the conversations needing a person), never
+one per row. It skips while the tab is hidden and asks at once when the tab
+comes back, and it waits until the business has an agent. Only when a count
+goes up does an open Inbox or Conversations fetch its first page again.
+
+**Cost.** About 7 requests a minute per open console for a restaurant.
+
 ## What was checked and left alone
 
 - **Bundle size.** Every page except Home is already lazy-loaded in

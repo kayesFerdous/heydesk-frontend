@@ -165,7 +165,8 @@ function fetchPage(before) {
 function loadPreviews(conversations) {
   if (auth.isViewing) return;
   conversations.forEach(async (c) => {
-    if (details.value[c.id]) return;
+    // Already loaded and nothing new said since: keep it.
+    if (details.value[c.id]?.updated_at === c.updated_at) return;
     try {
       details.value[c.id] = await fetchConversation(c.id);
     } catch (err) {
@@ -195,6 +196,23 @@ async function load() {
     } else {
       error.value = err.message;
     }
+  }
+}
+
+// New work came in (the counts went up): the first page again, quietly, the
+// old rows staying until it arrives. Rows that moved on load their preview again.
+async function refresh() {
+  if (!loaded.value) return;
+  const asked = filter.value;
+  try {
+    const [page, records] = await Promise.all([fetchPage(), fetchRecords()]);
+    if (asked !== filter.value) return; // the filter changed meanwhile
+    list.value = page;
+    hasMore.value = page.length === PAGE_SIZE;
+    recordsOf.value = byConversation(records);
+    loadPreviews(page);
+  } catch (err) {
+    // Best effort: the list on screen stays.
   }
 }
 
@@ -249,6 +267,7 @@ async function showMore() {
 }
 
 watch(filter, load, { immediate: true });
+watch(() => inbox.arrivals, refresh);
 watch(
   selectedId,
   (id) => {

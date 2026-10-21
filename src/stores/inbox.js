@@ -10,6 +10,9 @@ export const useInboxStore = defineStore('inbox', () => {
   const jobs = ref([]);
   const needsHuman = ref(0);
   const loaded = ref(false);
+  // Goes up by one each time a load finds more waiting than the one before:
+  // the shell chimes, and an open Inbox or Conversations fetches its list again.
+  const arrivals = ref(0);
 
   const waitingTotal = computed(() => jobs.value.reduce((sum, job) => sum + job.waiting, 0));
 
@@ -22,9 +25,14 @@ export const useInboxStore = defineStore('inbox', () => {
     if (loading) return loading;
     loading = Promise.all([fetchInbox(), fetchConversations({ status: 'needs_human' })])
       .then(([counts, waiting]) => {
+        const before = { total: waitingTotal.value, needsHuman: needsHuman.value };
+        const firstLoad = !loaded.value;
         jobs.value = counts;
         needsHuman.value = waiting.length;
         loaded.value = true;
+        if (!firstLoad && (waitingTotal.value > before.total || needsHuman.value > before.needsHuman)) {
+          arrivals.value++;
+        }
       })
       .finally(() => (loading = null));
     return loading;
@@ -36,5 +44,5 @@ export const useInboxStore = defineStore('inbox', () => {
     loaded.value = false;
   }
 
-  return { jobs, needsHuman, loaded, waitingTotal, load, clear };
+  return { jobs, needsHuman, loaded, arrivals, waitingTotal, load, clear };
 });

@@ -127,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
@@ -323,5 +323,7 @@ async function move(status) {
 }
 
 load();
+// New work came in (the counts went up): the list again, quietly, like a search.
+watch(() => inbox.arrivals, search);
 onBeforeUnmount(() => clearTimeout(searchTimer));
 </script>

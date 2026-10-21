@@ -63,11 +63,17 @@ import { PhEye, PhPauseCircle } from '@phosphor-icons/vue';
 import AppSidebar from './components/layout/AppSidebar.vue';
 import AppTabBar from './components/layout/AppTabBar.vue';
 import TestChatSheet from './components/chat/TestChatSheet.vue';
+import { formatNumber } from './lib/format.js';
+import { chime } from './lib/chime.js';
 import { useAuthStore } from './stores/auth.js';
+import { useAgentStore } from './stores/agent.js';
+import { useInboxStore } from './stores/inbox.js';
 import { useUiStore } from './stores/ui.js';
 
 const route = useRoute();
 const auth = useAuthStore();
+const agent = useAgentStore();
+const inbox = useInboxStore();
 const ui = useUiStore();
 const { t } = useI18n();
 
@@ -90,6 +96,30 @@ watch(
   },
 );
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
+
+// New work shows without a reload: while a business's console is on screen the
+// sidebar counts are asked again every 25 seconds, skipped while the tab is
+// hidden and asked at once when it comes back. Counts only (docs/performance.md).
+const POLL_MS = 25000;
+const watching = computed(() => !isBare.value && auth.seesBusiness && agent.hasAgent);
+
+function poll() {
+  if (watching.value && document.visibilityState === 'visible') inbox.load().catch(() => {});
+}
+const pollTimer = setInterval(poll, POLL_MS);
+document.addEventListener('visibilitychange', poll);
+onBeforeUnmount(() => {
+  clearInterval(pollTimer);
+  document.removeEventListener('visibilitychange', poll);
+});
+
+// More waiting than before: a chime. The tab says how many wait, "(2) HeyDesk".
+watch(() => inbox.arrivals, chime);
+const tabTitle = computed(() => {
+  const waiting = watching.value ? inbox.waitingTotal + inbox.needsHuman : 0;
+  return waiting ? `(${formatNumber(waiting)}) HeyDesk` : 'HeyDesk';
+});
+watch(tabTitle, (title) => (document.title = title));
 </script>
 
 <style>
