@@ -38,8 +38,12 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 ### Auth (`auth.js`)
 | Call | What it does |
 |---|---|
-| `POST /auth/signup` `{email, password>=8, workspace_name}` | New business + owner. Returns `{token}` |
-| `POST /auth/login` `{email, password}` | Returns `{token}` |
+| `POST /auth/signup` `{email, password>=8, workspace_name}` | New business + owner. 204 and an email with a 6-digit code: no token until it is typed (D94) |
+| `POST /auth/login` `{email, password}` | Returns `{token}`; 401 for a wrong email or password; 403 `email_not_verified` for the right one before the code (`SignIn.vue` then sends a fresh code and shows the code step) |
+| `POST /auth/verify` `{email, code}` | The signup code. Returns `{token}`; 403 if wrong or expired; 429 after 5 tries in 15 minutes |
+| `POST /auth/verify/resend` `{email}` | Always 204; emails the code again if the account exists and is not verified. 3 an hour per email |
+| `POST /auth/forgot` `{email}` | Always 204; emails a reset code if the account exists. 3 an hour per email |
+| `POST /auth/reset` `{email, code, new_password>=8}` | Returns `{token}`; 403 if the code is wrong, expired or already used |
 | `PUT /auth/password` `{current_password, new_password}` | Your own password (owner or admin); the new one at least 8 characters. 204, or 403 `forbidden` if the current one is wrong; 429 counts with the login limit |
 | `GET /auth/me` | `{email, role, business: {id, name, status: active/suspended} \| null}` |
 

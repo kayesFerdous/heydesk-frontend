@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-import { login, signup, fetchMe } from '../api/auth.js';
+import { login, signup, verifyEmail, resetPassword, fetchMe } from '../api/auth.js';
 import { setAuthToken, setViewedBusiness } from '../api/client.js';
 import { useAgentStore } from './agent.js';
 import { useInboxStore } from './inbox.js';
@@ -58,8 +58,18 @@ export const useAuthStore = defineStore('auth', () => {
     await startSession(next);
   }
 
+  // Signing up gives no session: the emailed code does (verify below).
   async function signUp({ email, password, workspaceName }) {
-    const { token: next } = await signup(email, password, workspaceName);
+    await signup(email, password, workspaceName);
+  }
+
+  async function verify({ email, code }) {
+    const { token: next } = await verifyEmail(email, code);
+    await startSession(next);
+  }
+
+  async function reset({ email, code, newPassword }) {
+    const { token: next } = await resetPassword(email, code, newPassword);
     await startSession(next);
   }
 
@@ -102,6 +112,6 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     token, me, viewing,
     isAuthenticated, isAdmin, isViewing, seesBusiness, business, isSuspended,
-    tryLogin, signIn, signUp, logout, view, stopViewing,
+    tryLogin, signIn, signUp, verify, reset, logout, view, stopViewing,
   };
 });

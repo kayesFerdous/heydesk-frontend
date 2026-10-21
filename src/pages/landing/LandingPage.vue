@@ -30,7 +30,7 @@
           </p>
           <div class="enter mt-8 flex flex-wrap items-center gap-x-6 gap-y-4" style="--i: 2">
             <router-link :to="signUp" class="btn btn-primary btn-lg">
-              {{ t('signIn.createTitle') }}
+              {{ t('signIn.signupTitle') }}
               <PhArrowRight :size="18" weight="bold"></PhArrowRight>
             </router-link>
             <p class="text-sm text-ink-soft">
@@ -178,7 +178,7 @@
           </h2>
           <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
             <router-link :to="signUp" class="btn btn-primary btn-lg">
-              {{ t('signIn.createTitle') }}
+              {{ t('signIn.signupTitle') }}
               <PhArrowRight :size="18" weight="bold"></PhArrowRight>
             </router-link>
             <router-link to="/sign-in" class="link text-sm">{{ t('common.signIn') }}</router-link>
