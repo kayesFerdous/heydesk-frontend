@@ -462,8 +462,6 @@ export default {
     pickupAt: 'Pickup at',
     note: 'Note',
     noteLine: 'Note: {note}',
-    tracking: 'Courier and parcel id',
-    trackingHint: 'Your agent tells the buyer this when they ask where their order is.',
     confirmedInChat: 'Read back to the customer and confirmed in chat, {day} at {time}',
     readConversation: 'Read the conversation',
   },

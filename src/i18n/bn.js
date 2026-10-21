@@ -457,8 +457,6 @@ export default {
     pickupAt: 'পিকআপের সময়',
     note: 'নোট',
     noteLine: 'নোট: {note}',
-    tracking: 'কুরিয়ার আর পার্সেল আইডি',
-    trackingHint: 'ক্রেতা অর্ডার কোথায় জানতে চাইলে আপনার এজেন্ট এটি জানাবে।',
     confirmedInChat: 'কাস্টমারকে পড়ে শোনানো হয়েছে আর চ্যাটে নিশ্চিত করা হয়েছে, {day}, {time}',
     readConversation: 'কথোপকথন পড়ুন',
   },

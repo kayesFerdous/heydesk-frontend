@@ -69,18 +69,7 @@
         <PhMapPin :size="16" class="mt-0.5 shrink-0 text-ink-soft"></PhMapPin>
         {{ record.address }}
       </p>
-      <p v-if="record.tracking" class="mt-2 flex items-start gap-2 text-sm">
-        <PhTruck :size="16" class="mt-0.5 shrink-0 text-ink-soft"></PhTruck>
-        {{ record.tracking }}
-      </p>
       <p v-if="record.note" class="mt-2 text-sm text-ink-soft">{{ t('records.noteLine', { note: record.note }) }}</p>
-
-      <!-- A shop order goes to a courier: its name and parcel id, for the buyer's tracking. -->
-      <div v-if="record.flow === 'shop_order' && record.status === 'confirmed'" class="mt-5">
-        <label class="label" for="tracking">{{ t('records.tracking') }}</label>
-        <input id="tracking" v-model.trim="tracking" class="field" type="text" placeholder="Steadfast 12345678" />
-        <p class="hint">{{ t('records.trackingHint') }}</p>
-      </div>
 
       <!-- The shop's call to the buyer to confirm it (backend D89). -->
       <OrderCall v-if="record.flow === 'shop_order'" :order="record"></OrderCall>
@@ -112,7 +101,7 @@
         type="button"
         class="btn btn-primary w-full"
         :disabled="busy"
-        @click="moveOn(steps.primary.to)"
+        @click="$emit('move', steps.primary.to)"
       >
         {{ steps.primary.label }}
       </button>
@@ -137,9 +126,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhClock, PhMapPin, PhPhone, PhSealCheck, PhTruck } from '@phosphor-icons/vue';
+import { PhClock, PhMapPin, PhPhone, PhSealCheck } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
 import OrderCall from '../calls/OrderCall.vue';
@@ -151,21 +140,14 @@ const props = defineProps({
   busy: { type: Boolean, default: false },
   error: { type: String, default: null },
 });
-const emit = defineEmits(['move']);
+defineEmits(['move']);
 const { t } = useI18n();
 
-const tracking = ref('');
 const steps = computed(() => nextSteps(props.record));
 
 // A shop line's size and colour: "M, Black".
 function choices(line) {
   return [line.size, line.colour].filter(Boolean).join(', ');
-}
-
-// Shipping a shop order sends its courier along with the status.
-function moveOn(status) {
-  const extra = status === 'shipped' && tracking.value ? { tracking: tracking.value } : {};
-  emit('move', status, extra);
 }
 </script>
 

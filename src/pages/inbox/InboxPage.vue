@@ -306,11 +306,11 @@ function searchSoon() {
   searchTimer = setTimeout(search, 300);
 }
 
-async function move(status, extra) {
+async function move(status) {
   isMoving.value = true;
   moveError.value = null;
   try {
-    const updated = await setRecordStatus(selectedId.value, status, extra);
+    const updated = await setRecordStatus(selectedId.value, status);
     const index = records.value.findIndex((r) => r.id === updated.id);
     if (index === -1) linked.value = updated;
     else records.value.splice(index, 1, updated);

@@ -114,11 +114,10 @@ export async function fetchRecord(job, recordId) {
   return toRecord(job, await request(`${path}/${recordId}`), path);
 }
 
-// `extra` goes with the status: a shop order's courier, { tracking: "Steadfast 1234" }.
-export async function setRecordStatus(recordId, status, extra = {}) {
+export async function setRecordStatus(recordId, status) {
   const job = jobOfId[recordId] || 'message';
   const path = pathOfId[recordId] || JOBS[job].path;
-  const row = await request(`${path}/${recordId}`, { method: 'PATCH', body: { status, ...extra } });
+  const row = await request(`${path}/${recordId}`, { method: 'PATCH', body: { status } });
   return toRecord(job, row, path);
 }
 
