@@ -1,4 +1,4 @@
-import { ref, computed, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, inject, onBeforeUnmount } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
@@ -12,10 +12,13 @@ const SAVED_NOTE_MS = 4000;
 //
 //   formFrom(config)  -> the form object the section's inputs edit
 //   patchFrom(form)   -> the fields to PATCH (only this section's own)
+//   previewFrom(form) -> optional: what the page's chat preview should show
+//                        from this form before it is saved (name, greeting,
+//                        the bubble's look); AgentPage provides `agentDraft`
 //
 // The API replaces each top-level field it is sent and leaves the rest, so
 // sections never overwrite each other.
-export function useAgentSection({ formFrom, patchFrom }) {
+export function useAgentSection({ formFrom, patchFrom, previewFrom }) {
   const agent = useAgentStore();
   const { t } = useI18n();
 
@@ -70,6 +73,16 @@ export function useAgentSection({ formFrom, patchFrom }) {
       }
     }
     isSaving.value = false;
+  }
+
+  // The page's preview follows this form as it is edited. Leaving the section
+  // takes its draft away, so the preview falls back to what is saved.
+  const draft = inject('agentDraft', null);
+  if (draft && previewFrom) {
+    watch(form, (value) => value && Object.assign(draft, previewFrom(value)), { deep: true, immediate: true });
+    onBeforeUnmount(() => {
+      if (form.value) Object.keys(previewFrom(form.value)).forEach((key) => delete draft[key]);
+    });
   }
 
   onBeforeRouteLeave(() => {

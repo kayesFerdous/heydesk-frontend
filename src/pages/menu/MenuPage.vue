@@ -1,5 +1,7 @@
 <template>
-  <section class="flex flex-col lg:h-full">
+  <!-- One island on the canvas: find a dish (words, then a category pill),
+       bring a list in, and the list itself. -->
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
       <template v-if="loaded && !linked && auth.canManage" #actions>
         <!-- The ways to bring a whole list in, behind one button. -->
@@ -31,23 +33,34 @@
       </template>
     </PageHeader>
 
+    <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
+
+    <div v-else class="island flex flex-col overflow-hidden lg:min-h-0 lg:flex-1">
     <!-- Find a dish: words, then a category. The count says how big the list is. -->
-    <div v-if="loaded && items.length" class="flex flex-wrap items-center gap-2 px-5 pb-4 sm:px-8">
+    <div v-if="loaded && items.length" class="flex flex-wrap items-center gap-x-3 gap-y-2 p-3 sm:px-5 sm:pt-4">
       <label class="relative block w-full sm:w-64">
         <span class="sr-only">{{ t('menu.search', { list: label.toLowerCase() }) }}</span>
-        <PhMagnifyingGlass :size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"></PhMagnifyingGlass>
-        <input v-model.trim="query" class="field !h-9 pl-9" type="search" :placeholder="t('menu.search', { list: label.toLowerCase() })" />
+        <PhMagnifyingGlass :size="16" class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-soft"></PhMagnifyingGlass>
+        <input v-model.trim="query" class="field !border-transparent !bg-wash pl-10" type="search" :placeholder="t('menu.search', { list: label.toLowerCase() })" />
       </label>
-      <label class="w-full sm:w-auto">
-        <span class="sr-only">{{ t('menu.row.category') }}</span>
-        <select v-model="category" class="field !h-9 sm:!w-56">
-          <option :value="null">{{ t('menu.allCategories') }}</option>
-          <option v-for="c in allCategories" :key="c" :value="c">{{ c }} ({{ formatNumber(countIn(c)) }})</option>
-        </select>
-      </label>
-      <p class="ml-auto hidden text-sm text-ink-soft sm:block">
-        {{ formatNumber(items.length) }} {{ itemNoun(agent.kind, items.length) }}
-      </p>
+      <div class="tabs min-w-0 flex-1" role="group" :aria-label="t('menu.row.category')">
+        <button type="button" class="tab" :class="{ 'tab-active': category === null }" :aria-pressed="category === null" @click="category = null">
+          {{ t('menu.all') }}
+          <span class="count" :class="{ '!bg-ink !text-white': category === null }">{{ formatNumber(items.length) }}</span>
+        </button>
+        <button
+          v-for="c in allCategories"
+          :key="c"
+          type="button"
+          class="tab"
+          :class="{ 'tab-active': category === c }"
+          :aria-pressed="category === c"
+          @click="category = c"
+        >
+          {{ c }}
+          <span class="count" :class="{ '!bg-ink !text-white': category === c }">{{ formatNumber(countIn(c)) }}</span>
+        </button>
+      </div>
     </div>
 
     <WooPanel
@@ -75,12 +88,10 @@
       {{ saveError }}
     </p>
 
-    <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
-
-    <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
+    <SkeletonRows v-if="!loaded"></SkeletonRows>
 
     <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-      <div v-if="items.length || adding" class="ledger-head sticky top-0 z-[1] grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem] gap-x-4 bg-surface px-5 pt-1 sm:px-8">
+      <div v-if="items.length || adding" class="ledger-head sticky top-0 z-[1] grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem] gap-x-4 bg-surface px-5 pt-2 sm:px-8">
         <span>{{ capitalize(noun) }}</span>
         <span class="text-right">{{ agent.kind === 'clinic' ? t('menu.fee') : t('menu.price') }}</span>
         <span>{{ t('menu.available') }}</span>
@@ -125,7 +136,7 @@
       <p v-else-if="!filtered.length && !adding" class="px-5 py-10 text-sm text-ink-soft sm:px-8">
         {{ t('menu.noMatches', { nouns: itemNoun(agent.kind, 2) }) }}
       </p>
-
+    </div>
     </div>
   </section>
 </template>
