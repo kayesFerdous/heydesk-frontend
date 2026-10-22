@@ -130,7 +130,8 @@ Dhaka suburbs; an area with neither is everywhere else, and only one can be; the
 address's district and the backend picks the area, backend D98; `pay_first`: per area since
 backend D92, and a shop has no `pay_first` of its own), `free_delivery_over`, `policies`,
 `size_guide` (free text; the agent suggests a size only from it) and `calls` (below). The Delivery
-and payments section sends the whole `delivery`, districts and places included, with its one
+and payments section sends the whole `delivery` with its districts (picked from a searchable
+list; it no longer sets `places`), with its one
 "pay first" switch on every area; the
 profile section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section.
 

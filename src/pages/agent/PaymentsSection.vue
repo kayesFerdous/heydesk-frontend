@@ -63,7 +63,7 @@
           </div>
           <div class="col-span-3">
             <FieldLabel :html-for="`zone-districts-${index}`" :tip="t('payments.districtsHint')">{{ t('payments.districts') }}</FieldLabel>
-            <!-- Picked from the 64, so nothing is misspelled; none: everywhere else. -->
+            <!-- Picked from the 64 (type to search), so nothing is misspelled; none: everywhere else. -->
             <div class="flex flex-wrap items-center gap-2">
               <span v-for="name in zone.districts" :key="name" class="chip bg-hover text-ink-soft">
                 {{ districtLabel(name) }}
@@ -71,19 +71,24 @@
                   <PhX :size="12" weight="bold"></PhX>
                 </button>
               </span>
-              <select :id="`zone-districts-${index}`" class="field w-auto" value="" @change="addDistrict(zone, $event)">
-                <option value="">{{ zone.districts.length ? t('payments.addDistrict') : t('payments.everywhereElse') }}</option>
-                <option v-for="[en] in DISTRICTS.filter(([d]) => !zone.districts.includes(d))" :key="en" :value="en">{{ districtLabel(en) }}</option>
-              </select>
+              <input
+                :id="`zone-districts-${index}`"
+                :list="`zone-districts-list-${index}`"
+                class="field w-auto min-w-56"
+                type="text"
+                autocomplete="off"
+                :placeholder="zone.districts.length ? t('payments.addDistrict') : t('payments.everywhereElse')"
+                @change="addDistrict(zone, $event)"
+                @keydown.enter.prevent="addDistrict(zone, $event)"
+              />
+              <datalist :id="`zone-districts-list-${index}`">
+                <option v-for="[en] in DISTRICTS.filter(([d]) => !zone.districts.includes(d))" :key="en" :value="districtLabel(en)"></option>
+              </datalist>
             </div>
-          </div>
-          <div class="col-span-3">
-            <FieldLabel :html-for="`zone-places-${index}`" :tip="t('payments.placesHint')">{{ t('payments.places') }}</FieldLabel>
-            <input :id="`zone-places-${index}`" v-model="zone.places" class="field" type="text" :placeholder="t('payments.placesPlaceholder')" />
           </div>
         </div>
         <div>
-          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: [], places: '' })">
+          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: [] })">
             <PhPlus :size="16" weight="bold"></PhPlus>
             {{ t('payments.addArea') }}
           </button>
@@ -162,15 +167,18 @@ import { DISTRICTS } from '../../lib/districts.js';
 // Taka in the form, paisa in the API.
 const toTaka = (paisa) => String((paisa || 0) / 100);
 const toPaisa = (taka) => Math.round(Number(taka || 0) * 100);
-// "Mirpur, Uttara" in the form, ["Mirpur", "Uttara"] in the API.
-const toList = (text) => text.split(',').map((part) => part.trim()).filter(Boolean);
 
 const { t, locale } = useI18n();
 
 // A district's name in the console's language; the English one is saved.
 const districtLabel = (en) => (locale.value === 'bn' && DISTRICTS.find(([d]) => d === en)?.[1]) || en;
+// What they typed or picked, in English or Bangla, as a district not yet in the area;
+// anything else stays in the box to fix.
 function addDistrict(zone, event) {
-  if (event.target.value) zone.districts.push(event.target.value);
+  const typed = event.target.value.trim().toLowerCase();
+  const found = DISTRICTS.find(([en, bn]) => en.toLowerCase() === typed || bn === typed);
+  if (!found) return;
+  if (!zone.districts.includes(found[0])) zone.districts.push(found[0]);
   event.target.value = '';
 }
 const agent = useAgentStore();
@@ -195,9 +203,8 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         name: z.name,
         charge: toTaka(z.charge),
         days: z.days || '',
-        // Districts it covers, and places that go here instead of their district's (backend D98).
+        // The districts it covers (backend D98).
         districts: [...(z.districts || [])],
-        places: (z.places || []).join(', '),
       })),
       freeOver: toTaka(k.free_delivery_over),
       // A shop pays first per area (backend D92); this one switch is on if any area is.
@@ -221,7 +228,6 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         charge: toPaisa(z.charge),
         days: z.days,
         districts: z.districts,
-        places: toList(z.places),
         pay_first: payFirst,
       }));
       patch.free_delivery_over = toPaisa(f.freeOver);
