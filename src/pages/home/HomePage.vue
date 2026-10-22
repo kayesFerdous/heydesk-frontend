@@ -2,11 +2,14 @@
   <!-- Home lays its islands straight on the grey canvas, under a greeting:
        what needs the owner, the agent, today's figures, today by hour. -->
   <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
-    <header class="px-1 pb-6 md:px-3 md:pt-3">
-      <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
-      <p class="mt-1 max-w-2xl text-base text-ink-soft">
-        {{ today }}<template v-if="ready && agent.hasAgent && !conversationsToday"> &middot; {{ t('home.todayNone') }}</template>
-      </p>
+    <header class="flex items-start gap-3 px-1 pb-6 md:px-3 md:pt-3">
+      <SidebarToggle class="mt-[0.3125rem] sm:mt-[0.5625rem]"></SidebarToggle>
+      <div class="min-w-0">
+        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
+        <p class="mt-1 max-w-2xl text-base text-ink-soft">
+          {{ today }}<template v-if="ready && agent.hasAgent && !conversationsToday"> &middot; {{ t('home.todayNone') }}</template>
+        </p>
+      </div>
     </header>
 
     <LoadError v-if="error" :message="error" class="island" @retry="load"></LoadError>
@@ -252,6 +255,7 @@ import LoadError from '../../components/ui/LoadError.vue';
 import BrandMark from '../../components/ui/BrandMark.vue';
 import StatusChip from '../../components/ui/StatusChip.vue';
 import HourBars from '../../components/home/HourBars.vue';
+import SidebarToggle from '../../components/layout/SidebarToggle.vue';
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { fetchConversations } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';

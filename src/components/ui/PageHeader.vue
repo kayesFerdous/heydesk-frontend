@@ -8,13 +8,16 @@
   <div class="contents">
     <header class="px-1 md:px-3 md:pt-3" :class="$slots.tabs ? 'pb-2' : 'pb-5'">
       <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div class="min-w-0">
-          <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance">
-            {{ title }}
-            <InfoTip v-if="tip" :text="tip" class="ml-0.5 -translate-y-0.5"></InfoTip>
-          </h1>
-          <p v-if="subtitle" class="mt-1 max-w-2xl text-sm text-ink-soft">{{ subtitle }}</p>
-          <slot name="subtitle"></slot>
+        <div class="flex min-w-0 items-start gap-3">
+          <SidebarToggle class="mt-[0.3125rem]"></SidebarToggle>
+          <div class="min-w-0">
+            <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance">
+              {{ title }}
+              <InfoTip v-if="tip" :text="tip" class="ml-0.5 -translate-y-0.5"></InfoTip>
+            </h1>
+            <p v-if="subtitle" class="mt-1 max-w-2xl text-sm text-ink-soft">{{ subtitle }}</p>
+            <slot name="subtitle"></slot>
+          </div>
         </div>
         <div v-if="$slots.actions" class="flex flex-wrap items-center gap-2">
           <slot name="actions"></slot>
@@ -30,6 +33,7 @@
 
 <script setup>
 import InfoTip from './InfoTip.vue';
+import SidebarToggle from '../layout/SidebarToggle.vue';
 
 defineProps({
   title: { type: String, required: true },

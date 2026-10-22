@@ -1,19 +1,5 @@
 <template>
   <aside class="group/sidebar relative flex min-h-0 flex-col bg-night text-white">
-    <!-- Fold or unfold: a small handle sitting on the sidebar's edge, shown
-         while the pointer is over the sidebar (or the handle has focus). -->
-    <button
-      v-if="collapsible"
-      type="button"
-      class="edge-toggle"
-      :aria-label="collapsed ? t('shell.expand') : t('shell.collapse')"
-      :title="collapsed ? t('shell.expand') : t('shell.collapse')"
-      :aria-expanded="!collapsed"
-      @click="ui.sidebarCollapsed = !collapsed"
-    >
-      <component :is="collapsed ? PhCaretRight : PhCaretLeft" :size="12" weight="bold"></component>
-    </button>
-
     <!-- One header, one logo: the HeyDesk mark, then whose desk this is and
          whether it is answering customers. Folded, only the mark stays. -->
     <div class="shrink-0 px-3 pt-4">
@@ -148,14 +134,12 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
   PhSignOut,
   PhChatCircleDots,
-  PhCaretLeft,
-  PhCaretRight,
   PhCaretUpDown,
   PhUserCircle,
   PhUserSound,
@@ -187,6 +171,14 @@ const inbox = useInboxStore();
 const ui = useUiStore();
 
 const collapsed = computed(() => props.collapsible && ui.sidebarCollapsed);
+// [ folds or unfolds, unless they are typing. The button is SidebarToggle, beside each page's title.
+function onKey(event) {
+  if (event.key !== '[' || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  ui.sidebarCollapsed = !ui.sidebarCollapsed;
+}
+onMounted(() => props.collapsible && window.addEventListener('keydown', onKey));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 const email = computed(() => auth.me?.email ?? '');
 const initial = computed(() => email.value.charAt(0).toUpperCase());
 const showStatus = computed(() => auth.seesBusiness && agent.hasAgent);
@@ -254,35 +246,6 @@ function signOut() {
 </script>
 
 <style scoped>
-/* The fold handle: a small round button straddling the sidebar's right rule. */
-.edge-toggle {
-  position: absolute;
-  top: 1.75rem;
-  right: -0.75rem;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 1px solid var(--color-line-strong);
-  border-radius: 999px;
-  background-color: var(--color-surface);
-  color: var(--color-ink-soft);
-  box-shadow: var(--shadow-lift);
-  opacity: 0;
-  transition: opacity 0.15s var(--ease-settle), color 0.15s var(--ease-settle), border-color 0.15s var(--ease-settle);
-}
-
-.group\/sidebar:hover .edge-toggle,
-.edge-toggle:focus-visible {
-  opacity: 1;
-}
-
-.edge-toggle:hover {
-  color: var(--color-ink);
-  border-color: var(--color-ink);
-}
-
 .menu-enter-active,
 .menu-leave-active {
   transition: opacity 0.15s var(--ease-settle), transform 0.15s var(--ease-settle);
@@ -298,13 +261,6 @@ function signOut() {
   .menu-enter-active,
   .menu-leave-active {
     transition: none;
-  }
-}
-
-/* Touch screens have no hover: the handle stays visible. */
-@media (hover: none) {
-  .edge-toggle {
-    opacity: 1;
   }
 }
 
