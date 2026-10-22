@@ -7,7 +7,10 @@ import tailwindcss from '@tailwindcss/vite';
 // needs no CORS setup in development. Unlike store-manager-vue, the prefix is
 // NOT stripped: HeyDesk's own routes already start with /api.
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  // Drop template comments in dev too (production already does). A comment
+  // before a page's root is a second root node, and the out-in page
+  // <transition> in App.vue can never finish leaving it: the next page stays blank.
+  plugins: [vue({ template: { compilerOptions: { comments: false } } }), tailwindcss()],
   // vue-i18n's build flags: Composition API only, no legacy API, no devtools in production.
   define: {
     __VUE_I18N_FULL_INSTALL__: JSON.stringify(true),

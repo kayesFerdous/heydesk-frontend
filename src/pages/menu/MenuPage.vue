@@ -1,7 +1,7 @@
 <template>
   <!-- One island on the canvas: find a dish (words, then a category pill),
        bring a list in, and the list itself. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
       <template v-if="loaded && !linked && auth.canManage" #actions>
         <!-- The ways to bring a whole list in, behind one button. -->

@@ -1,7 +1,7 @@
 <template>
   <!-- Three columns on the canvas: the list, the receipt, and the customer
        with the next step. A phone shows the list, then one record with a way back. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :class="{ 'max-lg:hidden': opened }" :title="t('inbox.title')" :subtitle="t('inbox.subtitle')">
       <template #actions>
         <div v-if="inbox.jobs.length > 1" class="tabs rounded-full bg-surface p-1" role="tablist">

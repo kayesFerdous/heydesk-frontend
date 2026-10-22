@@ -1,7 +1,7 @@
 <template>
   <!-- Home lays its islands straight on the grey canvas, under a greeting:
        what needs the owner, the agent, today's figures, today by hour. -->
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <header class="px-1 pb-6 md:px-3 md:pt-3">
       <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
       <p class="mt-1 max-w-2xl text-base text-ink-soft">

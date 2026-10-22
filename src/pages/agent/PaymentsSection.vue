@@ -5,7 +5,7 @@
       <SslcommerzConnect @change="connected = $event"></SslcommerzConnect>
     </SettingsGroup>
 
-    <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-8 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
+    <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-6 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
       <FormProblems :message="saveError" :problems="problems" class="mt-6"></FormProblems>
 
       <!-- A restaurant: pickup only, or delivery too, at one charge to any address. -->
@@ -31,80 +31,85 @@
 
       <!-- A shop: its delivery areas, each with a charge. -->
       <SettingsGroup v-if="kind === 'shop'" :title="t('payments.areas')" :tip="t('payments.areasText')">
-        <!-- One area per block: the name on its own line, so it never gets squeezed. -->
-        <div
-          v-for="(zone, index) in form.zones"
-          :key="index"
-          class="panel grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-3 p-4"
-        >
-          <div class="col-span-2">
-            <FieldLabel :html-for="`zone-${index}`">{{ t('payments.area') }}</FieldLabel>
-            <input :id="`zone-${index}`" v-model.trim="zone.name" class="field" :class="{ 'field-invalid': !zone.name }" type="text" :placeholder="t('payments.areaPlaceholder')" />
+        <!-- One row per area: name, charge, days, then its districts under it.
+             The headings show once when the panel is wide enough; narrower, each field keeps its label. -->
+        <div class="panel @container">
+          <div class="hidden grid-cols-[minmax(0,1fr)_6rem_7.5rem_2.75rem] gap-3 px-4 pt-3 @md:grid">
+            <span class="label !mb-0">{{ t('payments.area') }}</span>
+            <span class="label !mb-0">{{ t('payments.charge') }} (৳)</span>
+            <span class="label !mb-0">{{ t('payments.usuallyTakes') }}</span>
           </div>
-          <button type="button" class="btn btn-quiet btn-icon" :aria-label="t('payments.removeArea', { name: zone.name || t('payments.thisArea') })" @click="form.zones.splice(index, 1)">
-            <PhTrash :size="18"></PhTrash>
+          <div class="divide-y divide-hairline">
+            <div v-for="(zone, index) in form.zones" :key="index" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-end gap-x-3 gap-y-2 px-4 py-3 @md:grid-cols-[minmax(0,1fr)_6rem_7.5rem_2.75rem]">
+              <div class="col-span-2 @md:col-span-1">
+                <FieldLabel :html-for="`zone-${index}`" class="@md:sr-only">{{ t('payments.area') }}</FieldLabel>
+                <input :id="`zone-${index}`" v-model.trim="zone.name" class="field" :class="{ 'field-invalid': !zone.name }" type="text" :placeholder="t('payments.areaPlaceholder')" />
+              </div>
+              <div>
+                <FieldLabel :html-for="`zone-charge-${index}`" class="@md:sr-only">{{ t('payments.charge') }} (৳)</FieldLabel>
+                <input
+                  :id="`zone-charge-${index}`"
+                  v-model="zone.charge"
+                  class="field"
+                  :class="{ 'field-invalid': !validAmount(zone.charge) }"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                />
+              </div>
+              <div class="col-span-2 @md:col-span-1">
+                <FieldLabel :html-for="`zone-days-${index}`" class="@md:sr-only">{{ t('payments.usuallyTakes') }}</FieldLabel>
+                <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" :placeholder="t('payments.daysPlaceholder')" />
+              </div>
+              <button type="button" class="btn btn-quiet btn-icon col-start-3 row-start-1 @md:col-start-4" :aria-label="t('payments.removeArea', { name: zone.name || t('payments.thisArea') })" @click="form.zones.splice(index, 1)">
+                <PhTrash :size="18"></PhTrash>
+              </button>
+              <!-- Picked from the 64 (type to search), so nothing is misspelled; none: everywhere else. -->
+              <div class="col-span-3 flex flex-wrap items-center gap-2 @md:col-span-4">
+                <FieldLabel :html-for="`zone-districts-${index}`" :tip="t('payments.districtsHint')" class="!mb-0 mr-1">{{ t('payments.districts') }}</FieldLabel>
+                <span v-for="name in zone.districts" :key="name" class="chip bg-hover text-ink-soft">
+                  {{ districtLabel(name) }}
+                  <button type="button" class="hover:text-danger" :aria-label="t('payments.removeDistrict', { name: districtLabel(name) })" @click="zone.districts = zone.districts.filter((d) => d !== name)">
+                    <PhX :size="12" weight="bold"></PhX>
+                  </button>
+                </span>
+                <input
+                  :id="`zone-districts-${index}`"
+                  :list="`zone-districts-list-${index}`"
+                  class="field h-9 w-auto min-w-48 flex-1"
+                  type="text"
+                  autocomplete="off"
+                  :placeholder="zone.districts.length ? t('payments.addDistrict') : t('payments.everywhereElse')"
+                  @change="addDistrict(zone, $event)"
+                  @keydown.enter.prevent="addDistrict(zone, $event)"
+                />
+                <datalist :id="`zone-districts-list-${index}`">
+                  <option v-for="[en] in DISTRICTS.filter(([d]) => !zone.districts.includes(d))" :key="en" :value="districtLabel(en)"></option>
+                </datalist>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Add an area and the free-delivery line share one row. -->
+        <div class="flex flex-wrap items-end gap-x-6 gap-y-4">
+          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: [] })">
+            <PhPlus :size="16" weight="bold"></PhPlus>
+            {{ t('payments.addArea') }}
           </button>
           <div>
-            <FieldLabel :html-for="`zone-charge-${index}`">{{ t('payments.charge') }} (৳)</FieldLabel>
+            <FieldLabel html-for="free-over" :tip="t('payments.freeOverHint')">{{ t('payments.freeOver') }} (৳)</FieldLabel>
             <input
-              :id="`zone-charge-${index}`"
-              v-model="zone.charge"
-              class="field"
-              :class="{ 'field-invalid': !validAmount(zone.charge) }"
+              id="free-over"
+              v-model="form.freeOver"
+              class="field max-w-40"
+              :class="{ 'field-invalid': !validAmount(form.freeOver) }"
               type="number"
               min="0"
               step="1"
               inputmode="numeric"
             />
           </div>
-          <div class="col-span-2">
-            <FieldLabel :html-for="`zone-days-${index}`">{{ t('payments.usuallyTakes') }}</FieldLabel>
-            <input :id="`zone-days-${index}`" v-model.trim="zone.days" class="field" type="text" :placeholder="t('payments.daysPlaceholder')" />
-          </div>
-          <div class="col-span-3">
-            <FieldLabel :html-for="`zone-districts-${index}`" :tip="t('payments.districtsHint')">{{ t('payments.districts') }}</FieldLabel>
-            <!-- Picked from the 64 (type to search), so nothing is misspelled; none: everywhere else. -->
-            <div class="flex flex-wrap items-center gap-2">
-              <span v-for="name in zone.districts" :key="name" class="chip bg-hover text-ink-soft">
-                {{ districtLabel(name) }}
-                <button type="button" class="hover:text-danger" :aria-label="t('payments.removeDistrict', { name: districtLabel(name) })" @click="zone.districts = zone.districts.filter((d) => d !== name)">
-                  <PhX :size="12" weight="bold"></PhX>
-                </button>
-              </span>
-              <input
-                :id="`zone-districts-${index}`"
-                :list="`zone-districts-list-${index}`"
-                class="field w-auto min-w-56"
-                type="text"
-                autocomplete="off"
-                :placeholder="zone.districts.length ? t('payments.addDistrict') : t('payments.everywhereElse')"
-                @change="addDistrict(zone, $event)"
-                @keydown.enter.prevent="addDistrict(zone, $event)"
-              />
-              <datalist :id="`zone-districts-list-${index}`">
-                <option v-for="[en] in DISTRICTS.filter(([d]) => !zone.districts.includes(d))" :key="en" :value="districtLabel(en)"></option>
-              </datalist>
-            </div>
-          </div>
-        </div>
-        <div>
-          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: [] })">
-            <PhPlus :size="16" weight="bold"></PhPlus>
-            {{ t('payments.addArea') }}
-          </button>
-        </div>
-        <div>
-          <FieldLabel html-for="free-over" :tip="t('payments.freeOverHint')">{{ t('payments.freeOver') }} (৳)</FieldLabel>
-          <input
-            id="free-over"
-            v-model="form.freeOver"
-            class="field max-w-40"
-            :class="{ 'field-invalid': !validAmount(form.freeOver) }"
-            type="number"
-            min="0"
-            step="1"
-            inputmode="numeric"
-          />
         </div>
       </SettingsGroup>
 

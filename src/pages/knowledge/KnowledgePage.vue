@@ -1,5 +1,5 @@
 <template>
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader
       :title="t('knowledge.title')"
       :tip="t('knowledge.subtitle')"

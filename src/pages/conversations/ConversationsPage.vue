@@ -1,7 +1,7 @@
 <template>
   <!-- Three columns on the canvas: the list, the transcript, and who it was
        with. A phone shows the list, then one conversation with a way back. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :class="{ 'max-lg:hidden': selectedId }" :title="t('conversations.title')" :subtitle="t('conversations.subtitle')">
       <template #actions>
         <div class="tabs rounded-full bg-surface p-1" role="group" :aria-label="t('conversations.filter')">

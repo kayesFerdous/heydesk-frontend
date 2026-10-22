@@ -1,5 +1,5 @@
 <template>
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('channelsPage.title')" :tip="t('channelsPage.subtitle')"></PageHeader>
 
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>

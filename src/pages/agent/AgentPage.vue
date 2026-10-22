@@ -1,5 +1,5 @@
 <template>
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <!-- The frame around the settings sections: title, section tabs, what is
          still missing, and beside the form a preview of what a customer sees,
          drawn from the form as it is edited. Each section (a child route) has

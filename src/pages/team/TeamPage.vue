@@ -1,7 +1,7 @@
 <template>
   <!-- The business's team (backend D97): the owner adds moderators, who run the
        inbox but not the settings, and sees what everyone changed. -->
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('team.title')" :tip="t('team.subtitle')"></PageHeader>
 
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>

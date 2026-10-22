@@ -2,7 +2,7 @@
   <!-- Settings that belong to the person signed in, not to the business or
        the agent: their language, their password, their sign-in. Future personal
        settings (notifications) are one more SettingsGroup here. -->
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('shell.account')"></PageHeader>
 
     <div class="island px-5 pt-6 pb-4 sm:px-8">
