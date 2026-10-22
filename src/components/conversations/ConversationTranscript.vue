@@ -8,7 +8,7 @@
       </button>
       <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold" :class="tint" aria-hidden="true">
         <template v-if="named">{{ initials(name) }}</template>
-        <component :is="channel.icon" v-else :size="20"></component>
+        <component :is="channel.icon" v-else :size="22" :weight="channel.weight"></component>
       </span>
       <div class="min-w-0">
         <h2 class="truncate text-lg font-bold">{{ name }}</h2>
@@ -110,7 +110,7 @@ const { t } = useI18n();
 const channel = computed(() => channelOf(props.conversation.channel));
 const named = computed(() => Boolean(props.conversation.records[0]?.customer_name));
 const name = computed(() => props.conversation.records[0]?.customer_name || t('conversations.visitor'));
-const tint = computed(() => (named.value ? avatarTint(name.value) : 'bg-hover text-ink'));
+const tint = computed(() => (named.value ? avatarTint(name.value) : channel.value.avatar));
 const phone = computed(() => props.conversation.records.find((r) => r.customer_phone)?.customer_phone ?? '');
 const when = computed(
   () => `${formatDay(props.conversation.created_at)}, ${formatTime(props.conversation.created_at)}`,

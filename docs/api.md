@@ -228,7 +228,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ### Conversations (`conversations.js`)
 | Call | What it does |
 |---|---|
-| `GET /conversations?status=active\|needs_human` | `[{id, channel, status, created_at, updated_at}]` |
+| `GET /conversations?status=active\|needs_human&channel=` | `[{id, channel, status, created_at, updated_at}]`. `channel`: web, voice, telegram, messenger or whatsapp (422 for another); the Conversations page's channel filter (`?channel=` in its URL) |
 | `PATCH /conversations/{id}` `{status: "active"}` | Marks a hand-off handled: the agent answers again, as after `/done` on Telegram (D83). `status` is `active`, `needs_human` or `human` (the team is answering, D43); only `active` is accepted (422), and a conversation already `active` is 409 `invalid_transition`. Client: `markHandled` in `api/conversations.js` |
 | `GET /conversations/{id}` | Plus `messages[{role: user/assistant, text, photo, photos}]` and `records[]`. `photo`: the URL of the photo the visitor sent (their `text` starts with the backend's `[Photo. ...]` line); `photos`: `[{name, price, url}]` the agent showed, on a line with empty `text` (D57) |
 

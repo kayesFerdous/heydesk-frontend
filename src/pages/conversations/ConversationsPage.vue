@@ -21,8 +21,41 @@
     <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
       <!-- The list -->
       <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
+        <!-- One channel at a time: its logo, and its name once chosen. -->
+        <nav class="flex shrink-0 flex-wrap gap-1.5 border-b border-hairline p-3" :aria-label="t('conversations.byChannel')">
+          <button
+            type="button"
+            class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
+            :class="!channel ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
+            :aria-pressed="!channel"
+            @click="setChannel(null)"
+          >
+            {{ t('conversations.all') }}
+          </button>
+          <button
+            v-for="option in channelOptions"
+            :key="option.id"
+            type="button"
+            class="chip h-9 gap-1.5 text-sm font-semibold transition-colors"
+            :class="channel === option.id ? 'bg-lime px-3.5 text-ink' : 'w-9 justify-center bg-hover px-0 text-ink-soft hover:text-ink'"
+            :aria-pressed="channel === option.id"
+            :aria-label="option.label"
+            :title="option.label"
+            @click="setChannel(option.id)"
+          >
+            <component :is="option.icon" :size="18" :weight="option.weight" :class="option.color"></component>
+            <span v-if="channel === option.id">{{ option.label }}</span>
+          </button>
+        </nav>
+
         <SkeletonRows v-if="!loaded"></SkeletonRows>
 
+        <EmptyState
+          v-else-if="!rows.length && channel && filter !== 'needs_human'"
+          :icon="channelOf(channel).icon"
+          :title="t('conversations.noneFrom', { channel: channelOf(channel).label })"
+          :text="t('conversations.noneFromText')"
+        ></EmptyState>
         <EmptyState
           v-else-if="!rows.length"
           :icon="filter === 'needs_human' ? PhCheckCircle : PhChatsCircle"
@@ -99,6 +132,7 @@ import { fetchConversations, fetchConversation, markHandled } from '../../api/co
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber } from '../../lib/format.js';
+import { channelOf, CHANNEL_IDS } from '../../lib/channels.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { useInboxStore } from '../../stores/inbox.js';
 import { useUiStore } from '../../stores/ui.js';
@@ -124,6 +158,10 @@ const handleError = ref(null);
 
 const filter = computed(() => (route.query.filter === 'needs_human' ? 'needs_human' : 'all'));
 const selectedId = computed(() => route.query.open || null);
+const channel = computed(() => (CHANNEL_IDS.includes(route.query.channel) ? route.query.channel : null));
+const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelOf(id) })));
+// What the list is showing; a page asked for under another one is dropped.
+const listKey = computed(() => `${filter.value}|${channel.value}`);
 
 // The list endpoint has no names or previews. The name comes from a record
 // the conversation made; the preview from its transcript, once loaded.
@@ -146,7 +184,15 @@ const detail = computed(() => {
 });
 
 function setFilter(next) {
-  router.replace({ query: next === 'all' ? {} : { filter: next } });
+  const query = channel.value ? { channel: channel.value } : {};
+  if (next !== 'all') query.filter = next;
+  router.replace({ query });
+}
+
+function setChannel(next) {
+  const query = filter.value === 'all' ? {} : { filter: filter.value };
+  if (next) query.channel = next;
+  router.replace({ query });
 }
 
 function select(id) {
@@ -160,6 +206,7 @@ function select(id) {
 function fetchPage(before) {
   return fetchConversations({
     status: filter.value === 'needs_human' ? 'needs_human' : undefined,
+    channel: channel.value || undefined,
     limit: PAGE_SIZE,
     before,
   });
@@ -210,10 +257,10 @@ async function load() {
 // old rows staying until it arrives. Rows that moved on load their preview again.
 async function refresh() {
   if (!loaded.value) return;
-  const asked = filter.value;
+  const asked = listKey.value;
   try {
     const [page, records] = await Promise.all([fetchPage(), fetchRecords()]);
-    if (asked !== filter.value) return; // the filter changed meanwhile
+    if (asked !== listKey.value) return; // the filter changed meanwhile
     list.value = page;
     hasMore.value = page.length === PAGE_SIZE;
     recordsOf.value = byConversation(records);
@@ -256,13 +303,13 @@ async function handled() {
 
 // The next page: conversations quieter than the oldest one on screen.
 async function showMore() {
-  const asked = filter.value;
+  const asked = listKey.value;
   loadingMore.value = true;
   moreError.value = null;
   try {
     const older = await fetchPage(list.value[list.value.length - 1].updated_at);
     // The filter changed meanwhile: this page belongs to the old list.
-    if (asked === filter.value) {
+    if (asked === listKey.value) {
       list.value = [...list.value, ...older];
       hasMore.value = older.length === PAGE_SIZE;
       loadPreviews(older);
@@ -273,7 +320,7 @@ async function showMore() {
   loadingMore.value = false;
 }
 
-watch(filter, load, { immediate: true });
+watch(listKey, load, { immediate: true });
 watch(() => inbox.arrivals, refresh);
 watch(
   selectedId,

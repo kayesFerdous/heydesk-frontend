@@ -11,7 +11,7 @@
     <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold" :class="tint" aria-hidden="true">
       <!-- A visitor with no name yet shows where they wrote from, not a row of "V"s. -->
       <template v-if="row.named">{{ initials(row.name) }}</template>
-      <component :is="channel.icon" v-else :size="20"></component>
+      <component :is="channel.icon" v-else :size="22" :weight="channel.weight"></component>
     </span>
 
     <span class="min-w-0 flex-1">
@@ -24,7 +24,7 @@
       <StatusChip v-if="row.status === 'needs_human'" status="needs_human"></StatusChip>
       <!-- Web chat is the usual case: only another channel is worth a word. -->
       <span v-else-if="row.channel !== 'web'" class="chip bg-hover text-ink-soft">
-        <component :is="channel.icon" :size="13" weight="bold"></component>
+        <component :is="channel.icon" :size="14" :weight="channel.brand ? 'fill' : 'bold'" :class="channel.color"></component>
         {{ channel.label }}
       </span>
     </span>
@@ -47,6 +47,6 @@ const props = defineProps({
 defineEmits(['select']);
 const { t } = useI18n();
 
-const tint = computed(() => (props.row.named ? avatarTint(props.row.name) : 'bg-hover text-ink'));
 const channel = computed(() => channelOf(props.row.channel));
+const tint = computed(() => (props.row.named ? avatarTint(props.row.name) : channel.value.avatar));
 </script>

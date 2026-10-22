@@ -25,6 +25,11 @@
   --color-lime: #d4f36b;
   --color-lime-hover: #c8ea55;
   --color-lilac: #cdb8ff;
+  /* The channels' own colours, only on their own logos (a conversation's
+     avatar, its channel chip). */
+  --color-telegram: #229ed9;
+  --color-messenger: #0084ff;
+  --color-whatsapp: #25d366;
   /* Pastel avatar tints: decoration only, never a state. */
   --color-tint-lilac: #ebe3ff;
   --color-tint-sky: #dcecfd;

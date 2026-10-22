@@ -40,7 +40,7 @@
     <dl class="flex flex-col gap-3 text-sm">
       <div class="flex justify-between gap-3">
         <dt class="text-ink-soft">{{ t('conversations.channel') }}</dt>
-        <dd class="flex items-center gap-1.5 font-semibold"><component :is="channel.icon" :size="16"></component>{{ channel.label }}</dd>
+        <dd class="flex items-center gap-1.5 font-semibold"><component :is="channel.icon" :size="16" :weight="channel.weight" :class="channel.color"></component>{{ channel.label }}</dd>
       </div>
       <div class="flex justify-between gap-3">
         <dt class="text-ink-soft">{{ t('conversations.started') }}</dt>

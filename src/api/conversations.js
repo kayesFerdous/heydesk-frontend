@@ -1,10 +1,12 @@
 import { request } from './client.js';
 
 // status is "active", "needs_human" or "human" (the team is answering on Telegram); leave it out for every conversation.
+// channel is web, voice, telegram, messenger or whatsapp; leave it out for every channel.
 // Newest activity first, one page: up to `limit` before `before` (the last one's updated_at).
-export function fetchConversations({ status, limit, before } = {}) {
+export function fetchConversations({ status, channel, limit, before } = {}) {
   const params = new URLSearchParams();
   if (status) params.set('status', status);
+  if (channel) params.set('channel', channel);
   if (limit) params.set('limit', limit);
   if (before) params.set('before', before);
   const query = params.toString();
