@@ -246,9 +246,21 @@ for the action, lime for the signature.
     asks, the agent reads it back with the total (and a caption saying where
     the number came from), the customer says yes, and only then does the
     entry land in the inbox, lit in pale lime for a beat. A segmented
-    control switches restaurant, clinic and front office. Labelled "An
-    example, not real customers". Under reduced motion it shows the finished
-    story.
+    control switches restaurant, clinic, online shop (the customer sends a
+    photo first) and front office; on a phone the track scrolls sideways.
+    Labelled "An example, not real customers". Under reduced motion it shows
+    the finished story.
+  - **What it can do** (`CapabilityTour`, after "How it decides"): five rows
+    (a product found from a photo, delivery and payment, a call to confirm a
+    cash order, an answer from the owner's documents, a reply in Bangla,
+    Banglish or English), each with a small example (`CapabilityScene`). On a
+    wide screen the example sits sticky beside the list and changes as a row
+    crosses the middle of the screen; the open row's marker is lime and a
+    black rail fills to it. On a phone each row carries its own example,
+    full width.
+  - **Channels** (`ChannelFeed`): the five channels as rows beside a
+    Conversations list that a new conversation joins every two seconds from
+    the next channel, its channel row lit pale lime while it is newest.
   - Sections are rows with rules, never feature cards. A number marks a step
     only where the order means something (how it decides, setup).
   - No testimonials, logos or statistics until real ones exist.
@@ -267,7 +279,17 @@ Landing motion (every piece explains something, all of it off under
 - **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
   row by row. In "How it decides" each number fills black in turn while a
   line draws to the next; in setup each number turns into a green check in
-  turn. Content below the fold is the only thing ever hidden first.
+  turn. The hand-off plays in the order it happens (the ask, the agent's
+  promise, the owner's alert with one orange pulse, the owner's reply from
+  Telegram). Content below the fold is the only thing ever hidden first.
+- **The capability examples** each act out their one idea: a line passes
+  over the photo before the match appears; the address's delivery area turns
+  pale lime and the total adds up; the call goes queued, ringing (rings
+  going out), on the call (moving bars), confirmed; the policy lines the
+  answer came from fill pale lime; the language switch cycles on its own
+  until clicked. One example gives way to the next with a short blur.
+- Every loop (the demo, the channel feed, the language switch) runs only
+  while it is on screen.
 - The header's rule appears only once the page scrolls.
 
 ## Signature details

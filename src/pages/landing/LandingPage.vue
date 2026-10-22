@@ -8,6 +8,7 @@
         <router-link to="/" :aria-label="t('landing.home')"><BrandMark></BrandMark></router-link>
         <div class="hidden items-center gap-6 text-sm text-ink-soft md:flex">
           <a href="#how" class="nav-link">{{ t('landing.nav.how') }}</a>
+          <a href="#features" class="nav-link">{{ t('landing.nav.features') }}</a>
           <a href="#channels" class="nav-link">{{ t('nav.channels') }}</a>
           <a href="#setup" class="nav-link">{{ t('landing.nav.setup') }}</a>
         </div>
@@ -82,6 +83,19 @@
       </div>
       </section>
 
+      <!-- Beyond the demo: what else the same agent does, each with its own example. -->
+      <section id="features" class="island scroll-mt-20 py-20 sm:py-28">
+        <div class="wrap">
+          <div class="max-w-2xl">
+            <h2 class="section-heading">{{ t('landing.tourTitle') }}</h2>
+            <p class="mt-5 leading-relaxed text-ink-soft">{{ t('landing.tourText') }}</p>
+          </div>
+          <div class="mt-12 lg:mt-4">
+            <CapabilityTour></CapabilityTour>
+          </div>
+        </div>
+      </section>
+
       <!-- When it needs a person -->
       <section class="rounded-[var(--radius-panel)] bg-night text-white">
         <div class="wrap grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2 lg:gap-20">
@@ -104,20 +118,31 @@
               </div>
               <StatusChip status="needs_human"></StatusChip>
             </div>
+            <!-- Plays in the order it happens: the ask, the agent's promise, the
+                 alert to the owner, and the owner's own reply from Telegram. -->
             <div class="flex flex-col gap-3 bg-wash px-5 py-5">
-              <div class="handoff-notice notice items-center">
+              <div class="handoff-beat notice items-center" style="--b: 2">
                 <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
                 <div class="min-w-0 flex-1">
                   <p class="font-semibold text-ink">{{ t('conversations.askedForPerson', { name: 'Nusrat Jahan' }) }}</p>
                   <p class="mt-0.5 text-ink-soft">{{ t('conversations.callToPickUp', { phone: '01712 345678' }) }}</p>
                 </div>
               </div>
-              <p class="max-w-[85%] self-start rounded-[var(--radius-card)] rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline">
+              <p class="handoff-beat max-w-[85%] self-start rounded-[var(--radius-card)] rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline" style="--b: 0">
                 {{ t('landing.handoffAsk') }}
               </p>
-              <p class="max-w-[85%] self-end rounded-[var(--radius-card)] rounded-tr-md bg-brand-tint px-4 py-2.5 text-sm text-ink">
+              <p class="handoff-beat max-w-[85%] self-end rounded-[var(--radius-card)] rounded-tr-md bg-brand-tint px-4 py-2.5 text-sm text-ink" style="--b: 1">
                 {{ t('landing.handoffReply', { phone: '01712 345678' }) }}
               </p>
+              <div class="handoff-beat max-w-[85%] self-end" style="--b: 3">
+                <p class="mb-1 flex items-center justify-end gap-1.5 text-xs text-ink-soft">
+                  <PhTelegramLogo :size="14" weight="fill" class="text-telegram"></PhTelegramLogo>
+                  {{ t('chat.fromTeam') }}
+                </p>
+                <p class="rounded-[var(--radius-card)] rounded-tr-md bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline">
+                  {{ t('landing.handoffTeam') }}
+                </p>
+              </div>
             </div>
             <figcaption class="border-t border-hairline px-5 py-3 text-xs text-ink-soft">
               {{ t('landing.handoffCaption') }}
@@ -129,27 +154,14 @@
       <!-- Channels -->
       <section id="channels" class="island scroll-mt-20 py-20 sm:py-28">
         <div class="wrap">
-        <div class="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
-          <div>
+          <div class="max-w-2xl">
             <h2 class="section-heading">{{ t('landing.channelsTitle') }}</h2>
-            <p class="mt-5 max-w-md leading-relaxed text-ink-soft">{{ t('landing.channelsText') }}</p>
+            <p class="mt-5 leading-relaxed text-ink-soft">{{ t('landing.channelsText') }}</p>
           </div>
-          <ul v-reveal class="list border-t border-hairline">
-            <li
-              v-for="(channel, index) in CHANNELS"
-              :key="channel.key"
-              class="flex items-start gap-4 border-b border-hairline py-6"
-              :style="{ '--i': index }"
-            >
-              <component :is="channel.icon" :size="24" class="mt-0.5 shrink-0 text-ink" aria-hidden="true"></component>
-              <div>
-                <h3 class="font-semibold tracking-[-0.01em]">{{ t(`landing.channels.${channel.key}.name`) }}</h3>
-                <p class="mt-1 max-w-lg leading-relaxed text-ink-soft">{{ t(`landing.channels.${channel.key}.text`) }}</p>
-              </div>
-            </li>
-          </ul>
+          <div class="mt-12">
+            <ChannelFeed></ChannelFeed>
+          </div>
         </div>
-      </div>
       </section>
 
       <!-- Setup -->
@@ -209,29 +221,19 @@
 <script setup>
 import { ref, watchEffect, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import {
-  PhArrowRight,
-  PhCheck,
-  PhGlobe,
-  PhPhoneCall,
-  PhTelegramLogo,
-  PhUserSound,
-} from '@phosphor-icons/vue';
+import { PhArrowRight, PhCheck, PhTelegramLogo, PhUserSound } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
 import StatusChip from '../../components/ui/StatusChip.vue';
 import LandingDemo from '../../components/landing/LandingDemo.vue';
+import CapabilityTour from '../../components/landing/CapabilityTour.vue';
+import ChannelFeed from '../../components/landing/ChannelFeed.vue';
 import vReveal from '../../directives/reveal.js';
 import { formatNumber } from '../../lib/format.js';
 
 // The words are `landing.<section>.<key>` in the language files.
 const MECHANISM = ['ask', 'work', 'readBack', 'yes'];
 const HANDOFF_POINTS = ['first', 'number', 'kept'];
-const CHANNELS = [
-  { key: 'web', icon: PhGlobe },
-  { key: 'voice', icon: PhPhoneCall },
-  { key: 'telegram', icon: PhTelegramLogo },
-];
 // The same five steps the owner's Home walks them through (lib/setup.js).
 const SETUP = ['create', 'details', 'list', 'try', 'share'];
 
@@ -348,14 +350,12 @@ onBeforeUnmount(() => {
 
 /* Lists that arrive as a list: each row a beat after the one before. */
 .sequence.reveal,
-.list.reveal,
 .setup.reveal {
   opacity: 1;
   transform: none;
 }
 
 .sequence-step,
-.list > li,
 .setup > li {
   transition:
     opacity 0.6s var(--ease-settle),
@@ -369,16 +369,32 @@ onBeforeUnmount(() => {
   transform: translateY(12px);
 }
 
-/* The handoff notice drops in after its panel arrives. */
-.handoff.reveal .handoff-notice {
+/* The hand-off plays in order once its panel arrives, 0.7s a beat. */
+.handoff.reveal .handoff-beat {
   transition:
-    opacity 0.5s var(--ease-settle) 0.6s,
-    transform 0.5s var(--ease-settle) 0.6s;
+    opacity 0.5s var(--ease-settle),
+    transform 0.5s var(--ease-settle);
+  transition-delay: calc(0.5s + var(--b) * 0.7s);
 }
 
-.handoff.reveal:not(.is-shown) .handoff-notice {
+.handoff.reveal:not(.is-shown) .handoff-beat {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(6px);
+}
+
+/* The owner's alert lands with a pulse of orange: someone is waiting. */
+.handoff.reveal.is-shown .notice.handoff-beat {
+  animation: alert 1.2s ease-out both;
+  animation-delay: calc(0.5s + var(--b) * 0.7s);
+}
+
+@keyframes alert {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-attention-bright);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgb(255 138 61 / 0);
+  }
 }
 
 /* Setup: a number becomes a green check, one step after another. */

@@ -4,12 +4,13 @@
        then does it arrive in the owner's inbox. Example data, labelled so. -->
   <div ref="root">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="segmented" role="group" :aria-label="t('demo.exampleBusiness')">
+      <!-- Four examples are wider than a phone: the track scrolls sideways there. -->
+      <div class="segmented tabs-scroll max-w-full overflow-x-auto" role="group" :aria-label="t('demo.exampleBusiness')">
         <button
           v-for="(item, id) in SCENES"
           :key="id"
           type="button"
-          class="segment"
+          class="segment shrink-0"
           :class="{ 'segment-active': id === sceneId }"
           :aria-pressed="id === sceneId ? 'true' : 'false'"
           @click="choose(id)"
@@ -49,6 +50,16 @@
         </header>
 
         <div class="flex flex-1 flex-col gap-2.5 px-4 py-5 text-sm leading-relaxed">
+          <!-- A shop's customer can send a photo of what they want. -->
+          <span
+            v-if="step >= 1 && scene.photo"
+            :key="`f${run}`"
+            class="arrive photo grid h-28 w-28 place-items-center self-end rounded-[var(--radius-card)] rounded-tr-sm bg-tint-sky"
+            :aria-label="t('demo.photo')"
+            role="img"
+          >
+            <PhTShirt :size="56" weight="duotone" class="text-ink"></PhTShirt>
+          </span>
           <p v-if="step >= 1" :key="`a${run}`" class="arrive max-w-[85%] self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-brand px-4 py-2.5 text-white">
             {{ scene.asks }}
           </p>
@@ -128,13 +139,15 @@ import {
   PhGlobe,
   PhSealCheck,
   PhStethoscope,
+  PhStorefront,
+  PhTShirt,
   PhTray,
 } from '@phosphor-icons/vue';
 
 import InboxRow from './InboxRow.vue';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 
-// Three example businesses, one per preset. Names and numbers are made up; the
+// Four example businesses, one per preset. Names and numbers are made up; the
 // words are `demo.<scene>.*` in the language files (a row's summary and time
 // are `rows.<n>` and `times.<n>`, the new one is row 0).
 const SCENES = {
@@ -154,6 +167,16 @@ const SCENES = {
       { initials: 'NJ', name: 'Nusrat Jahan', code: 'A-101', status: 'new' },
       { initials: 'RK', name: 'Rahim Khan', code: 'A-100', status: 'handled' },
       { initials: 'SB', name: 'Sadia Begum', code: 'A-099', status: 'handled' },
+    ],
+  },
+  shop: {
+    icon: PhStorefront,
+    initials: 'BT',
+    photo: true,
+    rows: [
+      { initials: 'SR', name: 'Sabbir Rahman', code: 'O-215', amount: 131000, status: 'new' },
+      { initials: 'MA', name: 'Mitu Akter', code: 'O-214', amount: 249000, status: 'shipped' },
+      { initials: 'RK', name: 'Rahim Khan', code: 'O-213', amount: 98000, status: 'delivered' },
     ],
   },
   office: {
@@ -194,6 +217,7 @@ const scene = computed(() => {
   }));
   return {
     initials: SCENES[id].initials,
+    photo: Boolean(SCENES[id].photo),
     business: say('business'),
     list: say('list'),
     asks: say('asks'),
@@ -308,6 +332,10 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
+.tabs-scroll {
+  scrollbar-width: none;
+}
+
 .progress {
   position: absolute;
   inset: auto 0.5rem 0.125rem;
@@ -349,6 +377,37 @@ onBeforeUnmount(() => {
 
   .count-new {
     animation: bump 0.4s var(--ease-settle);
+  }
+
+  /* The photo is looked at before the agent answers: a line passes over it. */
+  .photo::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background-color: var(--color-brand);
+    opacity: 0;
+    animation: scan 1.2s var(--ease-settle) 0.9s both;
+  }
+}
+
+.photo {
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes scan {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  15%,
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(7rem);
   }
 }
 
