@@ -1,76 +1,81 @@
 <template>
-  <section class="flex h-full flex-col lg:flex-row">
-    <!-- The list -->
-    <div
-      class="flex min-h-0 flex-col border-hairline lg:w-[22rem] lg:shrink-0 lg:border-r"
-      :class="selectedId ? 'hidden lg:flex' : 'flex flex-1'"
-    >
-      <header class="px-5 pt-6 pb-4 sm:px-8 sm:pt-9 lg:px-5">
-        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('conversations.title') }}</h1>
-        <p class="mt-1 text-sm text-ink-soft">{{ t('conversations.subtitle') }}</p>
-        <div class="segmented mt-4" role="group" :aria-label="t('conversations.filter')">
-          <button type="button" class="segment" :class="{ 'segment-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
+  <!-- Three columns on the canvas: the list, the transcript, and who it was
+       with. A phone shows the list, then one conversation with a way back. -->
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
+    <PageHeader :class="{ 'max-lg:hidden': selectedId }" :title="t('conversations.title')" :subtitle="t('conversations.subtitle')">
+      <template #actions>
+        <div class="tabs rounded-full bg-surface p-1" role="group" :aria-label="t('conversations.filter')">
+          <button type="button" class="tab" :class="{ 'tab-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
             {{ t('conversations.all') }}
           </button>
-          <button type="button" class="segment" :class="{ 'segment-active': filter === 'needs_human' }" :aria-pressed="filter === 'needs_human'" @click="setFilter('needs_human')">
+          <button type="button" class="tab" :class="{ 'tab-active': filter === 'needs_human' }" :aria-pressed="filter === 'needs_human'" @click="setFilter('needs_human')">
             {{ t('status.needs_human') }}
             <span v-if="inbox.needsHuman" class="count count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
           </button>
         </div>
-      </header>
+      </template>
+    </PageHeader>
 
-      <LoadError v-if="error" :message="error" @retry="load"></LoadError>
+    <LoadError v-if="error" class="island" :message="error" @retry="load"></LoadError>
 
-      <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
+    <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
+      <!-- The list -->
+      <div class="island flex flex-col lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
+        <SkeletonRows v-if="!loaded"></SkeletonRows>
 
-      <EmptyState
-        v-else-if="!rows.length"
-        :icon="filter === 'needs_human' ? PhCheckCircle : PhChatsCircle"
-        :title="filter === 'needs_human' ? t('conversations.nobodyWaiting') : t('conversations.emptyTitle')"
-        :text="filter === 'needs_human' ? t('conversations.nobodyWaitingText') : t('conversations.emptyText')"
-      >
-        <button v-if="filter !== 'needs_human'" type="button" class="btn btn-secondary" @click="ui.testSheetOpen = true">
-          {{ t('common.tryYourAgent') }}
-        </button>
-      </EmptyState>
+        <EmptyState
+          v-else-if="!rows.length"
+          :icon="filter === 'needs_human' ? PhCheckCircle : PhChatsCircle"
+          :title="filter === 'needs_human' ? t('conversations.nobodyWaiting') : t('conversations.emptyTitle')"
+          :text="filter === 'needs_human' ? t('conversations.nobodyWaitingText') : t('conversations.emptyText')"
+        >
+          <button v-if="filter !== 'needs_human'" type="button" class="btn btn-secondary" @click="ui.testSheetOpen = true">
+            {{ t('common.tryYourAgent') }}
+          </button>
+        </EmptyState>
 
-      <div v-else class="min-h-0 flex-1 overflow-y-auto">
-        <div v-for="group in groups" :key="group.label">
-          <h2 class="day-head lg:!px-5">
-            {{ group.label }}
-          </h2>
-          <ConversationRow
-            v-for="row in group.items"
-            :key="row.id"
-            :row="row"
-            :selected="row.id === selectedId"
-            @select="select(row.id)"
-          ></ConversationRow>
+        <div v-else class="px-2 pb-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+          <div v-for="group in groups" :key="group.label">
+            <h2 class="day-head !border-hairline !px-2.5 !pt-3">{{ group.label }}</h2>
+            <div class="flex flex-col gap-1 pt-1.5">
+              <ConversationRow
+                v-for="row in group.items"
+                :key="row.id"
+                :row="row"
+                :selected="row.id === selectedId"
+                @select="select(row.id)"
+              ></ConversationRow>
+            </div>
+          </div>
+          <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
         </div>
-        <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
       </div>
-    </div>
 
-    <!-- The transcript -->
-    <div class="min-h-0 min-w-0 flex-1" :class="selectedId ? 'flex flex-col' : 'hidden lg:flex lg:flex-col'">
-      <ConversationTranscript
-        v-if="detail"
-        :conversation="detail"
-        :busy="isHandling"
-        :error="handleError"
-        @back="select(null)"
-        @handled="handled"
-      ></ConversationTranscript>
-      <LoadError v-else-if="detailError" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
-      <div v-else-if="selectedId" class="p-8" aria-hidden="true">
-        <div class="skeleton h-5 w-40"></div>
-        <div class="skeleton mt-8 h-12 w-2/3"></div>
-        <div class="skeleton mt-3 ml-auto h-12 w-1/2"></div>
+      <!-- The conversation: the transcript, then who it was with. Wide
+           screens give each its own column; narrower ones stack them. -->
+      <div v-if="detail" class="flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto xl:contents">
+        <ConversationTranscript
+          :conversation="detail"
+          :busy="isHandling"
+          :error="handleError"
+          class="island xl:min-h-0"
+          @back="select(null)"
+          @handled="handled"
+        ></ConversationTranscript>
+        <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>
       </div>
-      <div v-else class="m-auto max-w-xs p-8 text-center">
-        <PhChatsCircle :size="32" class="mx-auto text-ink-faint"></PhChatsCircle>
-        <h2 class="mt-3 text-base font-semibold">{{ t('conversations.pick') }}</h2>
-        <p class="mt-1 text-sm text-ink-soft">{{ t('conversations.pickText') }}</p>
+      <LoadError v-else-if="detailError" class="island" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
+      <div v-else-if="selectedId" class="island p-8" aria-hidden="true">
+        <div class="skeleton h-5 w-40"></div>
+        <div class="skeleton mt-8 h-12 w-2/3 !rounded-[var(--radius-card)]"></div>
+        <div class="skeleton mt-3 ml-auto h-12 w-1/2 !rounded-[var(--radius-card)]"></div>
+      </div>
+      <div v-else class="island hidden flex-col items-center justify-center p-8 text-center lg:flex xl:col-span-2">
+        <span class="grid h-14 w-14 place-items-center rounded-full bg-brand-tint" aria-hidden="true">
+          <PhChatsCircle :size="26"></PhChatsCircle>
+        </span>
+        <h2 class="mt-4 text-lg font-bold">{{ t('conversations.pick') }}</h2>
+        <p class="mt-1 max-w-xs text-sm text-ink-soft">{{ t('conversations.pickText') }}</p>
       </div>
     </div>
   </section>
@@ -84,8 +89,10 @@ import { PhChatsCircle, PhCheckCircle } from '@phosphor-icons/vue';
 
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
+import ConversationSide from '../../components/conversations/ConversationSide.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
+import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import { fetchConversations, fetchConversation, markHandled } from '../../api/conversations.js';
