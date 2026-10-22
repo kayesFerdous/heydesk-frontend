@@ -1,10 +1,11 @@
 <template>
-  <!-- The top of every page: title and one line of help on the left, the
-       page's actions on the right, and tabs (if any) underneath. -->
-  <header class="px-5 pt-6 sm:px-8 sm:pt-9" :class="{ 'pb-6': !$slots.tabs }">
+  <!-- The top of every page, on the grey canvas above its islands: title and
+       one line of help on the left, the page's actions on the right, and tabs
+       (if any) underneath on a white pill track. -->
+  <header class="px-1 pb-5 md:px-3 md:pt-3">
     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div class="min-w-0">
-        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
+        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance">
           {{ title }}
           <InfoTip v-if="tip" :text="tip" class="ml-0.5 -translate-y-0.5"></InfoTip>
         </h1>
@@ -15,7 +16,7 @@
         <slot name="actions"></slot>
       </div>
     </div>
-    <div v-if="$slots.tabs" class="mt-5 [&_.tabs]:-mx-5 [&_.tabs]:px-5 sm:[&_.tabs]:-mx-8 sm:[&_.tabs]:px-8">
+    <div v-if="$slots.tabs" class="mt-4 [&_.tabs]:inline-flex [&_.tabs]:max-w-full [&_.tabs]:rounded-full [&_.tabs]:bg-surface [&_.tabs]:p-1">
       <slot name="tabs"></slot>
     </div>
   </header>

@@ -38,14 +38,10 @@ export function groupByDay(items, field = 'created_at', timeZone = 'Asia/Dhaka')
   return groups;
 }
 
-// A fixed set of brand-family tints so a list has rhythm without photos. The
-// same name always gets the same tint. No green or amber: those mean "live"
-// and "needs a person", never decoration.
-const AVATAR_TINTS = [
-  'bg-brand-tint text-brand',
-  'bg-brand-tint-strong text-brand-hover',
-  'bg-hover text-ink-soft',
-];
+// A fixed set of pastel tints so a list has rhythm without photos. The same
+// name always gets the same tint. No green or orange: those mean "live" and
+// "needs a person", never decoration.
+const AVATAR_TINTS = ['bg-tint-lilac text-ink', 'bg-tint-sky text-ink', 'bg-brand-tint text-ink', 'bg-tint-sand text-ink'];
 
 export function avatarTint(name) {
   let sum = 0;
@@ -61,4 +57,19 @@ export function initials(name) {
 // Whether a moment falls on today's date where the business is.
 export function isToday(isoString, timeZone = 'Asia/Dhaka') {
   return dayKey(isoString, timeZone) === dayKey(new Date().toISOString(), timeZone);
+}
+
+// The hour (0 to 23) a moment falls in, where the business is.
+export function hourOf(isoString, timeZone = 'Asia/Dhaka') {
+  return Number(new Date(isoString).toLocaleString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone }));
+}
+
+// Today's items added up per hour: 24 numbers, 00:00 first. `value` says what
+// one item adds (1 to count them, its total to add up money).
+export function todayByHour(items, timeZone = 'Asia/Dhaka', value = () => 1) {
+  const hours = Array(24).fill(0);
+  for (const item of items) {
+    if (isToday(item.created_at, timeZone)) hours[hourOf(item.created_at, timeZone)] += value(item);
+  }
+  return hours;
 }

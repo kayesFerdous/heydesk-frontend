@@ -1,3 +1,5 @@
+import { PhReceipt, PhCalendarBlank, PhEnvelopeSimple, PhTray } from '@phosphor-icons/vue';
+
 import { t } from '../i18n/index.js';
 
 // How one order, appointment or message is described in a single line, the
@@ -17,4 +19,11 @@ export function summarize(record) {
 // The Inbox tab a record lives under, plural: "Orders", "Appointments", "Messages".
 export function jobTab(job) {
   return t(`records.tabs.${job}`);
+}
+
+// The icon a job wears on the sidebar's count tiles and on Home.
+const JOB_ICONS = { order: PhReceipt, appointment: PhCalendarBlank, message: PhEnvelopeSimple };
+
+export function jobIcon(job) {
+  return JOB_ICONS[job] || PhTray;
 }

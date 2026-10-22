@@ -1,17 +1,17 @@
 <template>
   <router-view v-if="isBare"></router-view>
 
-  <!-- The shell: one white sheet, the sidebar ruled off from the work area.
-       No floating card, no outer margin, no top banner. The sidebar folds to
-       icons on desktop. -->
-  <div v-else class="flex h-dvh bg-surface">
+  <!-- The shell: a black panel for where you can go, and the work on a warm
+       grey canvas, each page laying out its own white islands. The sidebar
+       folds to icons on desktop. -->
+  <div v-else class="flex h-dvh bg-canvas md:gap-3 md:p-3">
     <AppSidebar
-      class="hidden shrink-0 transition-[width] duration-200 ease-[var(--ease-settle)] motion-reduce:transition-none md:flex"
-      :class="ui.sidebarCollapsed ? 'w-16' : 'w-60'"
+      class="hidden shrink-0 rounded-[var(--radius-panel)] transition-[width] duration-200 ease-[var(--ease-settle)] motion-reduce:transition-none md:flex"
+      :class="ui.sidebarCollapsed ? 'w-[4.75rem]' : 'w-72'"
       collapsible
     ></AppSidebar>
 
-    <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface pb-24 md:border-l md:border-hairline md:pb-0">
+    <main class="min-h-0 min-w-0 flex-1 overflow-y-auto pb-28 md:pb-0">
       <!-- An admin inside a business: whose it is, and the way out. -->
       <div
         v-if="auth.isViewing"
@@ -23,11 +23,11 @@
           {{ t('shell.viewing', { name: auth.viewing.name }) }}
           <span v-if="auth.isSuspended" class="font-semibold">{{ t('shell.viewingSuspended') }}</span>
         </span>
-        <router-link to="/admin" class="btn btn-secondary btn-sm">{{ t('shell.exitViewing') }}</router-link>
+        <router-link to="/admin" class="btn btn-lime btn-sm">{{ t('shell.exitViewing') }}</router-link>
       </div>
       <p
         v-else-if="auth.isSuspended"
-        class="flex items-center gap-2 border-b border-hairline bg-attention-tint px-5 py-3 text-sm font-medium text-ink sm:px-8"
+        class="flex items-center gap-2 bg-attention-tint px-5 py-3 text-sm font-medium text-ink sm:px-8"
         role="status"
       >
         <PhPauseCircle :size="20" weight="bold" class="shrink-0 text-attention"></PhPauseCircle>
@@ -46,7 +46,7 @@
     <transition name="drawer">
       <div v-if="ui.navOpen" class="fixed inset-0 z-40 md:hidden">
         <div class="absolute inset-0 bg-ink/30" @click="ui.navOpen = false"></div>
-        <AppSidebar class="drawer-panel relative flex h-full w-72 max-w-[85vw] shadow-[var(--shadow-float)]" @navigate="ui.navOpen = false"></AppSidebar>
+        <AppSidebar class="drawer-panel relative flex h-full w-72 max-w-[85vw] rounded-r-[var(--radius-panel)] shadow-[var(--shadow-float)]" @navigate="ui.navOpen = false"></AppSidebar>
       </div>
     </transition>
 

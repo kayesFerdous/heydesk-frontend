@@ -1,58 +1,81 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-/* The design tokens (DESIGN.md, v4 "Passbook"). Every colour, radius and
+/* The design tokens (DESIGN.md, v5 "Ink and lime"). Every colour, radius and
    shadow in the app comes from here, so a page never invents its own.
 
-   The console reads like a bank passbook: cobalt ink on white paper,
-   one-pixel rules, and status as a small stamp. Gigalogy's cobalt #004AAC is the only brand colour, used for actions
-   and selection. Green, orange and red are states (live, needs a person,
-   destructive), never decoration. */
+   A black panel holds where you can go; white islands on a warm grey canvas
+   hold the work. Black means "do this" (the primary button), lime means "you
+   are here" (the open page, the chosen filter, the selected row). Green,
+   orange and red are states (live, needs a person, destructive), never
+   decoration. Lilac is the one decorative tint, for a figure tile on Home. */
 @theme {
-  --font-sans: 'Geist', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+  --font-sans: 'Gabarito', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Noto Color Emoji';
   /* Order and booking codes only (A-104, #12): a serial, like a cheque number. */
-  --font-serial: 'Geist Mono', 'Noto Sans Bengali', ui-monospace, monospace;
+  --font-serial: 'IBM Plex Mono', 'Noto Sans Bengali', ui-monospace, monospace;
 
-  /* Brand: Gigalogy cobalt */
-  --color-brand: #004aac;
-  --color-brand-hover: #003b8a;
-  --color-brand-tint: #edf3fc;
-  --color-brand-tint-strong: #d9e6f8;
+  /* Action: black. `brand` is the name every button and link already uses. */
+  --color-brand: #111111;
+  --color-brand-hover: #2e2e2e;
+  /* Selection: lime, pale for a selected row or an icon tile, full for the
+     open page and the chosen filter. */
+  --color-brand-tint: #f0f8d2;
+  --color-brand-tint-strong: #d4f36b;
+  --color-lime: #d4f36b;
+  --color-lime-hover: #c8ea55;
+  --color-lilac: #cdb8ff;
+  /* Pastel avatar tints: decoration only, never a state. */
+  --color-tint-lilac: #ebe3ff;
+  --color-tint-sky: #dcecfd;
+  --color-tint-sand: #f2ead8;
 
-  /* Surfaces: one white sheet (work area and sidebar), a cool paper for bands */
+  /* Surfaces: the warm grey canvas, white islands on it, a paper grey for rows
+     and bands inside an island. */
+  --color-canvas: #ecece8;
   --color-surface: #ffffff;
-  --color-sidebar: #f3f5f9;
-  --color-wash: #f7f9fc;
-  --color-hover: #ebeff6;
+  --color-sidebar: #f5f5f2;
+  --color-wash: #f5f5f2;
+  --color-hover: #ebebe6;
 
-  /* Rules: printed lines, one device pixel */
-  --color-hairline: #e2e7ef;
-  --color-line-strong: #c9d2df;
+  /* The black panel (sidebar, the agent's chat tiles): its tiles and its
+     quiet text. */
+  --color-night: #111111;
+  --color-night-tile: #1f1f1f;
+  --color-night-soft: #a3a39b;
 
-  /* Ink: Gigalogy's indigo navy, never #000 */
-  --color-ink: #0b1a33;
-  --color-ink-soft: #4d5a70;
-  --color-ink-faint: #8591a5;
+  /* Rules */
+  --color-hairline: #e7e7e2;
+  --color-line-strong: #d4d4cc;
+
+  /* Ink: near black, warm */
+  --color-ink: #111111;
+  --color-ink-soft: #5c5c56;
+  --color-ink-faint: #9b9b93;
 
   /* States */
-  --color-success: #127a48;
-  --color-success-tint: #e7f4ed;
-  /* "Needs a person": a true orange, opposite cobalt on the colour wheel. */
+  --color-success: #17804c;
+  --color-success-tint: #dcf5e6;
+  /* "Needs a person": orange, the one warm colour on the screen. */
   --color-attention: #b54708;
-  --color-attention-tint: #fdf1e7;
+  --color-attention-tint: #ffe6d1;
+  --color-attention-bright: #ff8a3d;
   --color-danger: #c22b2b;
-  --color-danger-tint: #fdeeee;
+  --color-danger-tint: #fde8e8;
 
-  /* Small, printed corners: panels 10px, controls 8px, stamps 4px. */
-  --radius-panel: 0.625rem;
-  --radius-control: 0.5rem;
-  --radius-stamp: 0.25rem;
+  /* Round, concentric: islands 28px, things inside them 20px, every control
+     and chip a full pill. */
+  --radius-panel: 1.75rem;
+  --radius-card: 1.25rem;
+  /* Small boxes inside a card: photos, tooltips, a ruled list in a panel. */
+  --radius-thumb: 0.875rem;
+  --radius-control: 999px;
+  --radius-stamp: 999px;
 
   /* Elevation is for things that float over the page (menus, sheets, the
-     drawer). Things on the page are separated by rules, not shadows. */
-  --shadow-lift: 0 1px 2px rgb(11 26 51 / 0.06);
-  --shadow-float: 0 18px 44px -14px rgb(11 26 51 / 0.24), 0 2px 6px rgb(11 26 51 / 0.06);
+     drawer). Islands sit flat on the canvas. */
+  --shadow-lift: 0 1px 2px rgb(17 17 17 / 0.06);
+  --shadow-float: 0 18px 44px -14px rgb(17 17 17 / 0.28), 0 2px 6px rgb(17 17 17 / 0.06);
 
   /* Exponential ease-out: motion settles rather than stopping. */
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
@@ -85,7 +108,7 @@
   }
 
   ::selection {
-    background-color: var(--color-brand-tint-strong);
+    background-color: var(--color-lime);
     color: var(--color-ink);
   }
 
@@ -110,27 +133,31 @@
 }
 
 @layer components {
-  /* One button vocabulary: 40px (44px on touch screens), 8px corners,
-     sentence case, four intents. One primary per screen. */
+  /* One button vocabulary: 44px pills, sentence case, four intents. One
+     primary per screen. */
   .btn {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-control)] px-4
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] px-5
       text-sm font-semibold whitespace-nowrap transition-[background-color,color,border-color,transform]
       duration-200 ease-[var(--ease-settle)] active:translate-y-px
       disabled:pointer-events-none disabled:opacity-40;
   }
 
   .btn-sm {
-    @apply h-8 px-3 text-[0.8125rem];
+    @apply h-9 px-3.5 text-[0.8125rem];
   }
 
-  /* Cobalt, with a faint top highlight so it reads as something to press. */
+  /* Black: the one thing to do here. */
   .btn-primary {
     @apply bg-brand text-white hover:bg-brand-hover;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 1px 2px rgb(0 40 100 / 0.22);
+  }
+
+  /* Lime: the primary on a black surface (the sidebar, a night tile). */
+  .btn-lime {
+    @apply bg-lime text-ink hover:bg-lime-hover;
   }
 
   .btn-secondary {
-    @apply border border-line-strong bg-surface text-ink hover:border-ink-faint hover:bg-wash;
+    @apply border border-line-strong bg-surface text-ink hover:border-ink hover:bg-surface;
   }
 
   .btn-quiet {
@@ -141,28 +168,32 @@
     @apply bg-danger text-white hover:opacity-90;
   }
 
-  /* A square button holding only an icon. Always give it an aria-label. */
+  /* A round button holding only an icon. Always give it an aria-label. */
   .btn-icon {
-    @apply w-10 px-0;
+    @apply w-11 px-0;
+  }
+
+  .btn-sm.btn-icon {
+    @apply w-9;
   }
 
   /* One input shape. Labels sit above the field, never inside it. */
   .field {
-    @apply h-10 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3
+    @apply h-11 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-4
       text-sm text-ink transition-[border-color,box-shadow] duration-200
-      placeholder:text-ink-soft hover:border-ink-faint focus:border-brand focus:outline-none
-      focus:ring-3 focus:ring-brand/15 disabled:cursor-not-allowed disabled:opacity-60;
+      placeholder:text-ink-soft hover:border-ink-faint focus:border-ink focus:outline-none
+      focus:ring-4 focus:ring-lime/70 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   textarea.field {
-    @apply h-auto py-2.5 leading-relaxed;
+    @apply h-auto rounded-[var(--radius-card)] py-3 leading-relaxed;
   }
 
   /* A dropdown looks like the other fields: the browser's arrow gives way to
      Phosphor's CaretDown in ink-soft. */
   select.field {
-    @apply cursor-pointer appearance-none bg-[length:14px] bg-[right_0.75rem_center] bg-no-repeat pr-9;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%234D5A70'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E");
+    @apply cursor-pointer appearance-none bg-[length:14px] bg-[right_1rem_center] bg-no-repeat pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%235C5C56'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E");
   }
 
   .field-invalid {
@@ -181,12 +212,10 @@
     @apply mt-1.5 text-[0.8125rem] text-danger;
   }
 
-  /* Status is a stamp: a small square-cornered box with an icon and a word,
-     its border inked in its own colour. Never colour alone. */
+  /* Status is a soft pill with an icon and a word. Never colour alone. */
   .chip {
-    @apply inline-flex items-center gap-1 rounded-[var(--radius-stamp)] border px-1.5 py-0.5 text-xs
+    @apply inline-flex items-center gap-1 rounded-[var(--radius-stamp)] px-2.5 py-1 text-xs
       font-semibold whitespace-nowrap;
-    border-color: color-mix(in srgb, currentColor 24%, transparent);
   }
 
   /* A count next to a label: "Inbox 3". */
@@ -196,54 +225,61 @@
   }
 
   .count-attention {
-    @apply bg-attention text-white;
+    @apply bg-attention-bright text-ink;
   }
 
-  /* Underlined tabs inside a page (Inbox jobs, Menu categories, Agent sections). */
+  /* Pill tabs inside a page (Inbox jobs, Menu categories, Agent sections).
+     The open one is lime: "you are here". */
   .tabs {
-    @apply flex gap-6 overflow-x-auto border-b border-hairline;
+    @apply flex gap-1.5 overflow-x-auto py-0.5;
     scrollbar-width: none;
   }
 
   .tab {
-    @apply -mb-px inline-flex h-11 shrink-0 items-center gap-1.5 border-b-2 border-transparent
-      text-sm font-medium whitespace-nowrap text-ink-soft transition-colors duration-200 hover:text-ink;
+    @apply inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold
+      whitespace-nowrap text-ink-soft transition-colors duration-200 hover:bg-hover hover:text-ink;
   }
 
   .tab-active,
   .tab-active:hover {
-    @apply border-brand text-ink;
+    @apply bg-lime text-ink;
   }
 
   /* A switch between two or three views ("All" / "Needs a person"). */
   .segmented {
-    @apply inline-flex rounded-[var(--radius-control)] border border-hairline bg-wash p-0.5;
+    @apply inline-flex rounded-[var(--radius-control)] bg-hover p-1;
   }
 
   .segment {
-    @apply inline-flex h-8 items-center gap-1.5 rounded-[calc(var(--radius-control)-2px)] px-3
-      text-[0.8125rem] font-medium text-ink-soft transition-colors duration-200 hover:text-ink;
+    @apply inline-flex h-8 items-center gap-1.5 rounded-full px-3.5
+      text-[0.8125rem] font-semibold text-ink-soft transition-colors duration-200 hover:text-ink;
   }
 
   .segment-active,
   .segment-active:hover {
-    @apply bg-surface text-ink shadow-[0_0_0_1px_var(--color-hairline),var(--shadow-lift)];
+    @apply bg-surface text-ink shadow-[var(--shadow-lift)];
   }
 
-  /* A bordered panel inside the work area: the setup guide, a form group.
+  /* An island: a white block sitting flat on the grey canvas (Home's tiles,
+     the work area itself). */
+  .island {
+    @apply rounded-[var(--radius-panel)] bg-surface;
+  }
+
+  /* A bordered panel inside an island: the setup guide, a form group.
      The rule is the elevation; panels never also carry a shadow. */
   .panel {
-    @apply rounded-[var(--radius-panel)] border border-hairline bg-surface;
+    @apply rounded-[var(--radius-card)] border border-hairline bg-surface;
   }
 
   /* A notice that needs the owner ("asked for a person", "things left to fill
      in"): a white panel with a firmer rule. Title in ink, detail in ink-soft,
      one orange icon carries the meaning. */
   .notice {
-    @apply flex gap-3 rounded-[var(--radius-panel)] border border-line-strong bg-surface px-4 py-3.5 text-sm;
+    @apply flex gap-3 rounded-[var(--radius-card)] border border-line-strong bg-surface px-4 py-3.5 text-sm;
   }
 
-  /* A list row: a rule below, wash on hover, cobalt tint when selected. */
+  /* A list row: a rule below, wash on hover, pale lime when selected. */
   .row {
     @apply border-b border-hairline transition-colors duration-150 hover:bg-wash;
   }
@@ -287,12 +323,12 @@
   /* A small menu that opens under a button (account, Import). Its parent
      needs `position: relative`. */
   .popover {
-    @apply absolute top-full z-30 mt-1.5 rounded-[var(--radius-panel)] border border-hairline bg-surface p-1.5
+    @apply absolute top-full z-30 mt-1.5 rounded-[var(--radius-card)] border border-hairline bg-surface p-1.5
       shadow-[var(--shadow-float)];
   }
 
   .menu-item {
-    @apply flex h-9 w-full items-center gap-2.5 rounded-[calc(var(--radius-control)-2px)] px-2.5 text-left text-sm
+    @apply flex h-10 w-full items-center gap-2.5 rounded-[0.875rem] px-3 text-left text-sm
       font-medium text-ink transition-colors hover:bg-wash;
   }
 
@@ -303,17 +339,17 @@
 
   /* Loading placeholders in the shape of the content. */
   .skeleton {
-    @apply rounded-md bg-hover;
+    @apply rounded-full bg-hover;
     animation: skeleton-pulse 1.4s ease-in-out infinite;
   }
 
   /* A section heading inside a page ("Needs you", "Opening hours"). */
   .section-title {
-    @apply text-base font-semibold tracking-[-0.01em] text-ink;
+    @apply text-lg font-bold tracking-[-0.015em] text-ink;
   }
 
   .link {
-    @apply font-semibold text-brand hover:underline;
+    @apply font-semibold text-ink underline decoration-lime decoration-2 underline-offset-4 hover:decoration-ink;
   }
 }
 

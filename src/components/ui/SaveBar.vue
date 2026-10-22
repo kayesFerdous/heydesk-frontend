@@ -5,7 +5,7 @@
   <transition name="save-bar">
     <div v-if="dirty || saving || note" class="sticky bottom-24 z-10 mt-6 md:bottom-4">
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-line-strong bg-surface py-2.5 pr-2.5 pl-4 shadow-[var(--shadow-float)]"
+        class="flex flex-wrap items-center justify-between gap-3 rounded-full border border-line-strong bg-surface py-2 pr-2 pl-5 shadow-[var(--shadow-float)]"
       >
         <p class="flex items-center gap-2 text-sm" aria-live="polite">
           <template v-if="dirty || saving">
