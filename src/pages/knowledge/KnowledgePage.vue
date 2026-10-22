@@ -1,5 +1,5 @@
 <template>
-  <section class="flex flex-col lg:h-full">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
     <PageHeader
       :title="t('knowledge.title')"
       :tip="t('knowledge.subtitle')"
@@ -13,6 +13,7 @@
       </template>
     </PageHeader>
 
+    <div class="island flex flex-col overflow-hidden lg:min-h-0 lg:flex-1">
     <AddDocumentPanel v-if="adding" @close="adding = false" @added="onAdded"></AddDocumentPanel>
 
     <p v-if="actionError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
@@ -22,7 +23,7 @@
 
     <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
 
-    <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
+    <SkeletonRows v-else-if="!loaded"></SkeletonRows>
 
     <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       <EmptyState
@@ -48,6 +49,7 @@
           </ul>
         </div>
       </template>
+    </div>
     </div>
 
     <div

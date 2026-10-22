@@ -1,5 +1,5 @@
 <template>
-  <div class="panel mx-5 mb-4 bg-wash p-5 sm:mx-8">
+  <div class="panel m-3 border-transparent bg-wash p-5 sm:m-4">
     <form class="max-w-2xl" novalidate @submit.prevent="submit">
       <h2 class="section-title">
         {{ t('knowledge.panel.title') }}

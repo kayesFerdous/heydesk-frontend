@@ -1,13 +1,13 @@
 <template>
   <!-- The business's team (backend D97): the owner adds moderators, who run the
        inbox but not the settings, and sees what everyone changed. -->
-  <section>
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
     <PageHeader :title="t('team.title')" :tip="t('team.subtitle')"></PageHeader>
 
-    <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
-    <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
+    <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
+    <SkeletonRows v-else-if="!loaded" class="island overflow-hidden"></SkeletonRows>
 
-    <div v-else class="max-w-4xl px-5 pb-12 sm:px-8">
+    <div v-else class="island px-5 pt-6 pb-4 sm:px-8">
       <SettingsGroup :title="t('team.people')" :tip="t('team.peopleTip')">
         <ul class="border-t border-hairline">
           <li v-for="member in members" :key="member.id" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hairline py-3">

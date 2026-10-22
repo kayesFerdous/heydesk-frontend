@@ -1,8 +1,8 @@
 <template>
-  <section class="flex flex-col lg:h-full">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 lg:h-full lg:pb-0">
     <PageHeader :title="t('calls.title')" :subtitle="t('calls.subtitle')">
-      <template #tabs>
-        <div class="tabs" role="tablist">
+      <template #actions>
+        <div class="tabs rounded-full bg-surface p-1" role="tablist">
           <button
             v-for="tab in TABS"
             :key="tab"
@@ -14,7 +14,7 @@
             @click="show(tab)"
           >
             {{ t(`calls.${tab}`) }}
-            <span v-if="tab === 'waiting' && waitingCount" class="count">{{ formatNumber(waitingCount) }}</span>
+            <span v-if="tab === 'waiting' && waitingCount" class="count" :class="{ '!bg-ink !text-white': tab === view }">{{ formatNumber(waitingCount) }}</span>
           </button>
         </div>
       </template>
@@ -24,21 +24,24 @@
     <router-link
       v-if="settings && !settings.enabled"
       to="/agent/calls"
-      class="notice mx-5 mt-4 items-center transition-colors hover:bg-wash sm:mx-8"
+      class="island mb-3 flex items-center gap-3 p-3 pr-5 text-sm transition-shadow hover:shadow-[var(--shadow-lift)]"
     >
-      <PhPhoneSlash :size="20" weight="bold" class="shrink-0 text-attention"></PhPhoneSlash>
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-attention-tint text-attention" aria-hidden="true">
+        <PhPhoneSlash :size="20" weight="bold"></PhPhoneSlash>
+      </span>
       <span class="min-w-0 flex-1">
         <span class="block font-semibold text-ink">{{ t('calls.offTitle') }}</span>
         <span class="mt-0.5 block text-ink-soft">{{ t('calls.offText') }}</span>
       </span>
-      <span class="flex items-center gap-1 font-semibold whitespace-nowrap text-brand">
+      <span class="flex items-center gap-1 font-bold whitespace-nowrap">
         {{ t('calls.turnOn') }}
         <PhArrowRight :size="14" weight="bold"></PhArrowRight>
       </span>
     </router-link>
 
+    <div class="island flex flex-col overflow-hidden lg:min-h-0 lg:flex-1">
     <LoadError v-if="error" :message="error" @retry="load"></LoadError>
-    <SkeletonRows v-else-if="!loaded" class="mt-4 border-t border-hairline"></SkeletonRows>
+    <SkeletonRows v-else-if="!loaded"></SkeletonRows>
     <EmptyState
       v-else-if="!calls.length"
       :icon="PhPhoneCall"
@@ -46,7 +49,7 @@
       :text="t(view === 'waiting' ? 'calls.emptyWaitingText' : 'calls.emptyDoneText')"
     ></EmptyState>
 
-    <div v-else class="mt-4 border-t border-hairline lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+    <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       <p v-if="actionError" class="px-5 pt-3 text-sm text-danger sm:px-8" role="alert">{{ actionError }}</p>
       <template v-if="view === 'waiting'">
         <CallRow
@@ -69,6 +72,7 @@
           @again="act(() => callOrder(call.order_id), 'waiting')"
         ></CallRow>
       </div>
+    </div>
     </div>
   </section>
 </template>

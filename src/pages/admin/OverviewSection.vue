@@ -7,7 +7,7 @@
 
   <div v-else class="flex flex-col gap-8 px-5 pb-12 sm:px-8">
     <!-- Each number: today big, the week under it. -->
-    <div class="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-panel)] border border-hairline bg-hairline sm:grid-cols-4">
+    <div class="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-hairline sm:grid-cols-4">
       <div v-for="tile in tiles" :key="tile.label" class="bg-surface px-4 py-3.5">
         <p class="text-sm text-ink-soft">{{ tile.label }}</p>
         <p class="mt-1 text-2xl font-semibold tabular-nums" :class="{ 'text-danger': tile.bad && tile.today }">

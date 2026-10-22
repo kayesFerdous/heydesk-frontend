@@ -2,7 +2,7 @@
   <!-- One business at a glance, for a HeyDesk admin (backend D69): what it is,
        what is connected, how busy it is, and what admins did in it. Counts and
        connections only; to read its chats, the admin opens the business. -->
-  <section>
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">
     <PageHeader :title="business?.name ?? t('admin.title')">
       <template v-if="business" #subtitle>
         <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
@@ -28,7 +28,7 @@
     <!-- Suspending says why (backend D70): kept for admins, never shown to the owner. -->
     <form
       v-if="business && confirming"
-      class="mx-5 mb-6 flex max-w-2xl flex-col gap-3 rounded-[var(--radius-panel)] border border-hairline bg-wash p-4 sm:mx-8"
+      class="island mb-3 flex max-w-2xl flex-col gap-3 p-5"
       @submit.prevent="toggleStatus"
     >
       <template v-if="business.status === 'active'">
@@ -50,11 +50,11 @@
       </div>
     </form>
 
-    <LoadError v-if="error" :message="error" @retry="load"></LoadError>
+    <LoadError v-if="error" class="island" :message="error" @retry="load"></LoadError>
 
-    <SkeletonRows v-else-if="!business"></SkeletonRows>
+    <SkeletonRows v-else-if="!business" class="island overflow-hidden"></SkeletonRows>
 
-    <div v-else class="max-w-4xl px-5 pb-12 sm:px-8">
+    <div v-else class="island px-5 pt-6 pb-4 sm:px-8">
       <SettingsGroup :title="t('business.conversations')">
         <div class="grid grid-cols-3 gap-4">
           <div v-for="stat in stats" :key="stat.label">
