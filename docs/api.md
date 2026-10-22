@@ -123,15 +123,14 @@ variant's size or colour that isn't the product's is a 422. The CSV `stock` cell
 `"M: 5; L White: 0"`. The Products page edits them as a list of counts and hides the on/off switch
 for such a product.
 
-A shop's config adds `delivery[{name, charge, days, districts[], places[], pay_first}]`
+A shop's config adds `delivery[{name, charge, days, districts[], pay_first}]`
 (`districts`: of Bangladesh's 64, sent in English or Bangla and saved in English, a 422 for a name
-that isn't one; `places`: thanas that go to this area rather than their district's, "Savar" for
-Dhaka suburbs; an area with neither is everywhere else, and only one can be; the agent gives the
-address's district and the backend picks the area, backend D98; `pay_first`: per area since
+that isn't one; an area with none is everywhere else, and only one can be; the agent gives the
+address's district and the backend picks the area, backend D98, D100; `pay_first`: per area since
 backend D92, and a shop has no `pay_first` of its own), `free_delivery_over`, `policies`,
 `size_guide` (free text; the agent suggests a size only from it) and `calls` (below). The Delivery
 and payments section sends the whole `delivery` with its districts (picked from a searchable
-list; it no longer sets `places`), with its one
+list), with its one
 "pay first" switch on every area; the
 profile section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section.
 
