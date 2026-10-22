@@ -6,7 +6,7 @@
        only sticks inside its parent); the wrapper is display: contents so
        the page around it is their parent. -->
   <div class="contents">
-    <header class="px-1 md:px-3 md:pt-3" :class="$slots.tabs ? 'pb-2' : 'pb-5'">
+    <header class="shrink-0 px-1 md:px-3 md:pt-3" :class="$slots.tabs ? 'pb-2' : 'pb-5'">
       <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div class="flex min-w-0 items-start gap-3">
           <SidebarToggle class="mt-[0.3125rem]"></SidebarToggle>

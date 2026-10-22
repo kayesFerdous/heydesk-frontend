@@ -20,7 +20,7 @@
 
     <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
       <!-- The list -->
-      <div class="island flex flex-col lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
+      <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
         <SkeletonRows v-if="!loaded"></SkeletonRows>
 
         <EmptyState
