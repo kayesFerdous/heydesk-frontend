@@ -63,7 +63,19 @@
           </div>
           <div class="col-span-3">
             <FieldLabel :html-for="`zone-districts-${index}`" :tip="t('payments.districtsHint')">{{ t('payments.districts') }}</FieldLabel>
-            <input :id="`zone-districts-${index}`" v-model="zone.districts" class="field" type="text" :placeholder="t('payments.districtsPlaceholder')" />
+            <!-- Picked from the 64, so nothing is misspelled; none: everywhere else. -->
+            <div class="flex flex-wrap items-center gap-2">
+              <span v-for="name in zone.districts" :key="name" class="chip bg-hover text-ink-soft">
+                {{ districtLabel(name) }}
+                <button type="button" class="hover:text-danger" :aria-label="t('payments.removeDistrict', { name: districtLabel(name) })" @click="zone.districts = zone.districts.filter((d) => d !== name)">
+                  <PhX :size="12" weight="bold"></PhX>
+                </button>
+              </span>
+              <select :id="`zone-districts-${index}`" class="field w-auto" value="" @change="addDistrict(zone, $event)">
+                <option value="">{{ zone.districts.length ? t('payments.addDistrict') : t('payments.everywhereElse') }}</option>
+                <option v-for="[en] in DISTRICTS.filter(([d]) => !zone.districts.includes(d))" :key="en" :value="en">{{ districtLabel(en) }}</option>
+              </select>
+            </div>
           </div>
           <div class="col-span-3">
             <FieldLabel :html-for="`zone-places-${index}`" :tip="t('payments.placesHint')">{{ t('payments.places') }}</FieldLabel>
@@ -71,7 +83,7 @@
           </div>
         </div>
         <div>
-          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: '', places: '' })">
+          <button type="button" class="btn btn-secondary" @click="form.zones.push({ name: '', charge: '', days: '', districts: [], places: '' })">
             <PhPlus :size="16" weight="bold"></PhPlus>
             {{ t('payments.addArea') }}
           </button>
@@ -134,7 +146,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhPlus, PhTrash } from '@phosphor-icons/vue';
+import { PhPlus, PhTrash, PhX } from '@phosphor-icons/vue';
 
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
@@ -145,6 +157,7 @@ import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { useAgentStore } from '../../stores/agent.js';
+import { DISTRICTS } from '../../lib/districts.js';
 
 // Taka in the form, paisa in the API.
 const toTaka = (paisa) => String((paisa || 0) / 100);
@@ -152,7 +165,14 @@ const toPaisa = (taka) => Math.round(Number(taka || 0) * 100);
 // "Mirpur, Uttara" in the form, ["Mirpur", "Uttara"] in the API.
 const toList = (text) => text.split(',').map((part) => part.trim()).filter(Boolean);
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+// A district's name in the console's language; the English one is saved.
+const districtLabel = (en) => (locale.value === 'bn' && DISTRICTS.find(([d]) => d === en)?.[1]) || en;
+function addDistrict(zone, event) {
+  if (event.target.value) zone.districts.push(event.target.value);
+  event.target.value = '';
+}
 const agent = useAgentStore();
 
 const connected = ref(false);
@@ -176,7 +196,7 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         charge: toTaka(z.charge),
         days: z.days || '',
         // Districts it covers, and places that go here instead of their district's (backend D98).
-        districts: (z.districts || []).join(', '),
+        districts: [...(z.districts || [])],
         places: (z.places || []).join(', '),
       })),
       freeOver: toTaka(k.free_delivery_over),
@@ -200,7 +220,7 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         name: z.name,
         charge: toPaisa(z.charge),
         days: z.days,
-        districts: toList(z.districts),
+        districts: z.districts,
         places: toList(z.places),
         pay_first: payFirst,
       }));
