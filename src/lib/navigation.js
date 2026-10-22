@@ -8,6 +8,7 @@ import {
   PhBuildings,
   PhPhoneCall,
   PhUsersThree,
+  PhCreditCard,
 } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
@@ -58,7 +59,15 @@ export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, nee
     },
     // The business itself: who works in it.
     ...(canManage
-      ? [{ label: t('nav.business'), items: [{ to: '/team', match: '/team', label: t('nav.team'), icon: PhUsersThree }] }]
+      ? [
+          {
+            label: t('nav.business'),
+            items: [
+              { to: '/team', match: '/team', label: t('nav.team'), icon: PhUsersThree },
+              { to: '/billing', match: '/billing', label: t('nav.billing'), icon: PhCreditCard },
+            ],
+          },
+        ]
       : []),
   ];
 }

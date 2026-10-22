@@ -27,6 +27,7 @@ const AdminPage = () => import('./pages/admin/AdminPage.vue');
 const BusinessPage = () => import('./pages/admin/BusinessPage.vue');
 const AccountPage = () => import('./pages/account/AccountPage.vue');
 const TeamPage = () => import('./pages/team/TeamPage.vue');
+const BillingPage = () => import('./pages/billing/BillingPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
 // Every owner page needs a signed-in owner, or an admin who opened a business.
@@ -87,6 +88,8 @@ const router = createRouter({
     { path: '/channels', component: ChannelsPage, meta: manager },
     // The owner's team: moderators and what everyone changed (backend D97).
     { path: '/team', component: TeamPage, meta: manager },
+    // The plan and paying for it (backend D106); the owner's, like the team.
+    { path: '/billing', component: BillingPage, meta: manager },
 
     // The person's own settings (language, sign-in), reached from the account
     // menu. Owners and admins both have one.

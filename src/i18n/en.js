@@ -196,6 +196,7 @@ export default {
     calls: 'Calls',
     business: 'Your business',
     team: 'Team',
+    billing: 'Billing',
   },
 
   account: {
@@ -954,6 +955,32 @@ export default {
     websiteChat: 'Website chat',
     websiteChatText: 'A chat page with your name on it. Put the link on your website, your Facebook page or your Google profile.',
     openChatPage: 'Open the chat page',
+  },
+
+  // The plan and paying for it (backend D106).
+  billing: {
+    title: 'Billing',
+    subtitle: 'Your plan, how much of it you have used, and paying for the next month or year.',
+    yourPlan: 'Your plan',
+    yourPlanTip: 'A reply is one answer your agent gives a customer. Answers your team types don\'t count.',
+    until: 'until {day}',
+    ended: 'Ended',
+    endedText: 'Your plan has ended, so your agent isn\'t answering customers. Choose a plan below to turn it back on.',
+    replies: 'Replies in the last 30 days',
+    repliesHint: 'When they run out, your agent stops answering until older replies are more than 30 days old, or you choose a bigger plan.',
+    choose: 'Choose a plan',
+    chooseTip: 'Every plan has every feature. They differ in replies and moderators.',
+    monthly: 'Monthly',
+    yearly: 'Yearly: 2 months free',
+    month: 'month',
+    year: 'year',
+    repliesEach: '{n} replies in 30 days',
+    moderators: '{n} moderator | {n} moderators',
+    pay: 'Pay',
+    renew: 'Renew',
+    opening: 'Opening...',
+    payHint: 'You pay by bKash, Nagad or card on SSLCommerz\'s page. A new plan starts at once; days you already paid for carry on.',
+    plans: { trial: 'Free trial', starter: 'Starter', growth: 'Growth', pro: 'Pro' },
   },
 
   // The business's team (backend D97).
