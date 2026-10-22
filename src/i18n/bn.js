@@ -120,6 +120,7 @@ export default {
     voice: { label: 'ভয়েস', long: 'ভয়েস কল' },
     telegram: { label: 'Telegram', long: 'Telegram' },
     messenger: { label: 'Messenger', long: 'Messenger' },
+    whatsapp: { label: 'WhatsApp', long: 'WhatsApp' },
   },
 
   presets: {
@@ -734,6 +735,22 @@ export default {
     disconnectWarning: 'কাস্টমাররা আপনার পেজে আর উত্তর পাবেন না।',
   },
 
+  whatsapp: {
+    intro: 'কাস্টমারদের আপনার WhatsApp Business নম্বরে এজেন্টকে মেসেজ দিতে দিন।',
+    setUp: 'WhatsApp সেট আপ করুন',
+    accountId: 'বিজনেস অ্যাকাউন্ট আইডি',
+    accountIdText: 'আপনার WhatsApp Business Account আইডি, Meta অ্যাপে WhatsApp > API setup-এ।',
+    phoneId: 'ফোন নম্বর আইডি',
+    phoneIdText: 'WhatsApp > API setup-এ আপনার নম্বরের পাশের আইডি। নম্বরটি নিজে নয়।',
+    token: 'অ্যাক্সেস টোকেন',
+    tokenText: 'HeyDesk-এর Meta অ্যাপ থেকে একটি সিস্টেম ইউজারের অ্যাক্সেস টোকেন। আপনার অ্যালার্ট আগের মতোই Telegram-এ আসবে।',
+    connect: 'নম্বর যুক্ত করুন',
+    connecting: 'আপনার নম্বর যুক্ত হচ্ছে...',
+    numberId: 'নম্বর আইডি {id}',
+    connectedText: 'কাস্টমার আপনার WhatsApp নম্বরে মেসেজ দেন আর আপনার এজেন্ট উত্তর দেয়। আপনার অ্যালার্ট আগের মতোই Telegram-এ আসবে।',
+    disconnectWarning: 'কাস্টমাররা WhatsApp-এ আর উত্তর পাবেন না।',
+  },
+
   sslcommerz: {
     connectedText: 'কাস্টমারের পেমেন্ট সরাসরি আপনার স্টোর {store}-এ যায়।',
     testModeTitle: 'টেস্ট মোড।',
@@ -1051,7 +1068,9 @@ export default {
     off: 'বন্ধ',
     telegram: 'টেলিগ্রাম',
     messenger: 'মেসেঞ্জার',
+    whatsapp: 'হোয়াটসঅ্যাপ',
     page: 'পেজ {id}',
+    number: 'নম্বর আইডি {id}',
     payments: 'পেমেন্ট',
     payments_live: 'যুক্ত, আসল পেমেন্ট নিচ্ছে',
     payments_sandbox: 'টেস্ট মোডে যুক্ত (স্যান্ডবক্স)',

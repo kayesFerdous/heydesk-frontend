@@ -107,7 +107,7 @@
           <li v-for="channel in business.channels" :key="channel.kind" class="flex flex-wrap justify-between gap-x-4">
             <span>
               <span class="font-semibold">{{ t(`business.${channel.kind}`) }}</span>
-              <span class="ml-1 text-ink-soft">{{ channel.kind === 'telegram' ? `@${channel.address}` : t('business.page', { id: channel.address }) }}</span>
+              <span class="ml-1 text-ink-soft">{{ channel.kind === 'telegram' ? `@${channel.address}` : t(channel.kind === 'whatsapp' ? 'business.number' : 'business.page', { id: channel.address }) }}</span>
             </span>
             <span class="text-ink-soft">{{ t('business.since', { date: formatDay(channel.created_at) }) }}</span>
           </li>

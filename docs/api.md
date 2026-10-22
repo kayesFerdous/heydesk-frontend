@@ -188,7 +188,7 @@ and never returned.
 
 The card finds the token inside BotFather's whole pasted reply (`findBotToken`)
 and connects as soon as one is there. Conversations from Telegram have
-`channel: "telegram"` (`lib/channels.js` labels web, voice and Telegram).
+`channel: "telegram"` (`lib/channels.js` labels web, voice, Telegram, Messenger and WhatsApp).
 
 ### Messenger (`messenger.js`, card `components/agent/MessengerConnect.vue`)
 The business's Facebook Page (backend D60). The Page id and access token are sent together; the token is sent once
@@ -200,6 +200,18 @@ and never returned. Alerts for the owner stay on Telegram.
 | `DELETE /agent/messenger` | 204. The Page stops being answered |
 
 Conversations from Messenger have `channel: "messenger"`.
+
+### WhatsApp (`whatsapp.js`, card `components/agent/WhatsAppConnect.vue`)
+The business's WhatsApp Business number (backend D103), the same shape as
+Messenger. The token is sent once and never returned. No `wa.me` link (the
+owner knows their number). Alerts for the owner stay on Telegram.
+| Call | What it does |
+|---|---|
+| `GET /agent/whatsapp` | `{phone_id}`. 404 while no number is connected |
+| `PUT /agent/whatsapp` `{token, account_id, phone_id}` | `token` 20 to 500 chars (a system user's), both ids digits only. Subscribes our Meta app to the account; connecting again replaces the number. 422 `invalid_config` with `fields.token` when Meta refuses the token for that account and number, or `fields.phone_id` for a number another business has; 400 if the server has no `META_APP_SECRET`; 404 if the business has no agent yet |
+| `DELETE /agent/whatsapp` | 204. The number stops being answered |
+
+Conversations from WhatsApp have `channel: "whatsapp"`.
 
 ### Inbox and records (`records.js`)
 | Call | What it does |
@@ -238,7 +250,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 | `GET /businesses` | `[{id, name, status, suspended_reason, kind, owner_email, conversations, last_activity_at, created_at}]`, newest first, at most 200 |
 | `PATCH /businesses/{workspace_id}` `{status, reason}` | Suspend or reactivate. 204. Suspending needs a `reason` (422 without one, D70); it's kept as `suspended_reason`, for admins only, and reactivating clears it |
 | `GET /users` | `[{id, email, role: admin/owner/moderator, workspace_id, business_name, created_at}]` |
-| `GET /businesses/{id}` | One business at a glance (D69; `usage`: its last 7 days as `Totals`, D73): `{id, name, status, suspended_reason, kind, agent_name, public_key, created_at, owners: [{email, created_at}], channels: [{kind: telegram/messenger, address, created_at}], payments: sandbox/live/null, documents, sheet: {synced_at, problem} \| null, conversations, conversations_7_days, waiting, last_activity_at}`. 404 for an unknown id. Not audited |
+| `GET /businesses/{id}` | One business at a glance (D69; `usage`: its last 7 days as `Totals`, D73): `{id, name, status, suspended_reason, kind, agent_name, public_key, created_at, owners: [{email, created_at}], channels: [{kind: telegram/messenger/whatsapp, address, created_at}], payments: sandbox/live/null, documents, sheet: {synced_at, problem} \| null, conversations, conversations_7_days, waiting, last_activity_at}`. 404 for an unknown id. Not audited |
 | `POST /users/{id}/password` | `{password}` temporary, shown once. An owner's only: 403 `forbidden` for an admin (theirs is reset on the backend's command line) |
 | `GET /audit?workspace_id=` | `[{id, actor_email, workspace_id, action, target, at}]` |
 

@@ -33,6 +33,11 @@
       <SettingsGroup title="Messenger" :tip="t('messenger.intro')">
         <MessengerConnect @copied="onCopied"></MessengerConnect>
       </SettingsGroup>
+
+      <!-- WhatsApp: the business's own number -->
+      <SettingsGroup title="WhatsApp" :tip="t('whatsapp.intro')">
+        <WhatsAppConnect></WhatsAppConnect>
+      </SettingsGroup>
     </div>
   </section>
 </template>
@@ -50,6 +55,7 @@ import LiveStatus from '../../components/ui/LiveStatus.vue';
 import CopyField from '../../components/ui/CopyField.vue';
 import TelegramConnect from '../../components/agent/TelegramConnect.vue';
 import MessengerConnect from '../../components/agent/MessengerConnect.vue';
+import WhatsAppConnect from '../../components/agent/WhatsAppConnect.vue';
 import { chatLink } from '../../lib/presets.js';
 import { markShared } from '../../lib/setup.js';
 import { useAuthStore } from '../../stores/auth.js';

@@ -120,6 +120,7 @@ export default {
     voice: { label: 'Voice', long: 'Voice call' },
     telegram: { label: 'Telegram', long: 'Telegram' },
     messenger: { label: 'Messenger', long: 'Messenger' },
+    whatsapp: { label: 'WhatsApp', long: 'WhatsApp' },
   },
 
   presets: {
@@ -740,6 +741,22 @@ export default {
     disconnectWarning: 'Customers will stop getting replies on your Page.',
   },
 
+  whatsapp: {
+    intro: 'Let customers message your agent on your WhatsApp Business number.',
+    setUp: 'Set up WhatsApp',
+    accountId: 'Business account ID',
+    accountIdText: 'Your WhatsApp Business Account ID, in the Meta app under WhatsApp > API setup.',
+    phoneId: 'Phone number ID',
+    phoneIdText: 'The ID next to your number in WhatsApp > API setup. Not the number itself.',
+    token: 'Access token',
+    tokenText: "A system user's access token from HeyDesk's Meta app. Alerts for you still come to Telegram.",
+    connect: 'Connect number',
+    connecting: 'Connecting your number...',
+    numberId: 'Number ID {id}',
+    connectedText: 'Customers message your WhatsApp number and your agent answers. Alerts for you still come to Telegram.',
+    disconnectWarning: 'Customers will stop getting replies on WhatsApp.',
+  },
+
   sslcommerz: {
     connectedText: "Customers' payments go straight to your store {store}.",
     testModeTitle: 'Test mode.',
@@ -1057,7 +1074,9 @@ export default {
     off: 'Off',
     telegram: 'Telegram',
     messenger: 'Messenger',
+    whatsapp: 'WhatsApp',
     page: 'Page {id}',
+    number: 'Number ID {id}',
     payments: 'Payments',
     payments_live: 'connected, taking real payments',
     payments_sandbox: 'connected in test mode (sandbox)',

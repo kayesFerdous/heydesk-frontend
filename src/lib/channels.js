@@ -1,9 +1,15 @@
-import { PhChatCircle, PhMessengerLogo, PhMicrophone, PhTelegramLogo } from '@phosphor-icons/vue';
+import { PhChatCircle, PhMessengerLogo, PhMicrophone, PhTelegramLogo, PhWhatsappLogo } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
 
 // Where a conversation happened. An unknown channel reads as a chat.
-const ICONS = { web: PhChatCircle, voice: PhMicrophone, telegram: PhTelegramLogo, messenger: PhMessengerLogo };
+const ICONS = {
+  web: PhChatCircle,
+  voice: PhMicrophone,
+  telegram: PhTelegramLogo,
+  messenger: PhMessengerLogo,
+  whatsapp: PhWhatsappLogo,
+};
 
 export function channelOf(id) {
   const key = ICONS[id] ? id : 'web';
