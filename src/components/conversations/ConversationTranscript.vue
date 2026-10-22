@@ -108,8 +108,9 @@ defineEmits(['back', 'handled']);
 const { t } = useI18n();
 
 const channel = computed(() => channelOf(props.conversation.channel));
-const named = computed(() => Boolean(props.conversation.records[0]?.customer_name));
-const name = computed(() => props.conversation.records[0]?.customer_name || t('conversations.visitor'));
+const known = computed(() => props.conversation.name || props.conversation.records[0]?.customer_name);
+const named = computed(() => Boolean(known.value));
+const name = computed(() => known.value || t('conversations.visitor'));
 const tint = computed(() => (named.value ? avatarTint(name.value) : channel.value.avatar));
 const phone = computed(() => props.conversation.records.find((r) => r.customer_phone)?.customer_phone ?? '');
 const when = computed(

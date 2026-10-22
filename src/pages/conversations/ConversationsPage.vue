@@ -163,16 +163,16 @@ const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelO
 // What the list is showing; a page asked for under another one is dropped.
 const listKey = computed(() => `${filter.value}|${channel.value}`);
 
-// The list endpoint has no names or previews. The name comes from a record
-// the conversation made; the preview from its transcript, once loaded.
+// The list endpoint has no previews. The name is the messaging app's, else a
+// record's the conversation made; the preview from its transcript, once loaded.
 const rows = computed(() =>
   list.value.map((c) => {
     const messages = details.value[c.id]?.messages ?? [];
-    const record = (recordsOf.value[c.id] || [])[0];
+    const known = c.name || (recordsOf.value[c.id] || [])[0]?.customer_name;
     return {
       ...c,
-      name: record?.customer_name || t('conversations.visitor'),
-      named: Boolean(record?.customer_name),
+      name: known || t('conversations.visitor'),
+      named: Boolean(known),
       preview: messages.length ? messages[messages.length - 1].text : '',
     };
   }),

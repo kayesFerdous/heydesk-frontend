@@ -69,6 +69,6 @@ const props = defineProps({
 const { t } = useI18n();
 
 const channel = computed(() => channelOf(props.conversation.channel));
-const name = computed(() => props.conversation.records[0]?.customer_name || t('conversations.visitor'));
+const name = computed(() => props.conversation.name || props.conversation.records[0]?.customer_name || t('conversations.visitor'));
 const phone = computed(() => props.conversation.records.find((r) => r.customer_phone)?.customer_phone ?? '');
 </script>
