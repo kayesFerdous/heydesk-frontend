@@ -36,7 +36,8 @@ order's call line in the Inbox).
 | `src/pages/<area>/` | One file per route, named `<Thing>Page.vue`. A page loads its data, shows loading / error / empty states, and lays out components. Sub-sections of one page (child routes) sit beside it, named `<Thing>Section.vue`. | Reusable rows or panels (those are components). |
 | `src/components/<area>/` | Pieces used by one area's pages: a row, a detail pane, an editor, an import panel. Folder named after the area (`records`, `menu`, `knowledge`, `agent`, `chat`, `conversations`, `calls`). | Anything with its own route. |
 | `src/components/ui/` | Pieces with no business knowledge, used across areas: `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `FormProblems`, `StatusChip`, `LiveStatus`, `CopyField`, `ToggleSwitch`, `SkeletonRows`, `ShowMore`, `BrandMark`, `LanguageSwitch`, `InfoTip`, `FieldLabel`, `SettingsGroup`, `CodeInput` (the six cells of an emailed code). | Anything that knows about orders, doctors or the API. |
-| `src/components/layout/` | The shell: `AppSidebar`, `AppTabBar`. | Page content. |
+| `src/components/layout/` | The shell: `AppSidebar` (black panel with the count tiles), `AppTabBar`. | Page content. |
+| `src/components/home/` | Home's pieces: `HourBars` (today hour by hour). | Anything another page needs. |
 | `src/api/` | One file per backend resource. Every call goes through `request()` in `client.js`, which adds the session token itself (API functions take no token). Shape conversion (doctor to item, desk to preset) happens here, so pages see one shape. Return keys, not English words: a record's detail is `depositPaid`, the page shows `t('records.details.depositPaid')`. | UI state, formatting for display. |
 | `src/stores/<name>.js` | Pinia setup stores (`defineStore('name', () => { ... })`): state more than one page needs at the same time. `auth` (session), `agent` (config, presets), `inbox` (sidebar counts; `App.vue` asks for them again every 25 seconds while a business's console is on screen and the tab is visible, and `arrivals` goes up when more is waiting, which chimes, puts "(2) HeyDesk" in the tab title and refreshes an open Inbox or Conversations list), `ui` (test chat sheet, phone drawer). State is `ref`, derived values are `computed`, actions are plain functions. | Lists a single page shows (items, documents, records): the page fetches those itself. |
 | `src/composables/` | `useSomething()` functions that hold behaviour several components share, with their own refs and lifecycle: `useAgentSection.js` (fill the form, dirty check, save, leave guard for an Agent settings section), `usePopover.js` (a menu under a button that closes on an outside click or Escape). | One-off helpers with no Vue in them (use `lib/`). |
@@ -52,7 +53,7 @@ order's call line in the Inbox).
 |---|---|---|
 | A new screen in the sidebar | `pages/<area>/<Thing>Page.vue`, a route in `router.js`, an item in `lib/navigation.js` | `pages/channels/ChannelsPage.vue` |
 | A new tab inside Agent settings | `pages/agent/<Thing>Section.vue`, a child route under `/agent`, an entry in `AgentPage.vue` `sections` | `pages/agent/AnswersSection.vue` |
-| A new list with a detail pane | page in `pages/<area>/`, row and detail in `components/<area>/` | `pages/inbox/InboxPage.vue` + `components/records/` |
+| A new list with a detail pane | page in `pages/<area>/`, row, detail and side panel in `components/<area>/`. Three islands: the list, the detail, and who it is with the next step (a wrapper with `xl:contents` stacks the last two under 1280px) | `pages/inbox/InboxPage.vue` + `components/records/` (`RecordRow`, `RecordDetail`, `RecordNextStep`) |
 | A new backend call | a function in `api/<resource>.js` using `request()` | `api/telegram.js` |
 | A new kind of record (e.g. reservations) | `api/records.js` `JOBS` and `JOBS_FOR`, `lib/flows.js` `FLOWS`, `lib/records.js` `summarize`, `StatusChip.vue` `LOOKS` for new statuses, and in both language files `status.*`, `flows.*`, `records.name`, `records.tabs`, `jobs.<kind>` | the `appointment` entries |
 | A new channel (e.g. WhatsApp) | a card component in `components/agent/`, placed on `pages/channels/ChannelsPage.vue`; the icon in `lib/channels.js` and its words under `channels.*` in both language files; a line in Home's "Your agent" list | `components/agent/TelegramConnect.vue` |
@@ -63,6 +64,8 @@ order's call line in the Inbox).
 | A shared visual piece (badge, banner, field) | `components/ui/` if it knows nothing about the business; a class in `main.css` if it is only styling | `components/ui/EmptyState.vue` |
 | A new colour, radius or shadow | `@theme` in `main.css`, and a line in `DESIGN.md`. Never a hex value inside a component. | `--color-attention` |
 | A formatting rule (dates, money, plurals) | `lib/format.js` | `formatAgo` |
+| Any console page | a `<section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">` with `PageHeader` and the content in `.island`s on the grey canvas (a list page adds `flex flex-col lg:h-full lg:pb-0` so its island fills the height) | `pages/team/TeamPage.vue` (form), `pages/menu/MenuPage.vue` (list) |
+| A settings section the preview should follow before Save | pass `previewFrom(form)` to `useAgentSection`; `AgentPage` shows it | `pages/agent/BubbleSection.vue` |
 | A public page (no sign-in, no shell) | `pages/<area>/`, route meta `{ bare: true }` and no `requiresAuth` | `pages/chat/ChatPage.vue` |
 | Something a business's own website loads | `public/` (plain JS, copied as it is), talking to a bare page by `postMessage`; try it on `dev/widget-test/` (`python -m http.server 5500` there) | `public/widget.js` opens `pages/chat/EmbedPage.vue` |
 | A personal setting (notifications, password) | a `SettingsGroup` on `pages/account/AccountPage.vue`. Business-wide settings (team, billing) get their own page, not this one | the Language group |
@@ -193,8 +196,9 @@ next steps.
 - **Money** through `formatMoney` (minor units), **times** through
   `formatTime` / `formatDay` / `formatAgo` in the agent's timezone.
 - **Colours from tokens only** (`text-ink-soft`, `bg-brand-tint`,
-  `border-hairline`). Cobalt means "act here" or "selected". Green is live or
-  done, amber is "needs a person", red is destructive. Nothing else gets colour.
+  `border-hairline`). Black means "act here", lime means "selected". Green is
+  live or done, orange is "needs a person", red is destructive. Lilac and the
+  pastel tints are decoration only.
 - **Status is an icon plus a word** (`StatusChip`, `LiveStatus`), never colour alone.
 - **Hide what a role cannot do**; do not show disabled buttons for it.
 - **Sentence case**, no ALL CAPS, no em-dashes, no emoji, no labels above

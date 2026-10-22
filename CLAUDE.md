@@ -34,15 +34,19 @@ session.
   `{ error: { code, message, fields? } }`; show `message` as-is.
 - Money arrives in minor units (45000 = ৳450): always `formatMoney`. Times are
   UTC: always `formatTime` (agent timezone, default `Asia/Dhaka`).
-- Colours, radii, shadows come from `@theme` in `src/assets/main.css`. One brand
-  colour: Gigalogy's cobalt, used only for actions and selection. Green = success
-  or live, amber = "needs a person", red = destructive, nothing else.
-- Layout: a quiet paper sidebar (grouped nav, from `src/lib/navigation.js`) +
-  edge-to-edge white work area; on phones a bottom tab bar and a drawer. Every
-  page starts with `PageHeader`. No floating cards, no top banner. One cobalt
-  primary action per screen.
-- One shape rule (concentric): panels 12px, controls 8px, chips fully round.
-- Shared classes first (`.btn`, `.field`, `.tabs`, `.row`, `.panel`, `.chip`),
+- Colours, radii, shadows come from `@theme` in `src/assets/main.css` (v5 "Ink
+  and lime"). Black = the action (`.btn-primary`), lime = "you are here" (open
+  page, chosen tab, selected row), never a button on white. Green = success or
+  live, orange = "needs a person", red = destructive. Lilac and the pastel
+  tints are decoration only (a figure tile, avatars).
+- Layout: a black floating sidebar (count tiles, grouped nav from
+  `src/lib/navigation.js`) on a warm grey canvas; every page lays out its
+  own white islands (`.island`) under a `PageHeader` that sits on the canvas
+  (Home has its greeting instead). On phones a floating black tab bar and a
+  drawer. No top banner. One black primary action per screen.
+- One shape rule (concentric): islands 28px, things inside them 20px,
+  controls and chips full pills.
+- Shared classes first (`.btn`, `.field`, `.tabs`, `.row`, `.island`, `.panel`, `.chip`),
   shared components next (`src/components/ui/`), new CSS last.
 - Sentence case, never ALL CAPS. Numbers use tabular figures, not monospace.
 - Lists are rows with hairlines, grouped "Today" / "Yesterday". Status is

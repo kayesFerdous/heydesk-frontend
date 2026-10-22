@@ -95,10 +95,11 @@ banner that says whose business it is; every change is in the audit log.
   equal feature cards, hero metrics.
 - The cream + brass "artisan" palette already used in `store-manager-vue`.
 - **The v1 HeyDesk theme** (pale stone canvas, floating white card, pill nav,
-  green accent), rejected by the owner as "what most AI tools produce".
-  HeyDesk is instead an **upgrade of Gigalogy's own identity** (cobalt
-  `#004AAC`, indigo navy), with its own logo, an h that speaks, built on the research in
-  [docs/research.md](docs/research.md).
+  green accent), rejected by the owner as "what most AI tools produce". v4's
+  cobalt "Passbook" was then judged too plain. v5 ("Ink and lime", 22 Oct
+  2026) is the owner's own pick from generated screens: a black panel, white
+  islands, lime only for "you are here". It drops Gigalogy's cobalt.
+- LazyChat (the competitor): dark purple, three columns. HeyDesk stays light.
 
 ## Success looks like
 

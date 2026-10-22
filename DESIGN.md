@@ -1,234 +1,218 @@
-# HeyDesk design system (v4: "Passbook")
+# HeyDesk design system (v5: "Ink and lime")
 
 Product truth is in [PRODUCT.md](PRODUCT.md). Where code goes is in
 [docs/architecture.md](docs/architecture.md). This file says how it looks and
 why. The tokens live in `src/assets/main.css` (`@theme`); this file and that
 block must agree.
 
-v4 (14 Oct 2026) replaces v3 ("Cobalt on paper"). v3 was calm but generic: a
-soft dashboard of cards and round pills that could belong to any SaaS. v4
-gives the console one idea of its own, the bank passbook, and keeps
-Gigalogy's cobalt. On 15 Oct 2026 the node mark gave way to the HeyDesk logo
-(see Signature details).
+v5 (22 Oct 2026) replaces v4 ("Passbook", cobalt rules on white paper). The
+owner judged v4 too plain and picked this direction from three generated
+Home screens (the prompts are in [docs/image-prompts.md](docs/image-prompts.md)).
+Gigalogy's cobalt is gone with it; the owner chose that.
 
 **Design read:** a product console for non-technical small-business owners
-in Dhaka, used on a counter laptop or a phone between customers, in daylight.
-Calm, exact, trustworthy, because it handles money and customers. The job on
-every screen: see what needs you, take the next legal step.
+in Dhaka, used on a counter laptop or a phone between customers. Friendly and
+confident, with a strong frame: a black panel says where you are and what
+waits, white islands hold the work.
 
-**Dials:** variance 4 (regular grid, the personality is in detail), motion 3
-(state changes and one authored moment), density 5 (efficient, never cramped).
+**Dials:** variance 5 (a bento on Home, plain columns elsewhere), motion 3,
+density 4 (roomy, big numbers, big tap targets).
 
 ## The idea in one line
 
-> The console is a passbook: every order, booking and message is an entry,
-> dated, coded, totalled and stamped, in cobalt ink on white paper.
+> Black means "do this", lime means "you are here", and everything else is
+> white islands on a warm grey canvas.
 
-What that means in practice:
-
-- **Rules, not cards.** Things on the page are separated by one-pixel lines.
-  Shadows are only for things that float over the page.
-- **Columns never move.** A list is a ledger: when, who, what, code, amount,
-  stamp, always in the same place, so the eye runs down a column.
-- **Status is a stamp.** A small square-cornered box, an icon and a word, its
-  border inked in its own colour.
-- **Codes are serials.** Order and booking codes (A-104, M-42) are set in a
-  mono face, like a cheque number. Nothing else is.
-- **Money sits tight to the right margin** in tabular figures.
-- **Only the next legal step is filled cobalt.** Everything else is a
-  secondary or quiet button.
-
-The guilloche and double rule from the first sketch were left out: the rules
-and stamps carry the idea on their own, and the extra ornament read as decor.
+- **A black panel for where you can go**: the sidebar floats on the canvas
+  with round corners. At its top, one count tile per job and one for
+  customers waiting for a person, each a link to its list.
+- **Islands, not sheets.** Home lays white islands (28px corners, no shadow)
+  straight on the canvas. Every other page sits in one white island beside
+  the sidebar.
+- **Lime is selection only**: the open page in the sidebar and the tab bar,
+  the chosen tab or filter, a selected row (pale lime), the agent's tile on
+  Home. It is never a button colour on white.
+- **One black primary per screen.** On a black surface the primary is lime
+  (`.btn-lime`).
+- **Lists stay rows** with hairlines, grouped Today / Yesterday, inside an
+  island. Home's "Needs you" uses rounded grey rows instead, because it is a
+  short list of things to act on, not a ledger.
+- **Codes are serials** (A-104, M-42) in a mono face. Nothing else is.
 
 ## Colour
 
-Strategy: **restrained**. Neutrals plus one accent. Light only (owners work in
-lit shops and offices; one theme done well beats two done halfway).
-
 | Token | Value | Use |
 |---|---|---|
-| `--color-brand` | `#004AAC` | Primary buttons, links, selected tab underline, active nav icon, focus ring, setup progress |
-| `--color-brand-hover` | `#003B8A` | Hover and pressed on brand |
-| `--color-brand-tint` | `#EDF3FC` | Selected row, icon tiles, the active nav item, agent bubbles in transcripts, the "New" stamp |
-| `--color-brand-tint-strong` | `#D9E6F8` | Text selection, one avatar tint |
-| `--color-surface` | `#FFFFFF` | The whole sheet: sidebar and work area alike |
-| `--color-sidebar` | `#F3F5F9` | Paper bands on the landing page, quiet fills (the name is historical) |
-| `--color-wash` | `#F7F9FC` | Row hover, detail panes, the segmented track |
-| `--color-hover` | `#EBEFF6` | Counts, skeletons, neutral stamps |
-| `--color-hairline` | `#E2E7EF` | Every rule between rows and around panels |
-| `--color-line-strong` | `#C9D2DF` | Input and secondary button borders, the rule under a day or column heading, notices |
-| `--color-ink` | `#0B1A33` | Text (Gigalogy's indigo navy, never `#000`) |
-| `--color-ink-soft` | `#4D5A70` | Secondary text |
-| `--color-ink-faint` | `#8591A5` | Icons only, never text |
-| `--color-success` / `-tint` | `#127A48` / `#E7F4ED` | Live, confirmed, ready |
-| `--color-attention` / `-tint` | `#B54708` / `#FDF1E7` | "Needs a person", things left to fill in |
-| `--color-danger` / `-tint` | `#C22B2B` / `#FDEEEE` | Destructive actions and failed saves |
+| `--color-canvas` | `#ECECE8` | Behind everything: the app's background, Home's canvas |
+| `--color-surface` | `#FFFFFF` | Islands, fields, popovers |
+| `--color-wash` / `--color-sidebar` | `#F5F5F2` | Rows inside an island (Home's "Needs you", setup steps), detail panes, paper bands |
+| `--color-hover` | `#EBEBE6` | Hover, counts, skeletons, the segmented track, quiet bars |
+| `--color-hairline` | `#E7E7E2` | Rules between rows and around panels |
+| `--color-line-strong` | `#D4D4CC` | Input and secondary button borders, day headings |
+| `--color-ink` | `#111111` | Text |
+| `--color-ink-soft` | `#5C5C56` | Secondary text |
+| `--color-ink-faint` | `#9B9B93` | Icons only, never text |
+| `--color-brand` | `#111111` | The primary button and links (the token keeps its old name) |
+| `--color-brand-tint` | `#F0F8D2` | Pale lime: a selected row, icon tiles, the "New" chip |
+| `--color-lime` (`--color-brand-tint-strong`) | `#D4F36B` | You are here: active nav, chosen tab, the agent tile, focus ring |
+| `--color-lilac` | `#CDB8FF` | Decoration only: Home's lead figure tile |
+| `--color-tint-lilac / -sky / -sand` | pastels | Avatar tints, decoration only |
+| `--color-night` / `-night-tile` / `-night-soft` | `#111111` / `#1F1F1F` / `#A3A39B` | The sidebar, its tiles, its quiet text |
+| `--color-success` / `-tint` | `#17804C` / `#DCF5E6` | Live, confirmed, ready |
+| `--color-attention` / `-tint` / `-bright` | `#B54708` / `#FFE6D1` / `#FF8A3D` | "Needs a person"; bright is for counts on black |
+| `--color-danger` / `-tint` | `#C22B2B` / `#FDE8E8` | Destructive actions and failed saves |
 
-Why orange for attention: it sits opposite cobalt on the colour wheel, so a
-waiting customer is the second thing the eye finds after the action. The hue
-stays near 22 degrees so it never passes for the red of `--color-danger`.
-
-Why a notice is a white panel, not a tinted box: a peach box with orange text
-is the stock "warning" of every UI kit. `.notice` is white with a
-`line-strong` rule, a title in ink, one line in ink-soft, and the orange
-carried by the icon alone. `bg-attention-tint` is for the stamp and small icon
-circles only.
-
-Rules: cobalt means "act here" or "selected", nothing else. Green, orange and
-red are states, never decoration (so avatars use only brand-family tints). No
-gradients, no glass, no pure black or pure white text on colour.
+Green, orange and red stay states, never decoration, so avatars use the
+pastel tints only. Orange is the one warm colour, so a waiting customer is
+what the eye finds first. No gradients, no glass.
 
 ## Type
 
-**Geist** 400/500/600/700 for everything, **Geist Mono** 500 for serials only
-(`.serial`, `--font-serial`). Bangla falls back to **Noto Sans Bengali**, with
-normal tracking and taller lines (`:lang(bn)` in `main.css`), because tight
-tracking clips Bengali vowel signs.
+**Gabarito** 400 to 800 for everything (geometric, chunky and friendly, with
+tabular figures; the detector flags Plus Jakarta Sans and Geist as overused), **IBM Plex Mono** 500 for serials only. Bangla falls back to
+**Noto Sans Bengali** with normal tracking and taller lines (`:lang(bn)`).
 
-Sentence case everywhere. Tabular figures on the whole app
-(`font-variant-numeric: tabular-nums`), so prices, times and counts line up
-without monospace.
-
-| Role | Size / weight | Tracking |
-|---|---|---|
-| Page title (`PageHeader`, Setup, Sign-in) | 26px / 600 | -0.025em |
-| Statement figures (Home) | 28px / 600 | -0.02em |
-| Section title (`.section-title`) | 16px / 600 | -0.01em |
-| Body and controls | 14px / 400-600 | 0 |
-| Hints, meta, times, day headings | 13px / 400-600 | 0 |
-| Stamps, counts, column names | 11-12px / 500-600 | 0 |
-| Landing headline | 52-56px / 600 | -0.035em |
+| Role | Size / weight |
+|---|---|
+| Home greeting | 32-40px / 800, -0.03em |
+| Page title (`PageHeader`) | 28px / 800, -0.03em |
+| Island title | 20px / 700 |
+| Big figures | 28-36px / 800 |
+| Body and controls | 14-15px / 400-700 |
+| Hints, meta, chips | 12-13px / 500-600 |
 
 ## Shape and elevation
 
-Small, printed corners: **panels 10px**, **controls 8px**, **stamps 4px**.
-Counts and avatars stay round.
-
-Two elevations. `--shadow-lift` (1px) is for small things that sit on an edge
-or another surface: the active segment, the sidebar's fold handle, a photo's
-remove button, the agent's chat bubble.
-`--shadow-float` is for things over the page: menus (`.popover`), the drawer,
-the test chat sheet, the document reader, the floating `SaveBar`, tooltips.
-Panels, inputs and secondary buttons have a rule and no shadow.
+Concentric: **islands 28px** (`--radius-panel`), **things inside them 20px**
+(`--radius-card`: rows, panels, popovers, textareas), **small boxes inside
+those 14px** (`--radius-thumb`: photos, tooltips, a ruled list in a panel),
+**controls and chips a full pill** (`--radius-control`, `--radius-stamp`). Islands sit flat; only
+things over the page (menus, the drawer, sheets, the phone tab bar, tooltips)
+get `--shadow-float`.
 
 ## Components (classes in `main.css`, components in `src/components/ui/`)
 
-- **Buttons** `.btn` + `.btn-primary | -secondary | -quiet | -danger`, `.btn-sm`,
-  `.btn-icon`. 40px high (44px on touch screens). The primary has a faint top
-  highlight. One primary per screen.
-- **Fields** `.field`, `.label` above, `.hint` and `.error-text` below. Focus is
-  a cobalt border plus a soft 3px ring. `FieldLabel` puts a field's help behind
-  an `InfoTip` instead of a hint line.
-- **InfoTip**: a small "i" that shows one line of help on hover, focus or tap.
-  `PageHeader`, `SettingsGroup` and `FieldLabel` take a `tip` prop, so pages
-  explain themselves without paragraphs.
-- **Tabs** `.tabs` / `.tab` / `.tab-active`: underlined, 44px, running edge to
-  edge under the page header. **Segmented** `.segmented` / `.segment`: a ruled
-  track for a two or three way filter.
-- **Ledger** `.ledger` (+ `.ledger-money` for agents that take orders) and
-  `.ledger-head`: fixed grid columns, when / avatar / entry / code / amount /
-  stamp / caret. On phones only the avatar, the entry and one end cell remain.
-- **Rows** `.row` (rule below, wash on hover), `.row-selected` (cobalt tint).
-  **Day heading** `.day-head`: "Today", "Yesterday", "12 October", printed
-  over a `line-strong` rule and sticky while its rows scroll (add `static`
-  where it should not stick, as in the landing demo).
-- **Stamp** `.chip` via `StatusChip`: icon plus word, 4px corners, a border in
-  its own colour at 24%. `LiveStatus`: a still dot plus a word, only where
-  the state can change (live or paused, active or suspended). Nothing blinks.
-- **Serial** `.serial`: order and booking codes.
-- **Panel** `.panel`: a ruled 10px box for a group (setup guide, the agent
-  panel on Home). **Notice** `.notice`: see Colour.
-- **SettingsGroup**: one group of settings, its name on the left (12rem) and
-  its fields on the right, groups ruled apart. Phones stack them.
-- **Popover** `.popover` / `.menu-item` with `usePopover()`: a small menu that
-  closes on an outside click or Escape (account menu, Import).
-- **PageHeader**: title (with optional tip), one line, actions on the right,
-  tabs below.
-- **EmptyState**: icon tile, what this is, how to fill it.
-- **LoadError**: the backend's sentence and Try again.
-- **SaveBar**: a floating ruled bar at the bottom of a settings form once
-  something changed: "Unsaved changes", Discard, Save changes; after a save it
-  offers the test chat, the moment to try the change.
+- **Buttons** `.btn` (44px pill) + `.btn-primary` (black) `| -secondary`
+  (white, ruled) `| -quiet | -danger | -lime` (the primary on black),
+  `.btn-sm`, `.btn-icon` (round).
+- **Fields** `.field`: pills, a textarea 20px corners. Focus is an ink border
+  and a lime ring.
+- **Tabs** `.tabs` / `.tab` / `.tab-active`: pills, the open one lime.
+  **Segmented** `.segmented` / `.segment`: a grey pill track, the chosen
+  segment white.
+- **Island** `.island`: a white block with 28px corners. **Panel** `.panel`:
+  a ruled 20px box inside an island. **Notice** `.notice`: a ruled white box,
+  the orange carried by its icon.
+- **Rows** `.row`, `.row-selected` (pale lime), `.day-head`, `.ledger`: as v4.
+- **Chip** `.chip` via `StatusChip`: a soft pill, icon plus word.
+- **HourBars** (`components/home/`): today hour by hour, the busiest hour in
+  black; small on a figure tile, large with labels and a "Now" line.
+- `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `InfoTip`,
+  `SettingsGroup`, `.popover`: as v4, in the new shapes.
 
 ## The shell
 
 ```
-┌────────────────┬──────────────────────────────────────────────────────┐
-│ ▣ Lakeview  ◧  │ Good evening                                          │
-│   ● Agent live │ Wednesday, October 14                                 │
-│                ├───────────┬────────────┬────────────┬─────────────────┤
-│ ⌂ Home         │ Convers.  │ Bookings   │ Messages   │ ⧗ Waiting for you│
-│ ▤ Inbox     2  │ 6         │ 3          │ 1          │ 4               │
-│ ◌ Conversations├───────────┴────────────┴────────────┴─────────────────┤
-│                │ ┌ Finish setting up ───── ▬▬▬▬▭ ┐   ┌ Your agent ──┐  │
-│ Your agent     │ │ 5 Share it with customers [Open]│  │ ● Live        │  │
-│ ⚙ Settings     │ └─────────────────────────────────┘  │ Website chat On│ │
-│ ⚕ Doctors      │ Needs you                 Open inbox │ Telegram  ... │  │
-│ ▥ Knowledge    │ When   Customer          Code Status │ Chat link     │  │
-│ ⇄ Channels     │ 4 min  NJ Nusrat Jahan  A-118 [New] >│ [Edit settings]│ │
-│                │ 38 min TH Tanvir H.     A-117 [New] >└───────────────┘  │
-│ [Try your agent]                                                      │
-│ (D) demo@...  ⇕│                                                      │
-└────────────────┴──────────────────────────────────────────────────────┘
+ canvas #ECECE8
+┌──────────────┐  ┌──────────────────────────────────────────────────┐
+│ [h] Lakeview │  │ Inbox                                            │
+│  ● Agent live│  │ (Orders 2) (Messages)          [search........]  │
+│ ┌────┐┌────┐ │  │                                                  │
+│ │▤ 4 ││✉ 2 │ │  │ Today ─────────────────────────────────────────  │
+│ └────┘└────┘ │  │  rows with hairlines                             │
+│ ┌──────────┐ │  │                                                  │
+│ │◌       2 │ │  │              one white island                    │
+│ └──────────┘ │  │                                                  │
+│ (⌂ Home    ) │  │                                                  │
+│  ▤ Inbox   1 │  │                                                  │
+│  ...         │  │                                                  │
+│ [Try agent]  │  │                                                  │
+│ (D) demo@  ⇕ │  │                                                  │
+└──────────────┘  └──────────────────────────────────────────────────┘
 ```
 
-- One white sheet. The sidebar (240px) is ruled off from the work area, not
-  tinted. It folds to 64px icons (the handle on its edge, remembered in this
-  browser); folded, group labels become a rule and counts become badges on the
-  icons.
-- The header is the HeyDesk mark, the business name and its live status. No
-  second logo, no wordmark row.
-- Two groups: daily work (Home, Inbox, Conversations), then "Your agent"
-  (Settings, Menu or Doctors, Knowledge, Channels). The active item sits on
-  cobalt tint with a filled cobalt icon. The Conversations count is orange
-  because it means someone is waiting.
-- "Try your agent" is always one click away at the bottom.
-- The account row (avatar, email, role) opens a menu: a quick language
-  switch, Account settings, Sign out. The row is tinted while on that page.
+- `App.vue`: the canvas, 12px around and between. The sidebar (288px, folds
+  to 76px icons) is black with 28px corners. Each page lays out its own
+  white islands on the canvas under `PageHeader` (title on the canvas, tabs
+  on a white pill track). Settings-like pages (Channels, Team, Account,
+  Knowledge, Calls, Admin) are one island.
+- The sidebar: the mark on a lime tile, the business name and live status,
+  the count tiles (hidden when folded), the grouped nav (active item a lime
+  pill with a filled icon; counts in dark pills, orange when someone waits),
+  "Try your agent" as a dark pill with a lime icon, the account row.
+- Under 768px: a floating black pill tab bar (Home, Inbox, Chats, Agent,
+  More, the open one lime); More opens the sidebar as a drawer.
 
 ### Where settings live
 
-Three kinds, three homes, so "Settings" never means two things:
-
-- **The agent** (what it says, hours, payments): "Settings" in the sidebar,
-  because setting up the agent is the product's daily work.
-- **The person** (language now; notifications, password later): **Your
-  account** (`/account`), from the account menu, the way Linear, Notion and
-  Stripe keep personal preferences behind the avatar. Built from
-  `SettingsGroup`s that apply at once, no Save.
-- **The business** (team, billing), when it exists: its own page, not mixed
-  into either.
-
-Language stays one click away in the account menu as well, because it is the
-escape hatch: someone who switched to a language they cannot read must find
-the way back. That is also why every language is always written in its own
-script, and the Account page previews each one in its own words and digits.
-It says plainly that the agent does not follow this choice.
-- Under 768px: a bottom tab bar (Home, Inbox, Chats, Agent, More), and More
-  opens the same sidebar as a drawer.
-- Each list page fills the height; the list and the detail pane scroll on
-  their own.
+As v4: the agent's settings under "Settings" in the sidebar, the person's
+under **Your account** behind the avatar, the business's (team) on its own
+page. Language stays one click away in the account menu.
 
 ## Home
 
-Greeting and today's date at the top. Then **today's statement**: a strip of
-ruled cells, one figure each (conversations, one per job the agent takes, the
-money orders brought in, and "Waiting for you", orange when above zero). Below,
-the setup guide if anything is left, then **Needs you** as a ledger
-(hand-offs first, then new records, six at most), and on the right the agent
-panel (live status, channels, knowledge, chat link).
+On the canvas, no `PageHeader`: the greeting (40px, 800) and today's date.
+Then a bento:
+
+- The setup guide across the top while anything is left (rounded grey steps,
+  the next one's number on lime, its button the primary).
+- Left: **Needs you** (hand-offs first, with a black call button when the
+  customer left a phone; then new records with code, line, chip, time and
+  amount), and **Today by hour** under it (conversations per hour, the
+  busiest black, a dashed "Now").
+- Right: **Your agent** on lime (live state, channels as white pills, "Ask
+  your agent something" opening the test chat, copy the chat link, edit
+  settings), then two figure tiles: lilac leads with the money taken today
+  (or the first job's count), white with today's conversations, each with
+  its hours underneath. The other jobs' counts follow in one line.
+
+## Inbox and Conversations
+
+The title and line on the canvas, the switch (jobs, or All / Needs a person) as pills on a white track to the right.
+A waiting hand-off shows as a white strip with an orange icon above the
+Inbox. Then three islands:
+
+- **The list** (20rem, 24rem from 1536px): search in a grey pill at the top,
+  rows as rounded cards grouped under Today / Yesterday (no hairlines between
+  them), the selected one pale lime.
+- **The detail**: an Inbox record as a receipt (kind and serial, name, the
+  green proof box, the lines with dotted leaders, a big total); a
+  conversation as its transcript (customer bubbles grey on the left, the
+  agent's pale lime on the right, a hand-off as an orange strip under the
+  header with "Mark as handled").
+- **The side** (17rem, 20rem from 1536px): who it is and a call button; for a
+  record, "Next step" (the one black primary from `lib/flows.js`, the other
+  legal moves quiet) and "Read the conversation"; for a conversation, what it
+  produced and when.
+
+Under 1280px the side drops under the detail; under 1024px a phone shows the
+list, then one item with a way back.
+
+## Settings and Menu
+
+`PageHeader` on the canvas, tabs on a white pill track under it.
+
+- **Agent settings**: the form in one island (`SettingsGroup`s ruled apart,
+  the floating `SaveBar`), and from 1280px a sticky **Preview** island beside
+  it: the website chat (`BubblePreview`) drawn from the open section's unsaved
+  edits. A section shares them with `previewFrom` in `useAgentSection`;
+  `AgentPage` merges them over the saved config. Narrower screens keep the
+  preview inside the Chat bubble section only.
+- **Menu** (Doctors, Products): one island. On top a grey search pill and the
+  categories as pills with counts ("All 42", "Biryani 6"), then any import
+  panel or linked-sheet bar, then the list as ruled rows (photo, name, tags,
+  facts, price, the availability switch, edit).
 
 ## The front door (signed out)
 
-Same world as the console: white sheet, rules, stamps, serials.
+The same world as the console: the warm grey canvas, white islands, black
+for the action, lime for the signature.
 
-- **Sign-in**: the form on the left; on the right a cobalt field where an
-  example conversation plays once (the order is read back, the customer says
-  yes) and then lands as a passbook entry: a "Today" heading, the row with its
-  serial and amount, the "New" stamp, and the proof line "Read back to the
-  customer and confirmed in chat". Labelled as an example. The row is the
-  landing demo's `InboxRow`, so the two never drift apart.
+- **Sign-in**: two islands on the canvas. The form in a white one (the code
+  steps start with a lime icon circle); beside it a black one where an
+  example conversation plays once (the customer's lines on dark tiles, the
+  agent's read-back on lime) and lands as an inbox entry with the proof
+  line. Labelled as an example. The row is the landing demo's `InboxRow`.
 - **Customer chat** (`/chat/:key`): one quiet column at every size. A slim
   header lined up with the conversation (avatar, name, Start over icon,
   Call), then one centred line above the first message: an AI assistant
@@ -237,31 +221,31 @@ Same world as the console: white sheet, rules, stamps, serials.
   stands between the customer and their question. The conversation
   (`AgentChat`, shared with the test chat sheet): a date line, then the agent's replies as plain printed text under a run
   line (avatar, name, time); "From the team" when a person answered from
-  Telegram; the customer's own words in a cobalt bubble. Typing dots
+  Telegram; the customer's own words in a black bubble. Typing dots
   carry the agent's status ("Checking the menu"). Products swipe in a row.
-  The composer is one ruled box that grows with the text; Send turns cobalt
+  The composer is one ruled box that grows with the text; Send turns black
   only when there is something to send; Enter sends, Shift+Enter breaks a
   line, an IME's Enter is left alone. Start over appears once there is
   something to clear. No language switch: the agent follows the customer.
 - **The code steps** (verify the email, forgot password, set a new one) live
-  on the sign-in page beside the same cobalt field. A step starts with a quiet
-  Back, a cobalt-tint icon tile (an envelope for the code, a lock for forgot),
+  on the sign-in page beside the same black panel. A step starts with a quiet
+  Back, a lime icon circle (an envelope for the code, a lock for forgot),
   the title, and the address the code went to in ink. `CodeInput` shows the
   code as six ruled cells set as serials: one real input underneath, so paste,
   one-time-code autofill and Bangla digits all work; the sixth digit submits.
   A wrong code turns the cells red, shakes once and empties them. "Send it
   again" waits a minute, counting down. Password fields can be shown.
-- **Setup** (first run): three numbered steps (Choose, Your details, Try it).
-  The kinds of agent are ruled rows with a radio at the end, not cards. The
-  last step puts the live chat beside the chat link and a notice listing what
-  is still to fill in.
-- **Landing** (`/`): paper (`bg-sidebar`) bands between white sections, cobalt
-  only on the "Create your business account" buttons and links. The headline
-  is the one place type goes large.
+- **Setup** (first run): a white island on the canvas. Three numbered steps
+  (done black, current lime). The kinds of agent are rounded grey rows, the
+  chosen one pale lime. The last step puts the live chat beside the chat
+  link and a notice listing what is still to fill in.
+- **Landing** (`/`): every band an island on the canvas: white for reading,
+  lime behind the demo, black for "When it needs a person" and the close
+  (whose button is lime). The headline is the one place type goes large.
   - **Proof is the product.** `LandingDemo` plays the mechanism: the customer
     asks, the agent reads it back with the total (and a caption saying where
     the number came from), the customer says yes, and only then does the
-    entry land in the inbox, lit in cobalt tint for a beat. A segmented
+    entry land in the inbox, lit in pale lime for a beat. A segmented
     control switches restaurant, clinic and front office. Labelled "An
     example, not real customers". Under reduced motion it shows the finished
     story.
@@ -273,15 +257,15 @@ Landing motion (every piece explains something, all of it off under
 `prefers-reduced-motion`):
 
 - **Demo, the main moment.** The read-back streams in word by word with a
-  cobalt caret, like the real agent; the "new" count bumps when the order
+  black caret, like the real agent; the "new" count bumps when the order
   lands. The demo cycles restaurant, clinic, front office on its own, with a
-  2px cobalt line filling under the active tab to show when it moves on. It
+  2px black line filling under the active tab to show when it moves on. It
   plays only while on screen, and stops cycling once the visitor picks a tab
   or presses Play again.
 - **Opening** settles in once (headline, line, action, demo, 0.1s apart, 14px
   up with a 4px blur clearing).
 - **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
-  row by row. In "How it decides" each number fills cobalt in turn while a
+  row by row. In "How it decides" each number fills black in turn while a
   line draws to the next; in setup each number turns into a green check in
   turn. Content below the fold is the only thing ever hidden first.
 - The header's rule appears only once the page scrolls.
@@ -289,21 +273,14 @@ Landing motion (every piece explains something, all of it off under
 ## Signature details
 
 1. **The logo, an h that speaks**: a heavy lowercase h whose foot is a speech
-   bubble's tail and whose counter is the open front of a desk. Cobalt on
-   white, white on a cobalt tile for the app icon. `BrandMark` shows the mark
-   and the "heydesk" wordmark on the front door pages (sign-in, setup,
-   landing), and the tile alone where a name already sits beside it (sidebar,
-   Home's first run, 404). The favicon and the phone home-screen icon are the
-   same tile. The files are in `public/brand/`, made from `../heydesk/brand/`
-   (its `logo.html` shows the construction). The customer chat carries the
-   business's name, not ours.
-2. **Today's statement** on Home, the passbook's balance line.
-3. **The ledger**: columns that never move, codes as serials, money at the
-   right margin, a stamp at the end.
-4. **Setup guide** of five outcome-worded steps. It lists only the steps left
-   (the bar in its header counts the done ones); the next step is the screen's
-   primary button; the guide disappears when everything is done.
-5. **Status is always an icon plus a word**, set as a stamp.
+   bubble's tail and whose counter is the open front of a desk. Black h on a
+   lime tile for the app icon and favicon; black mark and wordmark on white.
+   The files are in `public/brand/`. The customer chat carries the business's
+   name, not ours.
+2. **The count tiles** at the top of the sidebar: what waits, per list.
+3. **The lime agent tile** on Home, with the test chat one tap away.
+4. **Setup guide** of five outcome-worded steps, only the ones left.
+5. **Status is always an icon plus a word.**
 6. **Proof line on every record**: "Read back to the customer and confirmed in
    chat", because the AI never invents an order.
 
