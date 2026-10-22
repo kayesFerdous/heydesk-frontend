@@ -35,7 +35,7 @@
 
           <div
             v-if="message.role === 'user'"
-            class="rounded-[var(--radius-panel)] rounded-br-[var(--radius-stamp)] bg-brand text-white text-[0.9375rem] leading-relaxed whitespace-pre-wrap"
+            class="rounded-[var(--radius-card)] rounded-br-md bg-brand text-white text-[0.9375rem] leading-relaxed whitespace-pre-wrap"
             :class="message.text ? 'px-4 py-2.5' : 'p-1'"
           >
             <img
@@ -57,7 +57,7 @@
                 <img
                   :src="product.url"
                   :alt="product.name"
-                  class="aspect-square w-full rounded-[var(--radius-control)] bg-wash object-cover ring-1 ring-hairline"
+                  class="aspect-square w-full rounded-[var(--radius-thumb)] bg-wash object-cover ring-1 ring-hairline"
                 />
                 <figcaption class="mt-2 text-[0.8125rem] leading-snug whitespace-normal">
                   <span class="line-clamp-2 font-medium">{{ product.name }}</span>
@@ -120,11 +120,11 @@
 
         <!-- One ruled box: the photo you are about to send, then the words. -->
         <form
-          class="rounded-[var(--radius-panel)] border border-line-strong bg-surface p-1.5 transition-[border-color,box-shadow] duration-200 focus-within:border-brand focus-within:ring-3 focus-within:ring-brand/15 hover:border-ink-faint focus-within:hover:border-brand"
+          class="rounded-[var(--radius-card)] border border-line-strong bg-surface p-1.5 transition-[border-color,box-shadow] duration-200 focus-within:border-ink focus-within:ring-4 focus-within:ring-lime/70 hover:border-ink-faint focus-within:hover:border-ink"
           @submit.prevent="send"
         >
           <div v-if="photo" class="relative m-1.5 mb-1 w-fit">
-            <img :src="photo" :alt="t('chat.yourPhoto')" class="size-16 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
+            <img :src="photo" :alt="t('chat.yourPhoto')" class="size-16 rounded-[var(--radius-thumb)] object-cover ring-1 ring-hairline" />
             <button
               type="button"
               class="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full border border-hairline bg-surface text-ink-soft shadow-[var(--shadow-lift)] hover:text-ink"

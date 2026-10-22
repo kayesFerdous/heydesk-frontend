@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
   }
 
   /* The moment the page is about: the confirmed order lands, lit for a beat
-     in cobalt tint, then settles into an ordinary row. */
+     in pale lime, then settles into an ordinary row. */
   .landed {
     animation:
       arrive 0.5s var(--ease-settle) both,

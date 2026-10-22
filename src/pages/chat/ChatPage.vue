@@ -4,7 +4,7 @@
        One quiet column: who answers, the conversation, the composer. -->
   <div v-if="error" class="grid h-dvh place-items-center bg-surface p-6">
     <div class="max-w-sm text-center" role="alert">
-      <span class="mx-auto grid h-11 w-11 place-items-center rounded-[var(--radius-panel)] bg-hover text-ink-soft" aria-hidden="true">
+      <span class="mx-auto grid h-11 w-11 place-items-center rounded-full bg-hover text-ink-soft" aria-hidden="true">
         <PhChatSlash :size="22"></PhChatSlash>
       </span>
       <h1 class="mt-4 text-lg font-semibold tracking-[-0.01em]">{{ errorTitle }}</h1>

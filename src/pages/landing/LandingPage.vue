@@ -1,9 +1,9 @@
 <template>
   <!-- The front door for visitors who are not signed in. Same world as the
-       app: white desk, paper bands, cobalt only where you can act. The proof
+       app: white islands on the grey canvas, black only where you can act. The proof
        is the product itself (LandingDemo), never invented customers. -->
-  <div class="min-h-dvh bg-surface">
-    <header class="sticky top-0 z-30 border-b bg-surface/95 backdrop-blur-sm transition-colors duration-300" :class="scrolled ? 'border-hairline' : 'border-transparent'">
+  <div class="min-h-dvh bg-canvas">
+    <header class="sticky top-0 z-30 bg-canvas/90 backdrop-blur-sm transition-shadow duration-300" :class="{ 'shadow-[var(--shadow-lift)]': scrolled }">
       <nav class="wrap flex h-16 items-center gap-6" :aria-label="t('shell.mainNav')">
         <router-link to="/" :aria-label="t('landing.home')"><BrandMark></BrandMark></router-link>
         <div class="hidden items-center gap-6 text-sm text-ink-soft md:flex">
@@ -18,11 +18,14 @@
       </nav>
     </header>
 
-    <main>
+    <!-- Every band is an island on the grey canvas, like the console: white
+         for reading, lime for the demo, black for the hand-off and the close. -->
+    <main class="flex flex-col gap-3 px-3">
       <!-- Opening: the offer in one line, one action, then the mechanism at work. -->
-      <section class="wrap pt-12 pb-10 sm:pt-16">
+      <section class="island pt-12 pb-12 sm:pt-16">
+        <div class="wrap">
         <div class="max-w-[58rem]">
-          <h1 class="enter text-[2.125rem] leading-[1.06] font-semibold tracking-[-0.035em] text-balance sm:text-[3.25rem] xl:text-[3.5rem]">
+          <h1 class="enter text-[2.125rem] leading-[1.04] font-extrabold tracking-[-0.04em] text-balance sm:text-[3.25rem] xl:text-[3.5rem]">
             {{ t('landing.hero') }}
           </h1>
           <p class="enter mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft" style="--i: 1">
@@ -39,16 +42,18 @@
             </p>
           </div>
         </div>
+      </div>
       </section>
 
-      <section class="border-y border-hairline bg-sidebar py-8 sm:py-10" :aria-label="t('landing.seeItWork')">
+      <section class="rounded-[var(--radius-panel)] bg-lime py-8 sm:py-10" :aria-label="t('landing.seeItWork')">
         <div class="enter wrap" style="--i: 3">
           <LandingDemo></LandingDemo>
         </div>
       </section>
 
       <!-- The one idea a competitor cannot copy: the model talks, the system decides. -->
-      <section id="how" class="wrap scroll-mt-20 py-20 sm:py-28">
+      <section id="how" class="island scroll-mt-20 py-20 sm:py-28">
+        <div class="wrap">
         <div class="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
           <div class="lg:sticky lg:top-28 lg:self-start">
             <h2 class="section-heading">{{ t('landing.howTitle') }}</h2>
@@ -74,23 +79,24 @@
             </li>
           </ol>
         </div>
+      </div>
       </section>
 
       <!-- When it needs a person -->
-      <section class="border-y border-hairline bg-sidebar">
+      <section class="rounded-[var(--radius-panel)] bg-night text-white">
         <div class="wrap grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2 lg:gap-20">
           <div v-reveal>
             <h2 class="section-heading">{{ t('landing.handoffTitle') }}</h2>
-            <p class="mt-5 max-w-md leading-relaxed text-ink-soft">{{ t('landing.handoffText') }}</p>
+            <p class="mt-5 max-w-md leading-relaxed text-night-soft">{{ t('landing.handoffText') }}</p>
             <ul class="mt-8 flex flex-col gap-3 text-sm">
               <li v-for="point in HANDOFF_POINTS" :key="point" class="flex items-start gap-2.5">
-                <PhCheck :size="18" weight="bold" class="mt-px shrink-0 text-brand"></PhCheck>
+                <PhCheck :size="18" weight="bold" class="mt-px shrink-0 text-lime"></PhCheck>
                 {{ t(`landing.handoffPoints.${point}`) }}
               </li>
             </ul>
           </div>
 
-          <figure v-reveal="{ delay: 150 }" class="handoff rounded-[var(--radius-panel)] border border-line-strong bg-surface" :aria-label="t('landing.handoffExample')">
+          <figure v-reveal="{ delay: 150 }" class="handoff rounded-[var(--radius-card)] bg-surface text-ink" :aria-label="t('landing.handoffExample')">
             <div class="flex items-center justify-between border-b border-hairline px-5 py-3.5">
               <div>
                 <p class="text-sm font-semibold">Nusrat Jahan</p>
@@ -106,10 +112,10 @@
                   <p class="mt-0.5 text-ink-soft">{{ t('conversations.callToPickUp', { phone: '01712 345678' }) }}</p>
                 </div>
               </div>
-              <p class="max-w-[85%] self-start rounded-[var(--radius-panel)] rounded-tl-sm bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline">
+              <p class="max-w-[85%] self-start rounded-[var(--radius-card)] rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline">
                 {{ t('landing.handoffAsk') }}
               </p>
-              <p class="max-w-[85%] self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-brand-tint px-4 py-2.5 text-sm text-ink">
+              <p class="max-w-[85%] self-end rounded-[var(--radius-card)] rounded-tr-md bg-brand-tint px-4 py-2.5 text-sm text-ink">
                 {{ t('landing.handoffReply', { phone: '01712 345678' }) }}
               </p>
             </div>
@@ -121,7 +127,8 @@
       </section>
 
       <!-- Channels -->
-      <section id="channels" class="wrap scroll-mt-20 py-20 sm:py-28">
+      <section id="channels" class="island scroll-mt-20 py-20 sm:py-28">
+        <div class="wrap">
         <div class="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
           <div>
             <h2 class="section-heading">{{ t('landing.channelsTitle') }}</h2>
@@ -142,10 +149,11 @@
             </li>
           </ul>
         </div>
+      </div>
       </section>
 
       <!-- Setup -->
-      <section id="setup" class="scroll-mt-20 border-t border-hairline bg-sidebar">
+      <section id="setup" class="island scroll-mt-20">
         <div class="wrap py-20 sm:py-28">
           <div class="max-w-2xl">
             <h2 class="section-heading">{{ t('landing.setupTitle') }}</h2>
@@ -156,7 +164,7 @@
                guide on Home finishing. -->
           <ol
             v-reveal
-            class="setup mt-12 grid gap-px overflow-hidden rounded-[var(--radius-panel)] border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-5"
+            class="setup mt-12 grid gap-px overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-5"
           >
             <li v-for="(key, index) in SETUP" :key="key" class="bg-surface p-6" :style="{ '--i': index }">
               <span class="setup-mark" aria-hidden="true">
@@ -171,23 +179,25 @@
       </section>
 
       <!-- Close -->
-      <section class="wrap py-24 sm:py-32">
+      <section class="rounded-[var(--radius-panel)] bg-night py-24 text-white sm:py-32">
+        <div class="wrap">
         <div v-reveal class="flex flex-col items-start gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <h2 class="max-w-2xl text-[2rem] leading-[1.1] font-semibold tracking-[-0.03em] text-balance sm:text-[2.75rem]">
+          <h2 class="max-w-2xl text-[2rem] leading-[1.1] font-extrabold tracking-[-0.03em] text-balance sm:text-[2.75rem]">
             {{ t('landing.closeTitle') }}
           </h2>
           <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <router-link :to="signUp" class="btn btn-primary btn-lg">
+            <router-link :to="signUp" class="btn btn-lime btn-lg">
               {{ t('signIn.signupTitle') }}
               <PhArrowRight :size="18" weight="bold"></PhArrowRight>
             </router-link>
-            <router-link to="/sign-in" class="link text-sm">{{ t('common.signIn') }}</router-link>
+            <router-link to="/sign-in" class="text-sm font-semibold underline decoration-lime decoration-2 underline-offset-4">{{ t('common.signIn') }}</router-link>
           </div>
         </div>
+      </div>
       </section>
     </main>
 
-    <footer class="border-t border-hairline">
+    <footer>
       <div class="wrap flex flex-col gap-4 py-8 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between">
         <BrandMark></BrandMark>
         <p>{{ t('landing.footer', { year: formatNumber(year, { useGrouping: false }) }) }}</p>
@@ -264,7 +274,7 @@ onBeforeUnmount(() => {
 .section-heading {
   font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
   line-height: 1.1;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.03em;
   text-wrap: balance;
 }
