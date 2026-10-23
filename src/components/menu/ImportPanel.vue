@@ -37,7 +37,7 @@
       <div v-if="suggestion" class="mt-6">
         <h3 class="text-sm font-semibold">{{ t('menu.import.matchTitle') }}</h3>
         <p class="mt-1 text-sm text-ink-soft">
-          {{ suggestion.by_ai ? t('menu.import.matchedByAi') : t('menu.import.matchByHand') }}
+          {{ Object.keys(suggestion.mapping).length ? t('menu.import.matched') : t('menu.import.matchByHand') }}
         </p>
         <ul class="mt-3 divide-y divide-hairline rounded-[var(--radius-thumb)] border border-hairline bg-surface">
           <li
@@ -127,7 +127,7 @@ const { t, te } = useI18n();
 const csv = ref('');
 const fileName = ref('');
 const url = ref(''); // the Google Sheet's link
-const suggestion = ref(null); // { columns, headers, samples, mapping, by_ai }
+const suggestion = ref(null); // { columns, headers, samples, mapping }
 const mapping = ref({}); // our field → their column; "" when the file has none
 const result = ref(null); // the check: { count, preview }
 const error = ref(null);

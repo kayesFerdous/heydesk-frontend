@@ -908,7 +908,7 @@ export default {
       choose: 'Choose a CSV file',
       reading: 'Reading your columns...',
       matchTitle: 'Match your columns',
-      matchedByAi: 'We matched your columns to ours. Check each one and change any that are wrong.',
+      matched: 'We matched your columns to ours. Check each one and change any that are wrong.',
       matchByHand: 'Pick which of your columns holds each of these.',
       required: 'needed',
       notInFile: 'Not in my file',

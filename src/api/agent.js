@@ -200,7 +200,7 @@ async function importPath() {
 }
 
 // The file's columns, its first rows, our fields, and the AI's guess at which
-// of their columns is which of our fields: { columns, headers, samples, mapping, by_ai }.
+// of their columns is which of our fields: { columns, headers, samples, mapping }.
 export async function suggestColumns(csv) {
   return request(`${await importPath()}/suggest`, { method: 'POST', body: { csv } });
 }
