@@ -1154,23 +1154,17 @@ export default {
     seeItWork: 'See it work',
     howTitle: 'The AI talks. Your prices decide.',
     howText: 'A language model is good at conversation and bad at arithmetic. So HeyDesk splits the job: the agent talks to your customer, and every price, total and time is worked out from your own menu and hours.',
-    mechanism: {
-      ask: {
-        title: 'A customer asks',
-        text: 'On your website, WhatsApp, Messenger, Telegram or by phone, at any hour, even when the shop is full.',
-      },
-      work: {
-        title: 'HeyDesk works out the details',
-        text: 'Prices, totals and times come from your menu and your hours, calculated by HeyDesk. The model never makes up a number.',
-      },
-      readBack: {
-        title: 'It reads everything back',
-        text: 'The customer hears the whole order, with the total, before anything is saved.',
-      },
-      yes: {
-        title: 'Only a clear yes reaches you',
-        text: 'Your inbox holds orders the customer already confirmed, each with the conversation it came from.',
-      },
+    stamp: {
+      label: 'An order added up from the menu, an example',
+      ask: '2 chicken biryani and 2 borhani to Dhanmondi please. How much is it?',
+      thinking: 'HeyDesk is adding it up',
+      reply: 'Two Chicken Biryani and two Borhani come to {items}. Delivery to Dhanmondi is {delivery}, so {total} in all. Shall I place the order?',
+      ledger: 'Worked out by HeyDesk, from your menu',
+      dishes: { biryani: 'Chicken Biryani', borhani: 'Borhani' },
+      each: '{qty} × {price}',
+      sums: { items: 'Food', delivery: 'Delivery, Dhanmondi', total: 'Total' },
+      words: 'The model writes the words',
+      numbers: 'HeyDesk works out every number',
     },
     tourTitle: 'It does more than take an order.',
     tourText: 'The same agent, with your list, prices and rules behind it. Here is what else it handles for you.',

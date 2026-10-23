@@ -65,24 +65,9 @@
             <p class="mt-5 max-w-md leading-relaxed text-ink-soft">{{ t('landing.howText') }}</p>
           </div>
 
-          <!-- As the steps scroll in, each number fills in turn and a line joins
-               them: the order an order goes through. -->
-          <ol v-reveal class="sequence relative border-t border-hairline">
-            <li
-              v-for="(key, index) in MECHANISM"
-              :key="key"
-              class="sequence-step relative flex gap-5 border-b border-hairline py-7"
-              :style="{ '--i': index }"
-            >
-              <span class="step-mark" aria-hidden="true">{{ formatNumber(index + 1) }}</span>
-              <div>
-                <h3 class="flex items-center gap-2 text-base font-semibold tracking-[-0.01em]">
-                  {{ t(`landing.mechanism.${key}.title`) }}
-                </h3>
-                <p class="mt-1.5 max-w-xl leading-relaxed text-ink-soft">{{ t(`landing.mechanism.${key}.text`) }}</p>
-              </div>
-            </li>
-          </ol>
+          <!-- The split, shown: the reply's words arrive with blanks, and each
+               number is stamped in from the sum worked out from the menu. -->
+          <PriceStamp></PriceStamp>
         </div>
       </div>
       </section>
@@ -209,11 +194,11 @@ import LandingDemo from '../../components/landing/LandingDemo.vue';
 import CapabilityTour from '../../components/landing/CapabilityTour.vue';
 import ChannelFlow from '../../components/landing/ChannelFlow.vue';
 import SetupLive from '../../components/landing/SetupLive.vue';
+import PriceStamp from '../../components/landing/PriceStamp.vue';
 import vReveal from '../../directives/reveal.js';
 import { formatNumber } from '../../lib/format.js';
 
 // The words are `landing.<section>.<key>` in the language files.
-const MECHANISM = ['ask', 'work', 'readBack', 'yes'];
 const HANDOFF_POINTS = ['first', 'number', 'kept'];
 
 const { t } = useI18n();
@@ -280,72 +265,6 @@ onBeforeUnmount(() => {
   font-size: 0.9375rem;
 }
 
-/* A sequence marker: the order carries meaning here (what happens first). */
-.step-mark {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 9999px;
-  border: 1px solid var(--color-line-strong);
-  background-color: var(--color-surface);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-ink);
-  transition:
-    background-color 0.4s var(--ease-settle),
-    border-color 0.4s var(--ease-settle),
-    color 0.4s var(--ease-settle);
-  transition-delay: calc(0.3s + var(--i, 0) * 0.35s);
-}
-
-/* How it decides: a short line joins each number to the next, drawn in turn. */
-.sequence-step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 2.625rem;
-  left: calc(0.875rem - 0.5px);
-  width: 1px;
-  height: 100%;
-  background-color: var(--color-brand);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.45s var(--ease-settle);
-  transition-delay: calc(0.5s + var(--i, 0) * 0.35s);
-}
-
-.sequence.is-shown .sequence-step::after {
-  transform: none;
-}
-
-.sequence.is-shown .step-mark {
-  border-color: var(--color-brand);
-  background-color: var(--color-brand);
-  color: #fff;
-}
-
-/* Lists that arrive as a list: each row a beat after the one before. */
-.sequence.reveal {
-  opacity: 1;
-  transform: none;
-}
-
-.sequence-step {
-  transition:
-    opacity 0.6s var(--ease-settle),
-    transform 0.6s var(--ease-settle);
-  transition-delay: calc(var(--i, 0) * 0.12s);
-}
-
-.reveal:not(.is-shown) .sequence-step,
-.reveal:not(.is-shown) > li {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
 /* The hand-off plays in order once its panel arrives, 0.7s a beat. */
 .handoff.reveal .handoff-beat {
   transition:
@@ -387,13 +306,6 @@ onBeforeUnmount(() => {
     opacity: 0;
     transform: translateY(14px);
     filter: blur(4px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .step-mark,
-  .sequence-step::after {
-    transition: none;
   }
 }
 </style>

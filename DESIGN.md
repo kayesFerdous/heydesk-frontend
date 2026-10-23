@@ -260,6 +260,16 @@ for the action, lime for the signature.
     one channel after another while on screen; a tap sends that channel's
     message now. Across from 768px, top to bottom on a phone. Under reduced
     motion a tap shows the result at once.
+  - **How it decides** (`PriceStamp`, beside "The AI talks. Your prices
+    decide."): the split, played once when it comes into view. The customer
+    asks; "HeyDesk is adding it up" while each line of a sum from the menu
+    (two dishes, food, delivery, total) lights pale lime in turn; the agent's
+    reply arrives with dashed blanks where the numbers go. Then each number
+    lifts off the sum, rises to just above its blank, scaled up, and presses
+    into it as a lime pill (a squash and a lime ring). A key says who did
+    what: the model writes the words, HeyDesk works out every number. The
+    sums are added up in the component from the prices, never typed in.
+    Under reduced motion it shows the finished state.
   - **What it can do** (`CapabilityTour`, after "How it decides"): five rows
     (a product found from a photo, delivery and payment, a call to confirm a
     cash order, an answer from the owner's documents, a reply in Bangla,
@@ -292,8 +302,7 @@ Landing motion (every piece explains something, all of it off under
 - **Opening** settles in once (headline, line, action, demo, 0.1s apart, 14px
   up with a 4px blur clearing).
 - **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
-  row by row. In "How it decides" each number fills black in turn while a
-  line draws to the next. The hand-off plays in the order it happens (the ask, the agent's
+  row by row. The hand-off plays in the order it happens (the ask, the agent's
   promise, the owner's alert with one orange pulse, the owner's reply from
   Telegram). Content below the fold is the only thing ever hidden first.
 - **The capability examples** each act out their one idea: a line passes
