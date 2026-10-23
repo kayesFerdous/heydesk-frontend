@@ -271,6 +271,17 @@
     @apply rounded-[var(--radius-panel)] bg-surface;
   }
 
+  /* A page whose content is shorter than the screen: its last island
+     stretches to the bottom, so the canvas never shows a bare gap under it
+     on a tall monitor. */
+  .page {
+    @apply flex flex-col md:min-h-full;
+  }
+
+  .page > :last-child {
+    @apply md:flex-1;
+  }
+
   /* A bordered panel inside an island: the setup guide, a form group.
      The rule is the elevation; panels never also carry a shadow. */
   .panel {

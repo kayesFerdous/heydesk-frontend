@@ -2,7 +2,7 @@
   <!-- The business's plan (backend D106): how much of it is used, and paying for one.
        Paying sends the owner to the gateway's page (SSLCommerz or bKash, whichever HeyDesk has
        set up, backend D109); they come back to a short page on the backend. -->
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('billing.title')" :tip="t('billing.subtitle')"></PageHeader>
 
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>

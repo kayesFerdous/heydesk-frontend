@@ -11,7 +11,7 @@
       collapsible
     ></AppSidebar>
 
-    <main class="min-h-0 min-w-0 flex-1 overflow-y-auto pb-28 md:pb-0">
+    <main class="relative min-h-0 min-w-0 flex-1 overflow-y-auto pb-28 md:pb-0">
       <!-- An admin inside a business: whose it is, and the way out. -->
       <div
         v-if="auth.isViewing"

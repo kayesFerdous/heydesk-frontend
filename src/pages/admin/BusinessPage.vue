@@ -2,7 +2,7 @@
   <!-- One business at a glance, for a HeyDesk admin (backend D69): what it is,
        what is connected, how busy it is, and what admins did in it. Counts and
        connections only; to read its chats, the admin opens the business. -->
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="business?.name ?? t('admin.title')">
       <template v-if="business" #subtitle>
         <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">

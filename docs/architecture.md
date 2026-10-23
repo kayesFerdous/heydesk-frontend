@@ -68,7 +68,7 @@ order's call line in the Inbox).
 | A shared visual piece (badge, banner, field) | `components/ui/` if it knows nothing about the business; a class in `main.css` if it is only styling | `components/ui/EmptyState.vue` |
 | A new colour, radius or shadow | `@theme` in `main.css`, and a line in `DESIGN.md`. Never a hex value inside a component. | `--color-attention` |
 | A formatting rule (dates, money, plurals) | `lib/format.js` | `formatAgo` |
-| Any console page | a `<section class="px-4 pt-5 pb-8 md:px-0 md:pt-2">` with `PageHeader` and the content in `.island`s on the grey canvas (a list page adds `flex flex-col lg:h-full lg:pb-0` so its island fills the height) | `pages/team/TeamPage.vue` (form), `pages/menu/MenuPage.vue` (list) |
+| Any console page | a `<section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">` with `PageHeader` and the content in `.island`s on the grey canvas (`.page` stretches the last island to the bottom of the screen; a list page instead adds `flex flex-col lg:h-full` so its island scrolls inside the screen) | `pages/team/TeamPage.vue` (form), `pages/menu/MenuPage.vue` (list) |
 | A settings section the preview should follow before Save | pass `previewFrom(form)` to `useAgentSection`; `AgentPage` shows it | `pages/agent/BubbleSection.vue` |
 | A public page (no sign-in, no shell) | `pages/<area>/`, route meta `{ bare: true }` and no `requiresAuth` | `pages/chat/ChatPage.vue` |
 | Something a business's own website loads | `public/` (plain JS, copied as it is), talking to a bare page by `postMessage`; try it on `dev/widget-test/` (`python -m http.server 5500` there) | `public/widget.js` opens `pages/chat/EmbedPage.vue` |

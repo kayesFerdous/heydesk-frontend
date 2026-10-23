@@ -1,5 +1,5 @@
 <template>
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('admin.title')" :subtitle="t('admin.subtitle')">
       <template #tabs>
         <div class="tabs" role="tablist">

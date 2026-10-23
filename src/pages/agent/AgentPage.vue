@@ -1,5 +1,5 @@
 <template>
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <!-- The frame around the settings sections: title, section tabs, what is
          still missing, and beside the form a preview of what a customer sees,
          drawn from the form as it is edited. Each section (a child route) has
@@ -39,7 +39,7 @@
     </div>
 
     <div v-else class="grid grid-cols-[minmax(0,1fr)] items-start gap-3 xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <div class="island min-w-0 px-5 pt-6 sm:px-8">
+      <div class="island min-w-0 self-stretch px-5 pt-6 sm:px-8">
         <!-- What the backend says is still missing, each a link to its field. -->
         <div v-if="agent.missing.length" class="notice mb-4" role="status">
           <PhListChecks :size="20" class="mt-px shrink-0 text-attention"></PhListChecks>
