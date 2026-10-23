@@ -1,8 +1,11 @@
 <template>
   <div>
-    <!-- Its own Connect button, saved apart from the form below. -->
-    <SettingsGroup :title="t('payments.online')" :tip="t('sslcommerz.intro')">
-      <SslcommerzConnect @change="connected = $event"></SslcommerzConnect>
+    <!-- Each has its own Connect button, saved apart from the form below. One or
+         both: with both, the customer picks on the pay page (backend D109). -->
+    <SettingsGroup :title="t('payments.online')" :tip="t('payments.onlineTip')">
+      <p class="text-sm text-ink-soft">{{ t('payments.oneOrBoth') }}</p>
+      <SslcommerzConnect @change="sslcommerz = $event"></SslcommerzConnect>
+      <BkashConnect @change="bkash = $event"></BkashConnect>
     </SettingsGroup>
 
     <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-6 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
@@ -132,7 +135,7 @@
           <div>
             <div class="flex items-center gap-1.5">
               <label class="text-sm font-medium" for="pay-first">{{ t(`${words}.toggle`) }}</label>
-              <InfoTip :text="`${t('payments.linkIntro')} ${t(`${words}.after`)} ${t('payments.onlyPayment')}`"></InfoTip>
+              <InfoTip :text="`${t('payments.linkIntroAny')} ${t(`${words}.after`)} ${t('payments.onlyPayment')}`"></InfoTip>
             </div>
             <!-- Why it cannot be turned on yet stays in view: it is the next step. -->
             <p v-if="blocker" class="hint !mt-0.5">{{ blocker }}</p>
@@ -165,6 +168,7 @@ import FieldLabel from '../../components/ui/FieldLabel.vue';
 import InfoTip from '../../components/ui/InfoTip.vue';
 import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
+import BkashConnect from '../../components/agent/BkashConnect.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { useAgentStore } from '../../stores/agent.js';
 import { DISTRICTS } from '../../lib/districts.js';
@@ -188,7 +192,10 @@ function addDistrict(zone, event) {
 }
 const agent = useAgentStore();
 
-const connected = ref(false);
+// Which of the business's payment accounts are connected; either one is enough.
+const sslcommerz = ref(false);
+const bkash = ref(false);
+const connected = computed(() => sslcommerz.value || bkash.value);
 const kind = computed(() => agent.kind);
 // What each kind of business takes first, in the owner's words: `payments.<kind>.*`.
 const words = computed(() => `payments.${['restaurant', 'clinic'].includes(kind.value) ? kind.value : 'shop'}`);
@@ -217,7 +224,7 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
     };
   },
   // Only this desk's own fields. Paying first stays as the owner left it while the
-  // SSLCommerz account is missing: the agent asks for nothing until one is connected.
+  // payment account is missing: the agent asks for nothing until one is connected.
   patchFrom: (f) => {
     const payFirst = f.pay_first && !nothingToTake.value;
     // A shop has no switch of its own since backend D92: it's set on every area.
@@ -252,5 +259,5 @@ const nothingToTake = computed(() => {
 });
 
 // Why paying first can't be turned on yet, or '' when it can.
-const blocker = computed(() => (connected.value ? nothingToTake.value : t('payments.connectFirst')));
+const blocker = computed(() => (connected.value ? nothingToTake.value : t('payments.connectAccountFirst')));
 </script>

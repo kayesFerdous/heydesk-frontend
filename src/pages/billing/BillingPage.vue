@@ -1,6 +1,7 @@
 <template>
   <!-- The business's plan (backend D106): how much of it is used, and paying for one.
-       Paying sends the owner to our SSLCommerz page; they come back to a short page there. -->
+       Paying sends the owner to the gateway's page (SSLCommerz or bKash, whichever HeyDesk has
+       set up, backend D109); they come back to a short page on the backend. -->
   <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('billing.title')" :tip="t('billing.subtitle')"></PageHeader>
 
@@ -104,18 +105,25 @@
                 {{ t('billing.everything') }}
               </li>
             </ul>
-            <button
-              type="button"
-              class="btn mt-auto"
-              :class="plan.key === billing.plan ? 'btn-quiet' : 'btn-primary'"
-              :disabled="paying !== null"
-              @click="pay(plan)"
-            >
-              {{ paying === plan.key ? t('billing.opening') : plan.key === billing.plan ? t('billing.renew') : t('billing.pay') }}
-            </button>
+            <!-- One button per gateway HeyDesk has set up; the first is the main one. -->
+            <div v-if="billing.gateways.length" class="mt-auto flex flex-col gap-2">
+              <button
+                v-for="(gateway, index) in billing.gateways"
+                :key="gateway"
+                type="button"
+                class="btn"
+                :class="plan.key === billing.plan ? 'btn-quiet' : index === 0 ? 'btn-primary' : 'btn-secondary'"
+                :disabled="paying !== null"
+                @click="pay(plan, gateway)"
+              >
+                {{ paying === `${plan.key}:${gateway}`
+                  ? t('billing.opening')
+                  : t(`billing.${plan.key === billing.plan ? 'renewWith' : 'payWith'}.${gateway}`) }}
+              </button>
+            </div>
           </div>
         </div>
-        <p class="hint">{{ t('billing.payHint') }}</p>
+        <p class="hint">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
 
         <p v-if="payError" class="flex items-start gap-2 text-sm text-danger" role="alert">
           <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
@@ -151,7 +159,7 @@ const { t } = useI18n();
 const billing = ref(null);
 const loadError = ref(null);
 const months = ref(1);
-const paying = ref(null); // the plan whose payment page is opening
+const paying = ref(null); // "plan:gateway" whose payment page is opening
 const payError = ref(null);
 const used = computed(() => Math.min(1, billing.value.replies_used / billing.value.replies));
 
@@ -170,11 +178,11 @@ async function load() {
   }
 }
 
-async function pay(plan) {
-  paying.value = plan.key;
+async function pay(plan, gateway) {
+  paying.value = `${plan.key}:${gateway}`;
   payError.value = null;
   try {
-    const { url } = await startCheckout(plan.key, months.value);
+    const { url } = await startCheckout(plan.key, months.value, gateway);
     window.location.assign(url);
   } catch (error) {
     payError.value = error.message; // the backend's own words, such as no store set up yet

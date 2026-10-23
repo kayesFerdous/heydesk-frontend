@@ -141,12 +141,15 @@ them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
 `jobs` list. The Agent page shows it as plain rows.
 
 ### Calls to confirm a shop's orders (`calls.js`, page `pages/calls`, D88, D89)
+Off for now (D108): the shop takes no voice, so no order is queued and `POST /calls` is a 409
+`conflict`. The routes stay; the Calls page has nothing to show.
+
 | Call | What it does |
 |---|---|
 | `GET /calls?view=waiting` | The calls ringing or talking, then the queue in the order it's called; each queued call has `place` (1 is next) |
 | `GET /calls?view=done` | The last 100 finished calls, newest first |
 | `GET /calls?order_id=` | One order's calls, newest first (the order's call line in the Inbox) |
-| `POST /calls` `{order_id}` | Call a new order now, first in the queue → 201 `Call`. 409 `conflict` while calls are off, or when the order isn't new or already has a call waiting |
+| `POST /calls` `{order_id}` | Call a new order now, first in the queue → 201 `Call`. 409 `conflict` while calls are off (always, for now: D108), or when the order isn't new or already has a call waiting |
 | `POST /calls/{id}/now` | A queued call moves to the front and is due now. 409 unless it's queued |
 | `DELETE /calls/{id}` | Cancels a queued call: done, outcome `stopped`; the order stays as it is. 409 unless it's queued |
 
@@ -213,6 +216,28 @@ owner knows their number). Alerts for the owner stay on Telegram.
 
 Conversations from WhatsApp have `channel: "whatsapp"`.
 
+### Payments (`payments.js`, card `components/agent/SslcommerzConnect.vue`, D49, D109)
+The business's own accounts for paying first. It can connect SSLCommerz, bKash, or both; the
+agent asks for payment only when `pay_first` is on and at least one is connected.
+
+| Call | What it does |
+|---|---|
+| `GET /agent/sslcommerz` | `{store_id, sandbox, connected_at}`. 404 while none is connected. The password never comes back |
+| `PUT /agent/sslcommerz` `{store_id, password, sandbox}` | Checks the store with SSLCommerz, then keeps it → the same as `GET`. 400 with SSLCommerz's reason when it refuses |
+| `DELETE /agent/sslcommerz` | 204. 404 while none is connected |
+| `GET /agent/bkash` | `{username, sandbox, connected_at}` (D109). 404 while none is connected. The app secret and password never come back |
+| `PUT /agent/bkash` `{app_key, app_secret, username, password, sandbox}` | Checks the keys by asking bKash for a token, then keeps them → the same as `GET`. 400 `bKash didn't accept these: …` when it refuses |
+| `DELETE /agent/bkash` | 204. 404 while none is connected |
+
+The visitor's payment link (`<backend>/pay/<id>`, sent by the agent) is a backend page: with
+one gateway it goes straight there; with both it shows a button for each (D109).
+
+### Billing (`billing.js`, page `pages/billing`, owners only, D106, D109)
+| Call | What it does |
+|---|---|
+| `GET /billing` | `{plan, paid_until, active, replies_used, replies, moderators, plans[{key, name, price, year_price, replies, moderators}], gateways[]}`. `gateways`: `sslcommerz` and/or `bkash`, the ones HeyDesk has set up (D109): show a Pay button for each; empty means paying online isn't set up |
+| `POST /billing/checkout` `{plan: starter/growth/pro, months: 1 or 12, gateway?: sslcommerz/bkash}` | `{url}`: send the owner there. `gateway` defaults to `sslcommerz`. 400 when that gateway isn't set up or doesn't answer. The gateway brings the owner back to a backend page that says whether it was paid |
+
 ### Inbox and records (`records.js`)
 | Call | What it does |
 |---|---|
@@ -235,12 +260,25 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ### Visitor chat (`chat.js`, public, the public key is the credential)
 | Call | What it does |
 |---|---|
-| `GET /chat/{public_key}` | `{name, greeting, photos, widget}`. `photos`: true when the visitor can send a photo (a shop, D57). `widget`: the website chat's look (D82), `{colour: '#rrggbb', side: 'right'/'left', nudge, starters: [up to 4], logo: '' or '/media/…'}`, with `{business_name}` filled in. 404 unknown, 404 `unavailable` if suspended |
-| `POST /chat/{public_key}` `{message, conversation_id?, visitor_id, photo?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `photos{items:[{name, price, url}]}` (products the agent shows, D57), `done{interrupted}`, `error{message}`. `photo`: a JPEG or PNG as base64 or a data URL, at most 2 MB (`lib/photo.js` makes it a 1024 px JPEG first); `message` may then be empty. A photo to an agent without `photos`, or one that isn't a picture, is a 422 `unreadable_photo`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
+| `GET /chat/{public_key}` | `{name, greeting, photos, voice, widget}`. `photos`: true when the visitor can send a photo (a shop, D57). `voice`: true when the visitor can call it (a receptionist or a clinic, D108): show the Call button only then. `widget`: the website chat's look (D82), `{colour: '#rrggbb', side: 'right'/'left', nudge, starters: [up to 4], logo: '' or '/media/…'}`, with `{business_name}` filled in. 404 unknown, 404 `unavailable` if suspended |
+| `POST /chat/{public_key}` `{message, conversation_id?, visitor_id, photo?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `photos{items:[{name, price, url}]}` (products the agent shows, D57), `card{kind, data}` (a tool's card, backend D110: below), `choices{items:[text]}` (buttons under the reply, sent just before `done`; a tap sends its text as the next `message`, backend D99), `done{interrupted}`, `error{message}`. `photo`: a JPEG or PNG as base64 or a data URL, at most 2 MB (`lib/photo.js` makes it a 1024 px JPEG first); `message` may then be empty. A photo to an agent without `photos`, or one that isn't a picture, is a 422 `unreadable_photo`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
 | `GET /voice/ice` | ICE servers for a call: STUN, plus a Cloudflare TURN relay when the backend has keys |
-| `POST /voice/offer?key=<public_key>&visitor=<token>` `{sdp, type}` | WebRTC voice. `visitor` is the same token as the chat's; a limited visitor gets the chat's 429 before the call connects. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. Client: `api/voice.js`, `components/chat/VoiceCall.vue` |
+| `POST /voice/offer?key=<public_key>&visitor=<token>` `{sdp, type}` | WebRTC voice. `visitor` is the same token as the chat's; a limited visitor gets the chat's 429 before the call connects. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. 403 `no_voice` when the agent takes no calls (a shop or a restaurant, D108). Client: `api/voice.js`, `components/chat/VoiceCall.vue` |
 | `PATCH /voice/offer` | Trickle ICE candidates (the frontend does not use it) |
 | `GET /` (backend) | Plain dev chat page at `/?key=<public_key>`; the dev server still forwards `/demo/` to it. The shared link is now the frontend's own page: `lib/presets.js chatLink` builds `<this origin>/chat/<public_key>` (`pages/chat/ChatPage.vue`) |
+
+**Cards (backend D110).** A `card` event's `data` is built by the backend; the page only lays it
+out. An amount is `{minor, currency, text}` (show `text`; it may be "free"); a row with a time
+also has `at`, ISO 8601 in UTC. Optional fields are left out, not null. Four kinds:
+
+- `summary`, the read-back before the yes (Yes/Change come as `choices`):
+  `{title, lines: [{label, qty?, amount?}], rows: [{label, value, at?}], total?}`
+- `receipt`, what was just saved: `{title, number, status, rows: [{label, value, at?}], total?, pay_url?}`;
+  `pay_url` (the `/pay/<id>` link) when it waits for a payment
+- `tracking`, where an order is: `{number, steps: [{label, done, current}], note}`; a cancelled
+  or unpaid order is one step on its own
+- `doctors`, who fits: `{doctors: [{name, speciality, days, hours, fee, book}]}`; a Book button
+  sends `book` ("Book with Dr. Imran Hasan") as the visitor's message
 
 ### Admin (`admin.js`, role admin only, under `/api/admin`)
 | Call | What it does |

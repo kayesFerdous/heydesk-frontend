@@ -69,7 +69,8 @@
         remember
         @reply="tell('heydesk:reply')"
       >
-        <template #intro>
+        <!-- Only a receptionist or a clinic takes calls (backend D108). -->
+        <template v-if="agent.voice" #intro>
           <div class="mb-6 flex justify-center">
             <VoiceCall :public-key="publicKey"></VoiceCall>
           </div>

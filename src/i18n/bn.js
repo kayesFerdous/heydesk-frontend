@@ -250,6 +250,16 @@ export default {
     repliesInstantly: 'সাথে সাথে উত্তর দেয়',
     close: 'বন্ধ করুন',
     poweredBy: 'HeyDesk দিয়ে চালিত',
+    // A tool's card in the chat (backend D110); its other words come from the backend.
+    card: {
+      total: 'মোট',
+      pay: 'এখনই পেমেন্ট করুন',
+      fee: 'ফি {money}',
+      book: 'বুক করুন',
+      done: 'হয়ে গেছে',
+      now: 'এখন',
+      toCome: 'বাকি',
+    },
   },
 
   bubble: {
@@ -666,6 +676,11 @@ export default {
     linkIntro: 'আপনার এজেন্ট কাস্টমারকে আপনার SSLCommerz অ্যাকাউন্টে টাকা দেওয়ার একটি লিংক পাঠায়।',
     onlyPayment: 'আপনার এজেন্ট নিজে কিছু পরিশোধিত দেখাতে পারে না: শুধু পেমেন্ট হলেই হয়।',
     connectFirst: 'আগে ওপরে SSLCommerz যুক্ত করুন।',
+    // Paying online with SSLCommerz, bKash or both (backend D109).
+    onlineTip: 'আপনার নিজের পেমেন্ট অ্যাকাউন্ট যুক্ত করুন, যাতে কাস্টমার অনলাইনে টাকা দিতে পারেন। টাকা সরাসরি আপনার কাছে যায়।',
+    oneOrBoth: 'একটি বা দুটোই যুক্ত করুন। দুটো থাকলে কাস্টমার পেমেন্ট পেজে বেছে নেন।',
+    linkIntroAny: 'আপনার এজেন্ট কাস্টমারকে আপনার নিজের অ্যাকাউন্টে টাকা দেওয়ার একটি লিংক পাঠায়।',
+    connectAccountFirst: 'আগে ওপরে SSLCommerz বা bKash যুক্ত করুন।',
     restaurant: {
       title: 'আগে পেমেন্ট',
       explain: 'অনেক কাস্টমার আগে ডেলিভারি চার্জ দেন, তাই আপনি শুধু আসল অর্ডারের রান্না করেন।',
@@ -773,6 +788,25 @@ export default {
     testMode: 'টেস্ট মোড',
     testModeHint: 'developer.sslcommerz.com-এর টেস্ট অ্যাকাউন্টের জন্য চালু রাখুন। লাইভ স্টোরের জন্য বন্ধ।',
     checking: 'SSLCommerz-এর সাথে যাচাই হচ্ছে...',
+  },
+
+  // The business's own bKash merchant account (backend D109). Shares Test mode
+  // and "Paste them here" with sslcommerz.
+  bkash: {
+    connectedText: 'কাস্টমারের পেমেন্ট সরাসরি আপনার bKash মার্চেন্ট অ্যাকাউন্ট {username}-এ যায়।',
+    testModeText: 'পেমেন্টে bKash-এর স্যান্ডবক্স ব্যবহার হয়, আসল টাকা লেনদেন হয় না। bKash অনুমোদন দিলে আপনার লাইভ অ্যাকাউন্ট যুক্ত করুন।',
+    change: 'অ্যাকাউন্ট বদলান',
+    disconnectWarning: 'কাস্টমার আর bKash-এ আপনাকে টাকা দিতে পারবেন না।',
+    connect: 'bKash যুক্ত করুন',
+    step1: '১. আপনার bKash পেমেন্টের তথ্য নিন',
+    step1Text: 'আপনার মার্চেন্ট অ্যাকাউন্টে অনলাইন পেমেন্ট চালু করলে bKash একটি app key, app secret, username আর password দেয়। টেস্টের জন্য স্যান্ডবক্সের তথ্য bKash-এর ডেভেলপার সাইটে পাবেন।',
+    testAccount: 'bKash ডেভেলপার সাইট',
+    appKey: 'App key',
+    appSecret: 'App secret',
+    username: 'Username',
+    password: 'Password',
+    testModeHint: 'bKash-এর স্যান্ডবক্সের তথ্যের জন্য চালু রাখুন। লাইভ অ্যাকাউন্টের জন্য বন্ধ।',
+    checking: 'bKash-এর সাথে যাচাই হচ্ছে...',
   },
 
   menu: {
@@ -988,6 +1022,11 @@ export default {
     opening: 'খুলছে...',
     payHint: 'SSLCommerz-এর পেজে বিকাশ, নগদ বা কার্ডে পেমেন্ট করবেন। নতুন প্ল্যান সাথে সাথে শুরু হয়; আগের পেমেন্ট করা দিনগুলো চলতে থাকে।',
     plans: { trial: 'ফ্রি ট্রায়াল', starter: 'স্টার্টার', growth: 'গ্রোথ', pro: 'প্রো' },
+    // One button per gateway HeyDesk has set up (backend D109).
+    payWith: { sslcommerz: 'কার্ডে পেমেন্ট (SSLCommerz)', bkash: 'bKash-এ পেমেন্ট' },
+    renewWith: { sslcommerz: 'কার্ডে রিনিউ (SSLCommerz)', bkash: 'bKash-এ রিনিউ' },
+    payNote: 'নতুন প্ল্যান সাথে সাথে শুরু হয়; আগের পেমেন্ট করা দিনগুলো চলতে থাকে।',
+    noGateway: 'অনলাইন পেমেন্ট এখনো চালু হয়নি। প্ল্যানের পেমেন্টের জন্য HeyDesk-এর সাথে যোগাযোগ করুন।',
   },
 
   team: {

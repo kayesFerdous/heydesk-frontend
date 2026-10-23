@@ -6,7 +6,8 @@ import { t } from '../i18n/index.js';
 // whereToFix() sends each one to the screen that fills it in.
 export function whereToFix(item) {
   const text = item.toLowerCase();
-  if (text.includes('sslcommerz') || text.includes('delivery')) return '/agent/payments';
+  // "Connect SSLCommerz or bKash to take payments first." (backend D109)
+  if (text.includes('sslcommerz') || text.includes('bkash') || text.includes('delivery')) return '/agent/payments';
   if (text.includes('hours')) return '/agent/hours';
   if (text.includes('phone') || text.includes('email') || text.includes('person')) return '/agent/hours';
   if (text.includes('menu') || text.includes('doctor') || text.includes('product')) return '/menu';

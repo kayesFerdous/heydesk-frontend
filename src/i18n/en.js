@@ -252,6 +252,16 @@ export default {
     repliesInstantly: 'Replies instantly',
     close: 'Close',
     poweredBy: 'Powered by HeyDesk',
+    // A tool's card in the chat (backend D110); its other words come from the backend.
+    card: {
+      total: 'Total',
+      pay: 'Pay now',
+      fee: 'Fee {money}',
+      book: 'Book',
+      done: 'done',
+      now: 'now',
+      toCome: 'to come',
+    },
   },
 
   bubble: {
@@ -671,6 +681,11 @@ export default {
     linkIntro: 'Your agent sends the customer a link to pay into your SSLCommerz account.',
     onlyPayment: "Your agent can't mark anything paid: only the payment can.",
     connectFirst: 'Connect SSLCommerz above first.',
+    // Paying online with SSLCommerz, bKash or both (backend D109).
+    onlineTip: 'Connect your own payment account so customers can pay you online. The money goes straight to you.',
+    oneOrBoth: 'Connect one or both. With both, the customer picks on the pay page.',
+    linkIntroAny: 'Your agent sends the customer a link to pay into your own account.',
+    connectAccountFirst: 'Connect SSLCommerz or bKash above first.',
     // What each kind of business takes first, in the owner's words.
     restaurant: {
       title: 'Paying first',
@@ -779,6 +794,25 @@ export default {
     testMode: 'Test mode',
     testModeHint: 'On for a test account from developer.sslcommerz.com. Off for your live store.',
     checking: 'Checking with SSLCommerz...',
+  },
+
+  // The business's own bKash merchant account (backend D109). Shares Test mode
+  // and "Paste them here" with sslcommerz.
+  bkash: {
+    connectedText: "Customers' payments go straight to your bKash merchant account {username}.",
+    testModeText: "Payments use bKash's sandbox and no real money moves. Connect your live account when bKash approves it.",
+    change: 'Change account',
+    disconnectWarning: 'Customers will no longer be able to pay you by bKash.',
+    connect: 'Connect bKash',
+    step1: '1. Get your bKash payment details',
+    step1Text: 'When bKash opens online payments for your merchant account, it gives you an app key, an app secret, a username and a password. Sandbox details for testing come from the bKash developer site.',
+    testAccount: 'bKash developer site',
+    appKey: 'App key',
+    appSecret: 'App secret',
+    username: 'Username',
+    password: 'Password',
+    testModeHint: "On for bKash's sandbox details. Off for your live account.",
+    checking: 'Checking with bKash...',
   },
 
   menu: {
@@ -994,6 +1028,11 @@ export default {
     opening: 'Opening...',
     payHint: 'You pay by bKash, Nagad or card on SSLCommerz\'s page. A new plan starts at once; days you already paid for carry on.',
     plans: { trial: 'Free trial', starter: 'Starter', growth: 'Growth', pro: 'Pro' },
+    // One button per gateway HeyDesk has set up (backend D109).
+    payWith: { sslcommerz: 'Pay with card (SSLCommerz)', bkash: 'Pay with bKash' },
+    renewWith: { sslcommerz: 'Renew with card (SSLCommerz)', bkash: 'Renew with bKash' },
+    payNote: 'A new plan starts at once; days you already paid for carry on.',
+    noGateway: "Paying online isn't set up yet. Contact HeyDesk to pay for a plan.",
   },
 
   // The business's team (backend D97).

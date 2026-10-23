@@ -66,6 +66,9 @@
               </figure>
             </div>
 
+            <!-- What a tool showed: a bill to say yes to, a receipt, where an order is, doctors (D110). -->
+            <ChatCard v-for="(card, i) in message.cards" :key="i" :card="card" :busy="sending" class="mt-3" @ask="ask"></ChatCard>
+
             <span
               v-if="isPending(index) && (!message.text || status)"
               class="inline-flex items-center gap-2 py-1 text-[0.8125rem] text-ink-soft"
@@ -75,6 +78,20 @@
               <span class="inline-flex gap-1"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
               <span v-if="status">{{ status }}</span>
             </span>
+          </div>
+
+          <!-- Buttons the agent offered with its last reply ("Yes, place it"): a tap
+               sends its words, and they go once anything is sent (backend D99). -->
+          <div v-if="message.choices?.length && index === messages.length - 1 && !sending" class="mt-3 flex flex-wrap gap-2">
+            <button
+              v-for="choice in message.choices"
+              :key="choice"
+              type="button"
+              class="rounded-full border border-line-strong bg-surface px-3.5 py-1.5 text-left text-sm font-medium text-ink transition-colors duration-200 hover:border-brand hover:text-brand"
+              @click="ask(choice)"
+            >
+              {{ choice }}
+            </button>
           </div>
         </div>
 
@@ -197,6 +214,7 @@ import {
   PhX,
 } from '@phosphor-icons/vue';
 
+import ChatCard from './ChatCard.vue';
 import { fetchChatAgent, fetchTeamReplies, streamChat } from '../../api/chat.js';
 import { formatTime, formatToday, linkParts } from '../../lib/format.js';
 import { initials } from '../../lib/group.js';
@@ -411,6 +429,7 @@ async function pickPhoto(event) {
 }
 
 function ask(text) {
+  if (sending.value) return;
   draft.value = text;
   send();
 }
@@ -454,6 +473,14 @@ async function send() {
         reply.photos = data.items;
         scrollDown();
       },
+      card: (data) => {
+        reply.cards = [...(reply.cards || []), data];
+        scrollDown();
+      },
+      choices: (data) => {
+        reply.choices = data.items;
+        scrollDown();
+      },
       error: (data) => (error.value = data.message),
     }, sent);
   } catch (err) {
@@ -461,12 +488,13 @@ async function send() {
   }
 
   // An empty reply bubble is worse than none.
-  if (!reply.text && !reply.photos) messages.value.splice(messages.value.indexOf(reply), 1);
+  const said = reply.text || reply.photos || reply.cards;
+  if (!said) messages.value.splice(messages.value.indexOf(reply), 1);
   status.value = null;
   sending.value = false;
   scrollDown();
   save();
-  if (reply.text || reply.photos) emit('reply');
+  if (said) emit('reply');
   focus();
 }
 

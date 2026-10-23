@@ -42,7 +42,8 @@
           >
             <PhArrowCounterClockwise :size="18"></PhArrowCounterClockwise>
           </button>
-          <VoiceCall :public-key="publicKey"></VoiceCall>
+          <!-- Only a receptionist or a clinic takes calls (backend D108). -->
+          <VoiceCall v-if="agent.voice" :public-key="publicKey"></VoiceCall>
         </template>
       </div>
     </header>

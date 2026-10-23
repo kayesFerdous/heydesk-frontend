@@ -24,3 +24,28 @@ export function connectSslcommerz({ storeId, password, sandbox }) {
 export function disconnectSslcommerz() {
   return request('/agent/sslcommerz', { method: 'DELETE' });
 }
+
+// The business's own bKash merchant account (backend D109), beside or instead of
+// SSLCommerz. The app secret and password go in once and never come back.
+
+// `{username, sandbox, connected_at}`, or null while none is connected.
+export async function fetchBkash() {
+  try {
+    return await request('/agent/bkash');
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
+}
+
+// The server asks bKash for a token with these first; a 400 says what bKash said.
+export function connectBkash({ appKey, appSecret, username, password, sandbox }) {
+  return request('/agent/bkash', {
+    method: 'PUT',
+    body: { app_key: appKey, app_secret: appSecret, username, password, sandbox },
+  });
+}
+
+export function disconnectBkash() {
+  return request('/agent/bkash', { method: 'DELETE' });
+}

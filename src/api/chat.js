@@ -3,6 +3,8 @@
 // over the chat's limits gets a 429 `visitor_limited`. A reply streams back as server-sent events:
 //   open {conversation_id}  token {text}  status {label}
 //   handoff {message, phone, email}  photos {items: [{name, price, url}]}
+//   card {kind, data}  (a tool's card, backend D110: components/chat/ChatCard.vue)
+//   choices {items: [text]}  (buttons under the reply; a tap sends its text)
 //   done {interrupted}  error {message}
 // A shop's chat (`photos: true` on the agent) also takes a photo with a
 // message, as a data URL (backend D57).
