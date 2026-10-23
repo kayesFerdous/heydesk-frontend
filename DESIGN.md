@@ -268,9 +268,14 @@ for the action, lime for the signature.
     crosses the middle of the screen; the open row's marker is lime and a
     black rail fills to it. On a phone each row carries its own example,
     full width.
-  - **Channels** (`ChannelFeed`): the five channels as rows beside a
-    Conversations list that a new conversation joins every two seconds from
-    the next channel, its channel row lit pale lime while it is newest.
+  - **Setup** (`SetupLive`): the five steps as rows (the open one on a grey
+    row with its number on lime and a line filling until it moves on, done
+    ones black with a check) beside the agent they build: a card that
+    collects what the agent knows as pills (kind, hours, dishes, tried,
+    shared) and turns from "Setting up" to "Live", over what the open step
+    is doing (the restaurant kind picked, the details typed in, the dishes
+    arriving, a test question answered, the link copied and WhatsApp
+    connected). A step can be picked to play it alone.
   - Sections are rows with rules, never feature cards. A number marks a step
     only where the order means something (how it decides, setup).
   - No testimonials, logos or statistics until real ones exist.
@@ -288,8 +293,7 @@ Landing motion (every piece explains something, all of it off under
   up with a 4px blur clearing).
 - **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
   row by row. In "How it decides" each number fills black in turn while a
-  line draws to the next; in setup each number turns into a green check in
-  turn. The hand-off plays in the order it happens (the ask, the agent's
+  line draws to the next. The hand-off plays in the order it happens (the ask, the agent's
   promise, the owner's alert with one orange pulse, the owner's reply from
   Telegram). Content below the fold is the only thing ever hidden first.
 - **The capability examples** each act out their one idea: a line passes
@@ -298,7 +302,7 @@ Landing motion (every piece explains something, all of it off under
   going out), on the call (moving bars), confirmed; the policy lines the
   answer came from fill pale lime; the language switch cycles on its own
   until clicked. One example gives way to the next with a short blur.
-- Every loop (the opening picture, the demo, the channel feed, the language switch) runs only
+- Every loop (the opening picture, the demo, the setup walk-through, the language switch) runs only
   while it is on screen.
 - The header's rule appears only once the page scrolls.
 

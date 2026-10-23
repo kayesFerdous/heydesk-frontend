@@ -9,7 +9,6 @@
         <div class="hidden items-center gap-6 text-sm text-ink-soft md:flex">
           <a href="#how" class="nav-link">{{ t('landing.nav.how') }}</a>
           <a href="#features" class="nav-link">{{ t('landing.nav.features') }}</a>
-          <a href="#channels" class="nav-link">{{ t('nav.channels') }}</a>
           <a href="#setup" class="nav-link">{{ t('landing.nav.setup') }}</a>
         </div>
         <div class="ml-auto flex items-center gap-2">
@@ -156,19 +155,6 @@
         </div>
       </section>
 
-      <!-- Channels -->
-      <section id="channels" class="island scroll-mt-20 py-20 sm:py-28">
-        <div class="wrap">
-          <div class="max-w-2xl">
-            <h2 class="section-heading">{{ t('landing.channelsTitle') }}</h2>
-            <p class="mt-5 leading-relaxed text-ink-soft">{{ t('landing.channelsText') }}</p>
-          </div>
-          <div class="mt-12">
-            <ChannelFeed></ChannelFeed>
-          </div>
-        </div>
-      </section>
-
       <!-- Setup -->
       <section id="setup" class="island scroll-mt-20">
         <div class="wrap py-20 sm:py-28">
@@ -177,21 +163,10 @@
             <p class="mt-5 leading-relaxed text-ink-soft">{{ t('landing.setupText') }}</p>
           </div>
 
-          <!-- The five steps tick to done one after another, like the setup
-               guide on Home finishing. -->
-          <ol
-            v-reveal
-            class="setup mt-12 grid gap-px overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-hairline sm:grid-cols-2 lg:grid-cols-5"
-          >
-            <li v-for="(key, index) in SETUP" :key="key" class="bg-surface p-6" :style="{ '--i': index }">
-              <span class="setup-mark" aria-hidden="true">
-                <span class="setup-number">{{ formatNumber(index + 1) }}</span>
-                <PhCheck :size="15" weight="bold" class="setup-check"></PhCheck>
-              </span>
-              <h3 class="mt-5 font-semibold tracking-[-0.01em]">{{ t(`landing.setup.${key}.title`) }}</h3>
-              <p class="mt-1.5 text-sm leading-relaxed text-ink-soft">{{ t(`landing.setup.${key}.text`) }}</p>
-            </li>
-          </ol>
+          <!-- The steps played out: each one builds the agent beside it. -->
+          <div class="mt-12">
+            <SetupLive></SetupLive>
+          </div>
         </div>
       </section>
 
@@ -232,16 +207,14 @@ import BrandMark from '../../components/ui/BrandMark.vue';
 import StatusChip from '../../components/ui/StatusChip.vue';
 import LandingDemo from '../../components/landing/LandingDemo.vue';
 import CapabilityTour from '../../components/landing/CapabilityTour.vue';
-import ChannelFeed from '../../components/landing/ChannelFeed.vue';
 import ChannelFlow from '../../components/landing/ChannelFlow.vue';
+import SetupLive from '../../components/landing/SetupLive.vue';
 import vReveal from '../../directives/reveal.js';
 import { formatNumber } from '../../lib/format.js';
 
 // The words are `landing.<section>.<key>` in the language files.
 const MECHANISM = ['ask', 'work', 'readBack', 'yes'];
 const HANDOFF_POINTS = ['first', 'number', 'kept'];
-// The same five steps the owner's Home walks them through (lib/setup.js).
-const SETUP = ['create', 'details', 'list', 'try', 'share'];
 
 const { t } = useI18n();
 
@@ -355,14 +328,12 @@ onBeforeUnmount(() => {
 }
 
 /* Lists that arrive as a list: each row a beat after the one before. */
-.sequence.reveal,
-.setup.reveal {
+.sequence.reveal {
   opacity: 1;
   transform: none;
 }
 
-.sequence-step,
-.setup > li {
+.sequence-step {
   transition:
     opacity 0.6s var(--ease-settle),
     transform 0.6s var(--ease-settle);
@@ -403,58 +374,6 @@ onBeforeUnmount(() => {
   }
 }
 
-/* Setup: a number becomes a green check, one step after another. */
-.setup-mark {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 9999px;
-  border: 1px solid var(--color-line-strong);
-  background-color: var(--color-surface);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  transition:
-    background-color 0.35s var(--ease-settle),
-    border-color 0.35s var(--ease-settle);
-  transition-delay: calc(0.5s + var(--i) * 0.3s);
-}
-
-.setup-number,
-.setup-check {
-  grid-area: 1 / 1;
-  transition:
-    opacity 0.25s ease-out,
-    transform 0.35s var(--ease-settle);
-  transition-delay: calc(0.5s + var(--i) * 0.3s);
-}
-
-.setup-check {
-  color: #fff;
-  opacity: 0;
-  transform: scale(0.6);
-}
-
-/* The number leaves only once the circle has turned green, never a blank beat. */
-.setup-number {
-  transition-delay: calc(0.65s + var(--i) * 0.3s);
-}
-
-.setup.is-shown .setup-mark {
-  border-color: var(--color-success);
-  background-color: var(--color-success);
-}
-
-.setup.is-shown .setup-number {
-  opacity: 0;
-}
-
-.setup.is-shown .setup-check {
-  opacity: 1;
-  transform: none;
-}
-
 /* The opening settles in once, a beat apart: headline, line, action, demo. */
 @media (prefers-reduced-motion: no-preference) {
   .enter {
@@ -473,10 +392,7 @@ onBeforeUnmount(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .step-mark,
-  .sequence-step::after,
-  .setup-mark,
-  .setup-number,
-  .setup-check {
+  .sequence-step::after {
     transition: none;
   }
 }

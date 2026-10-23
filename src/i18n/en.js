@@ -1245,38 +1245,13 @@ export default {
     handoffReply: 'Of course. I have let the clinic know, and someone will call you on {phone}.',
     handoffTeam: 'Hi Nusrat, this is the clinic. I will call you in ten minutes.',
     handoffCaption: 'An example, as it appears in your Conversations.',
-    channelsTitle: 'One agent, wherever your customers write.',
-    channelsText: 'The same rules, list and hours behind every channel, and every conversation in one list.',
+    // Channel names in the opening picture.
     channels: {
-      web: {
-        name: 'Website chat',
-        text: 'A chat page with your name on it, for your website, Facebook page or Google profile.',
-      },
-      whatsapp: {
-        name: 'WhatsApp',
-        text: 'Connect your WhatsApp Business number. Customers write to it as they always do.',
-      },
-      messenger: {
-        name: 'Messenger',
-        text: 'Connect your Facebook Page, and the messages it gets are answered.',
-      },
-      voice: {
-        name: 'Voice calls',
-        text: 'Customers tap Call and talk to the same agent, with the same rules and prices.',
-      },
-      telegram: {
-        name: 'Telegram',
-        text: 'Connect your own bot. Customers chat there, and you can reply from there too.',
-      },
-    },
-    // One example conversation per channel, all for the same restaurant.
-    feed: {
-      label: 'An example of conversations from every channel in one list',
-      web: { name: 'Visitor', text: 'Do you deliver to Uttara?' },
-      whatsapp: { name: 'Rafiq Hasan', text: 'Apnara ki Friday khola?' },
-      messenger: { name: 'Mitu Akter', text: 'Is there a kids menu?' },
-      voice: { name: 'Visitor', text: 'Two kacchi for pickup at 9' },
-      telegram: { name: 'Jamal Uddin', text: 'A table for 6 on Saturday?' },
+      web: { name: 'Website chat' },
+      whatsapp: { name: 'WhatsApp' },
+      messenger: { name: 'Messenger' },
+      voice: { name: 'Voice calls' },
+      telegram: { name: 'Telegram' },
     },
     // The opening picture: every channel into one agent, then into the inbox.
     flow: {
@@ -1326,6 +1301,30 @@ export default {
       },
       try: { title: 'Try it', text: 'Chat with it the way a customer would.' },
       share: { title: 'Share it', text: 'Send your chat link, or connect WhatsApp, Messenger or Telegram.' },
+    },
+    // The setup walk-through's example agent.
+    setupLive: {
+      label: 'Setting up an agent, an example',
+      yourAgent: 'Your agent',
+      notYet: 'Not set up yet',
+      business: 'Dhanmondi Kitchen',
+      settingUp: 'Setting up',
+      live: 'Live',
+      knows: 'What your agent knows',
+      facts: { kind: 'Restaurant host', hours: 'Open 12 PM to 11 PM', menu: '3 dishes', tried: 'Tried it', shared: 'Shared' },
+      address: 'Address',
+      addressValue: 'House 12, Road 5, Dhanmondi',
+      hours: 'Opening hours',
+      hoursValue: 'Every day, 12 PM to 11 PM',
+      phone: 'Number for when someone needs a person',
+      phoneValue: '01712 345678',
+      import: 'Import a spreadsheet',
+      dishes: ['Chicken Biryani', 'Beef Tehari', 'Borhani'],
+      ask: 'Are you open now?',
+      reply: 'Yes, we are open until 11 PM today. Would you like to order?',
+      link: 'Your chat link',
+      connect: 'Connect',
+      connected: 'Connected',
     },
     closeTitle: 'Give your customers a front desk that is always there.',
     footer: 'An AI front desk for restaurants, clinics, shops and front offices. © {year} HeyDesk',
