@@ -43,11 +43,16 @@
             </p>
           </div>
         </div>
+
+        <!-- Every channel into one agent, and on into the inbox. -->
+        <div class="enter mt-14 sm:mt-16" style="--i: 3">
+          <ChannelFlow></ChannelFlow>
+        </div>
       </div>
       </section>
 
       <section class="rounded-[var(--radius-panel)] bg-lime py-8 sm:py-10" :aria-label="t('landing.seeItWork')">
-        <div class="enter wrap" style="--i: 3">
+        <div class="wrap">
           <LandingDemo></LandingDemo>
         </div>
       </section>
@@ -228,6 +233,7 @@ import StatusChip from '../../components/ui/StatusChip.vue';
 import LandingDemo from '../../components/landing/LandingDemo.vue';
 import CapabilityTour from '../../components/landing/CapabilityTour.vue';
 import ChannelFeed from '../../components/landing/ChannelFeed.vue';
+import ChannelFlow from '../../components/landing/ChannelFlow.vue';
 import vReveal from '../../directives/reveal.js';
 import { formatNumber } from '../../lib/format.js';
 

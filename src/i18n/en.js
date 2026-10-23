@@ -1278,6 +1278,43 @@ export default {
       voice: { name: 'Visitor', text: 'Two kacchi for pickup at 9' },
       telegram: { name: 'Jamal Uddin', text: 'A table for 6 on Saturday?' },
     },
+    // The opening picture: every channel into one agent, then into the inbox.
+    flow: {
+      label: 'How messages from every channel reach one agent and land in your inbox, an example',
+      channels: 'Where customers write',
+      lands: 'Where it lands',
+      send: 'Send an example message from {channel}',
+      agent: 'Your HeyDesk agent',
+      live: 'Live, answering',
+      idle: 'Waiting for the next customer',
+      hint: 'Tap a channel to send a message through it.',
+      outcomes: { orders: 'Orders', messages: 'Messages', answered: 'Answered', person: 'Needs a person' },
+      web: {
+        ask: 'Two kacchi for pickup at 9',
+        steps: ['Checking your menu', '৳900, added up from your prices', 'Read back. The customer said yes'],
+        result: 'A-104 · ৳900',
+      },
+      whatsapp: {
+        ask: 'Apnara ki Friday khola?',
+        steps: ['Checking your opening hours', 'Replying in Banglish'],
+        result: 'Ji, 12 PM theke 11 PM',
+      },
+      messenger: {
+        ask: 'One beef tehari, pickup 7:30',
+        steps: ['Checking your menu', '৳260, added up from your prices', 'Read back. The customer said yes'],
+        result: 'A-105 · ৳260',
+      },
+      voice: {
+        ask: 'Ask the manager to call me about a party of 40',
+        steps: ['Taking a message', 'Read the number back'],
+        result: 'M-42 · Call back',
+      },
+      telegram: {
+        ask: 'My order came cold. Can I talk to someone?',
+        steps: ['This needs a person', 'Letting your team know'],
+        result: 'Waiting for you',
+      },
+    },
     setupTitle: 'Live in about five minutes.',
     setupText: 'Start from a restaurant host, an online shop, a receptionist or a clinic front desk. Change anything later: your agent uses it from the next message, with nothing to publish.',
     setup: {

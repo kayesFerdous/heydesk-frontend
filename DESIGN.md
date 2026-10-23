@@ -250,6 +250,16 @@ for the action, lime for the signature.
     photo first) and front office; on a phone the track scrolls sideways.
     Labelled "An example, not real customers". Under reduced motion it shows
     the finished story.
+  - **The opening picture** (`ChannelFlow`, in the hero island under the
+    action): five channel buttons wired into a black agent tile, wired on to
+    four tiles (Orders, Messages, Answered, Needs a person). A message rides
+    its channel's wire as a black chip, inking the wire behind it; the agent
+    ticks off what it checks ("Checking your menu", "৳900, added up from your
+    prices") with a lime ring breathing while it works; the result rides out
+    as a lime chip and the tile's count bumps (orange for a person). It plays
+    one channel after another while on screen; a tap sends that channel's
+    message now. Across from 768px, top to bottom on a phone. Under reduced
+    motion a tap shows the result at once.
   - **What it can do** (`CapabilityTour`, after "How it decides"): five rows
     (a product found from a photo, delivery and payment, a call to confirm a
     cash order, an answer from the owner's documents, a reply in Bangla,
@@ -288,7 +298,7 @@ Landing motion (every piece explains something, all of it off under
   going out), on the call (moving bars), confirmed; the policy lines the
   answer came from fill pale lime; the language switch cycles on its own
   until clicked. One example gives way to the next with a short blur.
-- Every loop (the demo, the channel feed, the language switch) runs only
+- Every loop (the opening picture, the demo, the channel feed, the language switch) runs only
   while it is on screen.
 - The header's rule appears only once the page scrolls.
 
