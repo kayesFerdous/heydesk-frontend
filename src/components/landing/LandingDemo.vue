@@ -2,7 +2,7 @@
   <!-- The landing page's proof: the product doing its job. A customer asks,
        the agent reads it back with the total, the customer says yes, and only
        then does it arrive in the owner's inbox. Example data, labelled so. -->
-  <div ref="root">
+  <div ref="root" class="relative">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <!-- Four examples are wider than a phone: the track scrolls sideways there. -->
       <div class="segmented tabs-scroll max-w-full overflow-x-auto" role="group" :aria-label="t('demo.exampleBusiness')">
@@ -27,9 +27,9 @@
           ></span>
         </button>
       </div>
-      <p class="text-[0.8125rem] text-ink-soft">
-        {{ t('demo.notReal') }}
-        <button type="button" class="link ml-1" @click="replay">{{ t('demo.playAgain') }}</button>
+      <p class="flex items-center gap-2 text-[0.8125rem]">
+        <ExampleTag></ExampleTag>
+        <button type="button" class="link" @click="replay">{{ t('demo.playAgain') }}</button>
       </p>
     </div>
 
@@ -83,9 +83,14 @@
             </p>
           </div>
 
-          <p v-if="step >= 4" :key="`c${run}`" class="arrive self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-brand px-4 py-2.5 text-white">
-            {{ scene.yes }}
-          </p>
+          <!-- The yes, stamped confirmed beside it; the order leaves from here. -->
+          <div v-if="step >= 4" :key="`c${run}`" class="arrive flex items-center gap-3 self-end">
+            <span v-if="step >= 5" ref="sealEl" class="seal">
+              <PhSealCheck :size="14" weight="fill" class="shrink-0"></PhSealCheck>
+              {{ t('demo.seal') }}
+            </span>
+            <p class="rounded-[var(--radius-panel)] rounded-tr-sm bg-brand px-4 py-2.5 text-white">{{ scene.yes }}</p>
+          </div>
         </div>
 
         <div class="border-t border-hairline bg-surface p-3" aria-hidden="true">
@@ -103,20 +108,20 @@
             {{ t('inbox.title') }}
             <span class="font-normal text-ink-soft">{{ scene.list }}</span>
           </span>
-          <span :key="`n${run}${step >= 5}`" class="count" :class="{ 'count-new': step >= 5 }">{{ t('demo.newCount', { n: formatNumber(step >= 5 ? 1 : 0) }) }}</span>
+          <span :key="`n${run}${step >= 6}`" class="count" :class="{ 'count-new': step >= 6 }">{{ t('demo.newCount', { n: formatNumber(step >= 6 ? 1 : 0) }) }}</span>
         </header>
 
         <p class="day-head static sm:px-5">{{ t('format.today') }}</p>
 
         <ul class="text-sm">
-          <li v-if="step >= 5" :key="`r${run}`" class="landed border-b border-hairline px-5 py-3.5">
+          <li v-if="step >= 6" :key="`r${run}`" class="landed border-b border-hairline px-5 py-3.5">
             <InboxRow :row="scene.row" :time="t('format.justNow')"></InboxRow>
             <p class="mt-2 flex items-center gap-1.5 pl-12 text-xs font-medium text-success">
               <PhSealCheck :size="15" weight="fill" class="shrink-0"></PhSealCheck>
               {{ t('demo.confirmed') }}
             </p>
           </li>
-          <li v-else class="flex items-center gap-3 border-b border-hairline px-5 py-3.5 text-ink-soft">
+          <li v-else ref="slotEl" class="flex items-center gap-3 border-b border-hairline px-5 py-3.5 text-ink-soft">
             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-dashed border-line-strong" aria-hidden="true"></span>
             <span>{{ t('demo.nothingUntilYes') }}</span>
           </li>
@@ -126,11 +131,18 @@
         </ul>
       </section>
     </div>
+
+    <!-- The confirmed order on its way from the chat to the inbox -->
+    <span v-if="ticket" ref="ticketEl" class="ticket" aria-hidden="true">
+      <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-tint text-[0.6875rem] font-semibold text-brand">{{ scene.row.initials }}</span>
+      <span class="font-semibold">{{ scene.row.name }}</span>
+      <span v-if="scene.row.amount" class="text-ink-soft">{{ scene.row.amount }}</span>
+    </span>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   PhBuildings,
@@ -145,6 +157,7 @@ import {
 } from '@phosphor-icons/vue';
 
 import InboxRow from './InboxRow.vue';
+import ExampleTag from './ExampleTag.vue';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 
 // Four example businesses, one per preset. Names and numbers are made up; the
@@ -192,13 +205,19 @@ const SCENES = {
 
 // The pauses between beats, in milliseconds: before the question, before the
 // agent starts typing, typing, between streamed words, before the yes, before
-// the inbox, and how long the finished story stays up before the next one.
-const BEAT = { ask: 500, think: 900, typing: 1100, word: 55, yes: 1100, inbox: 900, hold: 4200 };
+// the confirmed stamp, before the order leaves for the inbox, its flight, and
+// how long the finished story stays up before the next one.
+const BEAT = { ask: 500, think: 900, typing: 1100, word: 55, yes: 1100, seal: 600, leave: 700, fly: 900, hold: 4200 };
 const ORDER = Object.keys(SCENES);
 
 const { t } = useI18n();
 
 const root = ref(null);
+const sealEl = ref(null);
+const slotEl = ref(null);
+const ticketEl = ref(null);
+// True while the confirmed order flies to the inbox.
+const ticket = ref(false);
 const sceneId = ref('restaurant');
 const step = ref(0);
 const words = ref(0);
@@ -234,10 +253,11 @@ const streaming = computed(() => step.value === 3 && words.value < readBackWords
 // One scene from start to the move to the next, for the progress line.
 const sceneLength = computed(() => {
   const b = BEAT;
-  return b.ask + b.think + b.typing + b.word * readBackWords.value.length + b.yes + b.inbox + b.hold;
+  return b.ask + b.think + b.typing + b.word * readBackWords.value.length + b.yes + b.seal + b.leave + b.fly + b.hold;
 });
 
 let timers = [];
+let flight = null;
 let observer = null;
 let reduce = false;
 
@@ -245,10 +265,44 @@ function stop() {
   run.value += 1; // any sequence still waiting sees it is stale and gives up
   timers.forEach(clearTimeout);
   timers = [];
+  if (flight) flight.cancel();
+  ticket.value = false;
 }
 
 function wait(ms) {
   return new Promise((done) => timers.push(setTimeout(done, ms)));
+}
+
+// The middle of an element, measured from the demo's corner.
+function centreOf(el) {
+  const box = root.value.getBoundingClientRect();
+  const rect = el.getBoundingClientRect();
+  return { x: rect.left - box.left + rect.width / 2, y: rect.top - box.top + rect.height / 2 };
+}
+
+function at(point, scale) {
+  return `translate(${point.x}px, ${point.y}px) translate(-50%, -50%) scale(${scale})`;
+}
+
+// The confirmed order leaves the chat as a ticket and arcs over to the row
+// in the inbox where it lands. The Web Animations API plays the keyframes.
+async function sendToInbox() {
+  const from = centreOf(sealEl.value);
+  const to = centreOf(slotEl.value);
+  const over = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 48 };
+  ticket.value = true;
+  await nextTick();
+  flight = ticketEl.value.animate(
+    [
+      { transform: at(from, 0.6), opacity: 0 },
+      { transform: at(from, 1), opacity: 1, offset: 0.15 },
+      { transform: at(over, 1.05), offset: 0.55 },
+      { transform: at(to, 1), opacity: 1 },
+    ],
+    { duration: BEAT.fly, easing: 'cubic-bezier(0.45, 0, 0.25, 1)', fill: 'forwards' }
+  );
+  await flight.finished.catch(() => {});
+  flight = null;
 }
 
 async function play() {
@@ -259,7 +313,7 @@ async function play() {
   // Without motion, show the finished story at once and stay on it.
   if (reduce) {
     autoplay.value = false;
-    step.value = 5;
+    step.value = 6;
     words.value = readBackWords.value.length;
     return;
   }
@@ -284,9 +338,15 @@ async function play() {
   await wait(BEAT.yes);
   if (stale()) return;
   step.value = 4;
-  await wait(BEAT.inbox);
+  await wait(BEAT.seal);
   if (stale()) return;
   step.value = 5;
+  await wait(BEAT.leave);
+  if (stale()) return;
+  await sendToInbox();
+  if (stale()) return;
+  ticket.value = false;
+  step.value = 6;
 
   if (!autoplay.value) return;
   await wait(BEAT.hold);
@@ -362,9 +422,47 @@ onBeforeUnmount(() => {
   animation: blink 0.9s steps(1) infinite;
 }
 
+/* Pressed down beside the customer's yes. */
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  border: 1.5px solid currentColor;
+  background-color: var(--color-surface);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-success);
+  transform: rotate(-6deg);
+}
+
+.ticket {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-surface);
+  padding: 0.25rem 0.875rem 0.25rem 0.25rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .arrive {
     animation: arrive 0.45s var(--ease-settle) both;
+  }
+
+  /* The stamp comes down from above and lands with a thud. */
+  .seal {
+    animation: seal 0.45s cubic-bezier(0.5, 0, 0.75, 0) both;
   }
 
   /* The moment the page is about: the confirmed order lands, lit for a beat
@@ -408,6 +506,20 @@ onBeforeUnmount(() => {
   100% {
     opacity: 0;
     transform: translateY(7rem);
+  }
+}
+
+@keyframes seal {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(2.2);
+  }
+  70% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(0.92);
+  }
+  100% {
+    transform: rotate(-6deg);
   }
 }
 

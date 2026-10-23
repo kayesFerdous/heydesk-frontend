@@ -1148,9 +1148,8 @@ export default {
     nav: { how: 'How it works', features: 'What it does', setup: 'Setup' },
     getStarted: 'Get started',
     hero: 'The front desk that answers every customer, and never guesses an order.',
-    heroText: 'HeyDesk answers your customers on your website, WhatsApp, Messenger, Telegram and the phone, in Bangla, Banglish or English. It takes orders, appointments and messages, and reads every one back to the customer before it reaches your inbox.',
+    heroText: 'HeyDesk answers your customers wherever they write, in Bangla, Banglish or English, and reads every order back before it reaches your inbox.',
     fiveMinutes: 'Setting up takes about five minutes.',
-    seeHow: 'See how it decides',
     seeItWork: 'See it work',
     howTitle: 'The AI talks. Your prices decide.',
     howText: 'A language model is good at conversation and bad at arithmetic. So HeyDesk splits the job: the agent talks to your customer, and every price, total and time is worked out from your own menu and hours.',
@@ -1228,17 +1227,16 @@ export default {
     },
     handoffTitle: 'When it needs a person, it says so.',
     handoffText: 'Some questions are yours to answer. HeyDesk tells the customer someone will follow up, puts them at the top of your day with their number, and lets you reply from Telegram. Your words appear in their chat.',
-    handoffPoints: {
-      first: 'Waiting customers come first on your Home and in Conversations',
-      number: 'Their number is one tap away, ready to call back',
-      kept: 'Every conversation is kept word for word',
-    },
     handoffExample: 'Example of a conversation that needs a person',
+    handoffPhone: "The owner's phone",
+    handoffAlertApp: 'HeyDesk on Telegram',
+    handoffNow: 'now',
+    handoffAlert: '{name} asked for a person. Call {phone}, or reply here and it goes to their chat.',
+    handoffSent: 'Sent to their chat',
     handoffWhen: 'Chat, today 11:31 AM',
     handoffAsk: 'Also, can I talk to a person about my test results?',
     handoffReply: 'Of course. I have let the clinic know, and someone will call you on {phone}.',
     handoffTeam: 'Hi Nusrat, this is the clinic. I will call you in ten minutes.',
-    handoffCaption: 'An example, as it appears in your Conversations.',
     // Channel names in the opening picture.
     channels: {
       web: { name: 'Website chat' },
@@ -1299,6 +1297,7 @@ export default {
     // The setup walk-through's example agent.
     setupLive: {
       label: 'Setting up an agent, an example',
+      clock: '{time} spent setting up, of about five minutes',
       yourAgent: 'Your agent',
       notYet: 'Not set up yet',
       business: 'Dhanmondi Kitchen',
@@ -1320,6 +1319,16 @@ export default {
       connect: 'Connect',
       connected: 'Connected',
     },
+    night: {
+      label: 'What the agent handles overnight, an example',
+      asleep: 'You are asleep. Your agent is not.',
+      events: [
+        'Order A-109 read back and confirmed, {amount}',
+        'Answered: are you open on Friday?',
+        'Message taken: a table for 12 on Saturday',
+        'Order A-110 read back and confirmed, {amount}',
+      ],
+    },
     closeTitle: 'Give your customers a front desk that is always there.',
     footer: 'An AI front desk for restaurants, clinics, shops and front offices. © {year} HeyDesk',
   },
@@ -1334,6 +1343,7 @@ export default {
     newCount: '{n} new',
     confirmed: 'Read back to the customer and confirmed in chat',
     nothingUntilYes: 'Nothing reaches you until the customer says yes.',
+    seal: 'Confirmed by the customer',
     photo: 'A photo the customer sent',
     restaurant: {
       kind: 'Restaurant',

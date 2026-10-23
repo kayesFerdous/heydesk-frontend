@@ -63,8 +63,8 @@
       </li>
     </ul>
 
-    <figcaption class="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[0.8125rem] text-ink-soft">
-      {{ t('demo.notReal') }}
+    <figcaption class="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[0.8125rem]">
+      <ExampleTag></ExampleTag>
       <button v-if="finished" type="button" class="link" @click="play">{{ t('demo.playAgain') }}</button>
     </figcaption>
 
@@ -79,6 +79,7 @@ import { useI18n } from 'vue-i18n';
 import { PhCalculator, PhChatText } from '@phosphor-icons/vue';
 
 import { formatMoney, formatNumber } from '../../lib/format.js';
+import ExampleTag from './ExampleTag.vue';
 
 // Dhanmondi Kitchen's menu, as in SetupLive; the words are `landing.stamp.*`.
 const DISHES = [

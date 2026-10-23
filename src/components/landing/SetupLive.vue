@@ -13,7 +13,7 @@
           :aria-current="index === current ? 'step' : undefined"
           @click="choose(index)"
         >
-          <span class="mark" aria-hidden="true">
+          <span :ref="(el) => (markEls[index] = el)" class="mark" aria-hidden="true">
             <PhCheck v-if="isDone(index)" :size="15" weight="bold"></PhCheck>
             <template v-else>{{ formatNumber(index + 1) }}</template>
           </span>
@@ -33,7 +33,15 @@
       </li>
     </ol>
 
-    <figure class="overflow-hidden rounded-[var(--radius-card)] bg-wash p-4 sm:p-6" :aria-label="t('landing.setupLive.label')">
+    <figure class="rounded-[var(--radius-card)] bg-wash p-4 sm:p-6" :aria-label="t('landing.setupLive.label')">
+      <!-- The time it took so far: a ring filling towards five minutes. -->
+      <p class="mb-3 flex items-center gap-2 px-1 text-xs font-semibold text-ink-soft">
+        <svg class="clock" viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="10" cy="10" r="8" class="clock-track"></circle>
+          <circle cx="10" cy="10" r="8" class="clock-fill" pathLength="1" :style="{ strokeDashoffset: 1 - seconds / LIMIT }"></circle>
+        </svg>
+        <span class="tabular-nums">{{ t('landing.setupLive.clock', { time: clockText }) }}</span>
+      </p>
       <!-- The agent as it stands: what it is, what it knows, whether it is live. -->
       <div class="rounded-[var(--radius-card)] bg-surface p-4 ring-1 ring-hairline">
         <div class="flex items-center gap-3">
@@ -55,7 +63,7 @@
         </div>
         <ul class="mt-3 flex min-h-7 flex-wrap gap-1.5" :aria-label="t('landing.setupLive.knows')">
           <template v-for="(fact, index) in FACTS" :key="fact.key">
-            <li v-if="isDone(index)" class="fact pop">
+            <li v-if="isDone(index)" :ref="(el) => (factEls[index] = el)" class="fact">
               <component :is="fact.icon" :size="13" weight="bold" class="shrink-0"></component>
               {{ t(`landing.setupLive.facts.${fact.key}`) }}
             </li>
@@ -145,8 +153,8 @@
         </Transition>
       </div>
 
-      <figcaption class="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[0.8125rem] text-ink-soft">
-        {{ t('demo.notReal') }}
+      <figcaption class="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[0.8125rem]">
+        <ExampleTag></ExampleTag>
         <button v-if="finished" type="button" class="link" @click="replay">{{ t('demo.playAgain') }}</button>
       </figcaption>
     </figure>
@@ -154,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   PhCheck,
@@ -172,6 +180,7 @@ import {
 import { channelOf } from '../../lib/channels.js';
 import { presetIcon } from '../../lib/presets.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
+import ExampleTag from './ExampleTag.vue';
 
 // The same five steps the owner's Home walks them through (lib/setup.js);
 // their words are `landing.setup.<key>`, the example's `landing.setupLive.*`.
@@ -202,6 +211,10 @@ const BEATS = {
   share: [600, 900, 900],
 };
 const REST = 700;
+// What each step takes a real owner, in seconds, for the clock; it fills
+// towards LIMIT, the five minutes the page promises.
+const STEP_SECONDS = [20, 75, 85, 45, 37];
+const LIMIT = 300;
 
 const { t } = useI18n();
 
@@ -211,11 +224,16 @@ const beat = ref(0);
 const finished = ref(false);
 const autoplay = ref(true);
 const runId = ref(0);
+// The clock's seconds, counted up to what the done steps add to.
+const seconds = ref(0);
+const markEls = [];
+const factEls = [];
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let timers = [];
 let observer = null;
 let started = false;
+let tick = null;
 
 const lengthOf = (index) => BEATS[STEPS[index]].reduce((sum, ms) => sum + ms, 0) + REST;
 
@@ -224,6 +242,48 @@ function isDone(index) {
   if (finished.value) return true;
   if (index < current.value) return true;
   return index === current.value && beat.value >= BEATS[STEPS[index]].length;
+}
+
+const clockText = computed(() => {
+  const whole = Math.round(seconds.value);
+  return `${formatNumber(Math.floor(whole / 60))}:${formatNumber(whole % 60, { minimumIntegerDigits: 2 })}`;
+});
+const doneSeconds = computed(() => STEP_SECONDS.reduce((sum, s, index) => (isDone(index) ? sum + s : sum), 0));
+
+// The clock counts up to each new total rather than jumping to it.
+watch(doneSeconds, (target) => {
+  cancelAnimationFrame(tick);
+  if (reduce) {
+    seconds.value = target;
+    return;
+  }
+  const from = seconds.value;
+  const start = performance.now();
+  const count = (now) => {
+    const progress = Math.min(1, (now - start) / 700);
+    seconds.value = from + (target - from) * (1 - Math.pow(1 - progress, 3));
+    if (progress < 1) tick = requestAnimationFrame(count);
+  };
+  tick = requestAnimationFrame(count);
+});
+
+// What a finished step taught the agent flies from its number into the
+// card: the chip is drawn in place, then played from where the number is.
+async function flyFact(index) {
+  await nextTick();
+  const fact = factEls[index];
+  const from = markEls[index];
+  if (!fact || !from) return;
+  const a = from.getBoundingClientRect();
+  const b = fact.getBoundingClientRect();
+  fact.animate(
+    [
+      { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(0.6)`, opacity: 0 },
+      { opacity: 1, offset: 0.2 },
+      { transform: 'none', opacity: 1 },
+    ],
+    { duration: 750, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+  );
 }
 
 function stop() {
@@ -255,6 +315,7 @@ async function playFrom(index) {
       if (mine !== runId.value) return;
       beat.value += 1;
     }
+    flyFact(step);
     // A step picked by hand plays alone; the walk-through goes on.
     if (!autoplay.value) return;
     await wait(REST);
@@ -292,6 +353,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stop();
+  cancelAnimationFrame(tick);
   observer.disconnect();
 });
 </script>
@@ -379,6 +441,27 @@ onBeforeUnmount(() => {
   height: 0.4375rem;
   border-radius: 9999px;
   background-color: var(--color-success);
+}
+
+.clock {
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: rotate(-90deg);
+}
+
+.clock circle {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.clock-track {
+  stroke: var(--color-line-strong);
+}
+
+.clock-fill {
+  stroke: var(--color-brand);
+  stroke-linecap: round;
+  stroke-dasharray: 1;
 }
 
 .fact {

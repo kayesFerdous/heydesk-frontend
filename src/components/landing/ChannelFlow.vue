@@ -90,11 +90,26 @@
             <component :is="outcome.icon" :size="16" weight="bold"></component>
           </span>
           <span class="min-w-0 flex-1 text-[0.8125rem] leading-tight font-semibold md:truncate md:text-sm">{{ t(`landing.flow.outcomes.${outcome.id}`) }}</span>
-          <span :key="counts[index]" class="count" :class="{ 'count-attention': outcome.id === 'person' && counts[index], bump: counts[index] }">
-            {{ formatNumber(counts[index]) }}
+          <!-- The count rolls like an odometer: the old number up and out, the new one in. -->
+          <span class="count roll" :class="{ 'count-attention': outcome.id === 'person' && counts[index] }">
+            <Transition name="roll">
+              <span :key="counts[index]">{{ formatNumber(counts[index]) }}</span>
+            </Transition>
           </span>
         </li>
       </ul>
+
+      <!-- The gate into Orders: shut until the customer has said yes. -->
+      <span
+        v-if="gate"
+        class="gate"
+        :class="{ 'is-open': gateOpen }"
+        :style="{ '--at': `translate(${gate.x}px, ${gate.y}px) translate(-50%, -50%)` }"
+        aria-hidden="true"
+      >
+        <PhLockSimpleOpen v-if="gateOpen" :size="12" weight="bold"></PhLockSimpleOpen>
+        <PhLockSimple v-else :size="12" weight="bold"></PhLockSimple>
+      </span>
 
       <!-- The message on its way: the customer's words in, the result out. -->
       <span v-if="packet" class="packet" :class="`packet-${packet.kind}`" :style="{ transform: `translate(${packet.x}px, ${packet.y}px) translate(-50%, -50%)` }" aria-hidden="true">
@@ -111,7 +126,7 @@
         {{ t('landing.flow.hint') }}
       </span>
       <span class="hidden sm:inline" aria-hidden="true">·</span>
-      {{ t('demo.notReal') }}
+      <ExampleTag></ExampleTag>
     </figcaption>
 
     <!-- The latest message and what came of it, for screen readers. -->
@@ -122,9 +137,19 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhChatCircleText, PhCheck, PhEnvelopeSimple, PhHandTap, PhTray, PhUserSound } from '@phosphor-icons/vue';
+import {
+  PhChatCircleText,
+  PhCheck,
+  PhEnvelopeSimple,
+  PhHandTap,
+  PhLockSimple,
+  PhLockSimpleOpen,
+  PhTray,
+  PhUserSound,
+} from '@phosphor-icons/vue';
 
 import BrandMark from '../ui/BrandMark.vue';
+import ExampleTag from './ExampleTag.vue';
 import { channelOf } from '../../lib/channels.js';
 import { formatNumber } from '../../lib/format.js';
 
@@ -141,7 +166,7 @@ const OUTCOMES = [
   { id: 'person', icon: PhUserSound, tile: 'bg-attention-tint text-attention' },
 ];
 // How long each part takes, in milliseconds.
-const TIME = { inbound: 1100, step: 850, outbound: 900, rest: 1300 };
+const TIME = { inbound: 1100, step: 850, gate: 350, outbound: 900, rest: 1300 };
 
 const { t } = useI18n();
 
@@ -165,6 +190,9 @@ const runId = ref(0);
 const counts = ref(OUTCOMES.map(() => 0));
 const packet = ref(null);
 const trail = ref(null);
+// Where Orders' wire meets its tile, and whether a yes has opened it.
+const gate = ref(null);
+const gateOpen = ref(false);
 const spoken = ref('');
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -210,6 +238,8 @@ function measure() {
   const hubOut = anchor(hub.value, across ? 'right' : 'bottom');
   inPaths.value = channelEls.map((el) => curve(anchor(el, across ? 'right' : 'bottom'), hubIn, across));
   outPaths.value = outcomeEls.map((el) => curve(hubOut, anchor(el, across ? 'left' : 'top'), across));
+  const [x, y] = anchor(outcomeEls[0], across ? 'left' : 'top');
+  gate.value = { x, y };
 }
 
 // ---- Playing one message -----------------------------------------------
@@ -221,6 +251,7 @@ function stop() {
   cancelAnimationFrame(frame);
   packet.value = null;
   trail.value = null;
+  gateOpen.value = false;
 }
 
 function wait(ms) {
@@ -280,11 +311,18 @@ async function play(index) {
   }
   finished.value = true;
   busy.value = false;
+  // Only an order the customer said yes to opens the way into Orders.
+  if (to === 0) {
+    gateOpen.value = true;
+    await wait(TIME.gate);
+    if (stale()) return;
+  }
   await travel(outEls[to], TIME.outbound, 'out', index, say(id, 'result'));
   if (stale()) return;
   packet.value = null;
   trail.value = null;
   land(index, to);
+  gateOpen.value = false;
 
   await wait(TIME.rest);
   if (stale() || !onScreen) return;
@@ -448,6 +486,43 @@ onBeforeUnmount(() => {
   background-color: var(--color-attention-tint);
 }
 
+/* The lock on Orders' wire: grey and shut, lime and open for a yes. */
+.gate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 9999px;
+  background-color: var(--color-surface);
+  color: var(--color-ink-soft);
+  box-shadow: inset 0 0 0 1px var(--color-line-strong);
+  transform: var(--at);
+  transition:
+    background-color 0.25s var(--ease-settle),
+    color 0.25s var(--ease-settle),
+    box-shadow 0.25s var(--ease-settle);
+}
+
+.gate.is-open {
+  background-color: var(--color-lime);
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+}
+
+/* The count's numbers stack in one cell, so the old and new can pass. */
+.roll {
+  display: inline-grid;
+  overflow: hidden;
+}
+
+.roll > span {
+  grid-area: 1 / 1;
+}
+
 .packet {
   position: absolute;
   top: 0;
@@ -517,12 +592,32 @@ onBeforeUnmount(() => {
     animation: live 2s ease-out infinite;
   }
 
-  .bump {
-    animation: bump 0.45s var(--ease-settle);
-  }
 
   .node.is-sending {
     animation: send 0.9s ease-out;
+  }
+
+  .gate.is-open {
+    animation: unlock 0.35s var(--ease-settle);
+  }
+
+  .roll-enter-active,
+  .roll-leave-active {
+    transition: transform 0.45s var(--ease-settle);
+  }
+
+  .roll-enter-from {
+    transform: translateY(100%);
+  }
+
+  .roll-leave-to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes unlock {
+  50% {
+    transform: var(--at) scale(1.3);
   }
 }
 
@@ -563,11 +658,6 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes bump {
-  40% {
-    transform: scale(1.25);
-  }
-}
 
 @keyframes send {
   from {

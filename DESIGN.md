@@ -244,19 +244,25 @@ for the action, lime for the signature.
   (whose button is lime). The headline is the one place type goes large.
   - **Proof is the product.** `LandingDemo` plays the mechanism: the customer
     asks, the agent reads it back with the total (and a caption saying where
-    the number came from), the customer says yes, and only then does the
-    entry land in the inbox, lit in pale lime for a beat. A segmented
+    the number came from), the customer says yes, a green "Confirmed by the
+    customer" seal thuds down beside the yes, and only then does the order
+    leave the chat as a white ticket (initials, name, amount) that arcs over
+    to the inbox and lands there, lit in pale lime for a beat. A segmented
     control switches restaurant, clinic, online shop (the customer sends a
     photo first) and front office; on a phone the track scrolls sideways.
-    Labelled "An example, not real customers". Under reduced motion it shows
-    the finished story.
+    Labelled with `ExampleTag`, as every example on the page is (one info
+    icon and "An example, not real customers", the same everywhere). Under
+    reduced motion it shows the finished story.
   - **The opening picture** (`ChannelFlow`, in the hero island under the
     action): five channel buttons wired into a black agent tile, wired on to
     four tiles (Orders, Messages, Answered, Needs a person). A message rides
     its channel's wire as a black chip, inking the wire behind it; the agent
     ticks off what it checks ("Checking your menu", "৳900, added up from your
     prices") with a lime ring breathing while it works; the result rides out
-    as a lime chip and the tile's count bumps (orange for a person). It plays
+    as a lime chip and the tile's count rolls up like an odometer (orange for
+    a person). A lock sits where the wire meets Orders: grey and shut, it
+    turns lime and opens only after "The customer said yes", lets the order
+    through, and shuts again. It plays
     one channel after another while on screen; a tap sends that channel's
     message now. Across from 768px, top to bottom on a phone. Under reduced
     motion a tap shows the result at once.
@@ -277,7 +283,17 @@ for the action, lime for the signature.
     wide screen the example sits sticky beside the list and changes as a row
     crosses the middle of the screen; the open row's marker is lime and a
     black rail fills to it. On a phone each row carries its own example,
-    full width.
+    full width. In the language example the two bubbles stay put and their
+    words scramble into the next language, settling left to right out of
+    letters from both scripts (split into graphemes, so a Bangla letter keeps
+    its vowel sign).
+  - **When it needs a person** (black): the heading and text, then the
+    owner's phone (a plain black frame round a light screen) beside the
+    customer's chat, both on one clock. The customer asks, the agent
+    promises a call, then at the same beat the chat's notice pulses orange
+    and a Telegram alert drops into the phone as it buzzes; the owner's reply
+    goes out in Telegram blue ("Sent to their chat") and arrives in the
+    customer's chat from the phone's side under "From the team".
   - **Setup** (`SetupLive`): the five steps as rows (the open one on a grey
     row with its number on lime and a line filling until it moves on, done
     ones black with a check) beside the agent they build: a card that
@@ -285,9 +301,18 @@ for the action, lime for the signature.
     shared) and turns from "Setting up" to "Live", over what the open step
     is doing (the restaurant kind picked, the details typed in, the dishes
     arriving, a test question answered, the link copied and WhatsApp
-    connected). A step can be picked to play it alone.
+    connected). A step can be picked to play it alone. Above the card a
+    small ring fills towards five minutes as a clock counts up what each
+    step takes a real owner (4:22 at the end), and each fact pill flies from
+    its step's number into the card.
+  - **The close** (black): the promise and the lime action beside
+    `NightShift`, a dark tile run by the scroll. As it comes up the screen
+    its clock turns from 9 PM to 3 AM, a lime line fills, and what the agent
+    handled appears at its time (two confirmed orders on lime, an answer and
+    a message on dark): you are asleep, your agent is not. Under reduced
+    motion the whole night shows.
   - Sections are rows with rules, never feature cards. A number marks a step
-    only where the order means something (how it decides, setup).
+    only where the order means something (setup).
   - No testimonials, logos or statistics until real ones exist.
 
 Landing motion (every piece explains something, all of it off under
@@ -303,8 +328,8 @@ Landing motion (every piece explains something, all of it off under
   up with a 4px blur clearing).
 - **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
   row by row. The hand-off plays in the order it happens (the ask, the agent's
-  promise, the owner's alert with one orange pulse, the owner's reply from
-  Telegram). Content below the fold is the only thing ever hidden first.
+  promise, the owner's alert with one orange pulse as the phone buzzes, the
+  owner's reply from Telegram arriving from the phone's side). Content below the fold is the only thing ever hidden first.
 - **The capability examples** each act out their one idea: a line passes
   over the photo before the match appears; the address's delivery area turns
   pale lime and the total adds up; the call goes queued, ringing (rings

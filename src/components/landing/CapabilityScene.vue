@@ -130,8 +130,9 @@
           {{ t(`landing.tour.language.names.${lang}`) }}
         </button>
       </div>
-      <p :key="`q${langIndex}`" class="bubble-them arrive mt-2" :lang="LANG_TAGS[currentLang]">{{ t(`landing.tour.language.${currentLang}.ask`) }}</p>
-      <p :key="`a${langIndex}`" class="bubble-us arrive late" :lang="LANG_TAGS[currentLang]">{{ t(`landing.tour.language.${currentLang}.reply`) }}</p>
+      <!-- The same bubbles stay; their words scramble into the next language. -->
+      <p class="bubble-them mt-2" :lang="LANG_TAGS[currentLang]">{{ shownAsk }}</p>
+      <p class="bubble-us" :lang="LANG_TAGS[currentLang]">{{ shownReply }}</p>
     </template>
   </div>
 </template>
@@ -178,11 +179,22 @@ const LANGUAGES = ['en', 'bn', 'banglish'];
 // Banglish is Bangla written in English letters, so the browser reads it as English.
 const LANG_TAGS = { en: 'en', bn: 'bn', banglish: 'en' };
 const CYCLE = 3600;
+// How long each line takes to resolve, and how far the reply trails the question.
+const SCRAMBLE = 750;
+const REPLY_LAG = 300;
+// Graphemes, so a Bangla letter and its vowel sign always stay together.
+const segmenter = 'Segmenter' in Intl ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+const lettersOf = (text) => (segmenter ? [...segmenter.segment(text)].map((piece) => piece.segment) : Array.from(text));
+// The blur the new words resolve out of: letters from both scripts.
+const GLYPHS = lettersOf('abcdeghijklmnoprstuwyকখগজঝটডতদনপবমরলশসহ');
 
 const beat = ref(0);
 const langIndex = ref(0);
 const cycling = ref(true);
 const currentLang = computed(() => LANGUAGES[langIndex.value]);
+const sample = (lang, part) => t(`landing.tour.language.${lang}.${part}`);
+const shownAsk = ref(sample('en', 'ask'));
+const shownReply = ref(sample('en', 'reply'));
 
 // The call's chip follows the beats: in the queue, ringing, talking, confirmed.
 const callStatus = computed(() => {
@@ -193,6 +205,7 @@ const callStatus = computed(() => {
 });
 
 let timers = [];
+let frame = null;
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function stop() {
@@ -233,6 +246,36 @@ function pickLanguage(index) {
   langIndex.value = index;
 }
 
+// Each line settles left to right; the letters not yet settled are random
+// ones, picked again every frame, so the words seem to be translated in place.
+function scrambleTo(lang) {
+  cancelAnimationFrame(frame);
+  const lines = [
+    { shown: shownAsk, letters: lettersOf(sample(lang, 'ask')), lag: 0 },
+    { shown: shownReply, letters: lettersOf(sample(lang, 'reply')), lag: REPLY_LAG },
+  ];
+  if (reduce) {
+    lines.forEach((line) => (line.shown.value = line.letters.join('')));
+    return;
+  }
+  const start = performance.now();
+  const draw = (now) => {
+    let busy = false;
+    for (const { shown, letters, lag } of lines) {
+      const progress = Math.min(Math.max((now - start - lag) / SCRAMBLE, 0), 1);
+      const settled = Math.floor(progress * letters.length);
+      shown.value = letters
+        .map((letter, index) => (index < settled || letter === ' ' ? letter : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]))
+        .join('');
+      if (progress < 1) busy = true;
+    }
+    if (busy) frame = requestAnimationFrame(draw);
+  };
+  frame = requestAnimationFrame(draw);
+}
+
+watch(currentLang, scrambleTo);
+
 watch(
   () => props.playing,
   // Without motion every example shows its ending, open or not.
@@ -240,7 +283,10 @@ watch(
   { immediate: true }
 );
 
-onBeforeUnmount(stop);
+onBeforeUnmount(() => {
+  stop();
+  cancelAnimationFrame(frame);
+});
 </script>
 
 <style scoped>
@@ -351,10 +397,6 @@ onBeforeUnmount(stop);
 @media (prefers-reduced-motion: no-preference) {
   .arrive {
     animation: arrive 0.45s var(--ease-settle) both;
-  }
-
-  .late {
-    animation-delay: 0.7s;
   }
 
   /* Looking at the photo: a line passes over it, top to bottom. */

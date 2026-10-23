@@ -43,7 +43,7 @@
             <CapabilityScene :id="ITEMS[active].id" :key="ITEMS[active].id" playing></CapabilityScene>
           </Transition>
         </div>
-        <p class="mt-3 px-1 text-[0.8125rem] text-ink-soft">{{ t('demo.notReal') }}</p>
+        <p class="mt-3 px-1"><ExampleTag></ExampleTag></p>
       </div>
     </div>
   </div>
@@ -55,6 +55,7 @@ import { useI18n } from 'vue-i18n';
 import { PhCamera, PhFileText, PhPhoneCall, PhTranslate, PhTruck } from '@phosphor-icons/vue';
 
 import CapabilityScene from './CapabilityScene.vue';
+import ExampleTag from './ExampleTag.vue';
 
 // The words are `landing.tour.<id>.*`; CapabilityScene draws each example.
 const ITEMS = [
