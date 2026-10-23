@@ -107,7 +107,7 @@ knowledge{} (per preset), faq (20000), handoff{message, phone, email}`.
 | `GET /products` | `[Product]`, in the shop's order |
 | `PUT /products` `[Product]` | Replace the whole list. **Send every field back**, or it's lost: the Products page edits one row and PUTs them all |
 | `POST /products/photos` (multipart `file`) | A product photo (JPEG, PNG or WebP, up to 10 MB) → `{url}`, saved as a JPEG and indexed for photo search. The product keeps it once it's saved with that URL in `photos`. 422 `unreadable_photo`; 503 `knowledge_unavailable` when Gemini or Qdrant is down (nothing kept). Client: `uploadProductPhoto` in `api/agent.js` (backend D57) |
-| `GET /shop/orders`, `PATCH /shop/orders/{id}` `{status?, tracking?}` | The shop's orders, paged (D46); move one along, or set the courier and parcel id |
+| `GET /shop/orders`, `PATCH /shop/orders/{id}` `{status}` | The shop's orders, paged (D46); move one along. Each has `parcel_id` and `courier_status` (empty until the agent books it with the courier, D113); `records.js` shows them as the Parcel and Courier says details |
 
 `Product`: `{code, name, description, price, was_price (before a sale; null: not on sale), category,
 sizes[], colours[], stock (null: not counted; 0: sold out), variants[], photos[]}`. Money in minor units. The
@@ -231,6 +231,18 @@ agent asks for payment only when `pay_first` is on and at least one is connected
 
 The visitor's payment link (`<backend>/pay/<id>`, sent by the agent) is a backend page: with
 one gateway it goes straight there; with both it shows a button for each (D109).
+
+### Courier (`courier.js`, card `components/agent/CourierConnect.vue` on `PaymentsSection`, shops only, D90, D113)
+The shop links its own Steadfast or Pathao account. Then every confirmed order is booked there
+(it moves to shipped), and the order moves to delivered or returned when the courier says so,
+about once a minute. Without one, the owner books by hand (in development a fake courier books).
+
+| Call | What it does |
+|---|---|
+| `GET /agent/courier` | `{kind: steadfast/pathao, store_id, sandbox, problem}`. 404 while none is linked. `problem` is empty when fine, else the courier's last refusal, for the owner. The secret and password never come back |
+| `PUT /agent/courier` `{kind, key, secret, username?, password?, sandbox?}` | Checks the keys with the courier, then keeps them → the same as `GET`. Steadfast: `key` and `secret` are its API and secret keys. Pathao: its client id and secret, with the merchant `username` (email) and `password`; `sandbox` only for Pathao. 422 `invalid_config` with `fields.key` = the courier's words when it refuses |
+| `POST /agent/courier/sync` | Books and checks now → the same as `GET` |
+| `DELETE /agent/courier` | 204. Parcels already booked stay with the courier |
 
 ### Billing (`billing.js`, page `pages/billing`, owners only, D106, D109)
 | Call | What it does |

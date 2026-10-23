@@ -8,6 +8,11 @@
       <BkashConnect @change="bkash = $event"></BkashConnect>
     </SettingsGroup>
 
+    <!-- A shop's courier: every confirmed order is booked there (backend D113). -->
+    <SettingsGroup v-if="kind === 'shop'" :title="t('courier.group')" :tip="t('courier.groupTip')">
+      <CourierConnect></CourierConnect>
+    </SettingsGroup>
+
     <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-6 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
       <FormProblems :message="saveError" :problems="problems" class="mt-6"></FormProblems>
 
@@ -169,6 +174,7 @@ import InfoTip from '../../components/ui/InfoTip.vue';
 import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
 import BkashConnect from '../../components/agent/BkashConnect.vue';
+import CourierConnect from '../../components/agent/CourierConnect.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { useAgentStore } from '../../stores/agent.js';
 import { DISTRICTS } from '../../lib/districts.js';

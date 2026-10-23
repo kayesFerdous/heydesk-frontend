@@ -50,6 +50,9 @@ function toRecord(job, row, path) {
     // A shop's order: delivered by a courier, with its own steps (lib/flows.js).
     record.flow = 'shop_order';
     record.address = `${row.address} (${row.zone})`;
+    // Booked with the courier by the agent (backend D113): its parcel and last words.
+    if (row.parcel_id) record.details.parcel = row.parcel_id;
+    if (row.courier_status) record.details.courierSays = row.courier_status;
   } else if (job === 'order') {
     record.due_at = row.pickup_at;
   }
