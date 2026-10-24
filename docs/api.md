@@ -247,8 +247,9 @@ about once a minute. Without one, the owner books by hand (in development a fake
 ### Billing (`billing.js`, page `pages/billing`, owners only, D106, D109)
 | Call | What it does |
 |---|---|
-| `GET /billing` | `{plan, paid_until, active, replies_used, replies, moderators, plans[{key, name, price, year_price, replies, moderators}], gateways[]}`. `gateways`: `sslcommerz` and/or `bkash`, the ones HeyDesk has set up (D109): show a Pay button for each; empty means paying online isn't set up |
-| `POST /billing/checkout` `{plan: starter/growth/pro, months: 1 or 12, gateway?: sslcommerz/bkash}` | `{url}`: send the owner there. `gateway` defaults to `sslcommerz`. 400 when that gateway isn't set up or doesn't answer. The gateway brings the owner back to a backend page that says whether it was paid |
+| `GET /billing` | `{plan, paid_until, active, replies_used, replies, moderators, plans[{key, name, price, year_price, replies, moderators}], gateways[], payments[{id, plan, months, kind: months/upgrade, amount, status: paid/review, paid_at}]}`. `payments` are the receipts, newest first; `review` means paid but not applied yet (the plan changed while paying), HeyDesk sorts it out (D116). `gateways`: `sslcommerz` and/or `bkash`, the ones HeyDesk has set up (D109): show a Pay button for each; empty means paying online isn't set up |
+| `GET /billing/quote?plan=&months=` | `{kind: months/upgrade, amount, paid_until}`: what Pay will charge, before paying (D116). `upgrade`: a bigger plan while one runs costs only the difference for the days left and ends the same day (show "Upgrade now: ৳X"). 409 with the reason when it can't be bought yet: a smaller plan while this one runs ("once it ends"), or more moderators than the plan has |
+| `POST /billing/checkout` `{plan: starter/growth/pro, months: 1 or 12, gateway?: sslcommerz/bkash}` | `{url}`: send the owner there, for the quote's amount. `gateway` defaults to `sslcommerz`. 409 as the quote's; 400 when that gateway isn't set up or doesn't answer. The gateway brings the owner back to a backend page that says whether it was paid |
 
 ### Inbox and records (`records.js`)
 | Call | What it does |
