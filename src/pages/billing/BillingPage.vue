@@ -1,9 +1,15 @@
 <template>
   <!-- The business's plan (backend D106): how much of it is used, and paying for one.
        Paying sends the owner to the gateway's page (SSLCommerz or bKash, whichever HeyDesk has
-       set up, backend D109); they come back to a short page on the backend. -->
+       set up, backend D109); the backend sends them back here with ?payment=paid|review|failed. -->
   <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('billing.title')" :tip="t('billing.subtitle')"></PageHeader>
+
+    <p v-if="paid" class="island mb-4 flex items-start gap-2 px-5 py-3 text-sm sm:px-8"
+       :class="paid === 'paid' ? 'bg-success-tint text-success' : 'bg-danger-tint text-danger'" role="status">
+      <component :is="paid === 'paid' ? PhCheckCircle : PhWarningCircle" :size="18" class="mt-px shrink-0"></component>
+      {{ t(`billing.paid.${paid}`) }}
+    </p>
 
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
     <SkeletonRows v-else-if="!billing" class="island overflow-hidden"></SkeletonRows>
@@ -137,6 +143,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import {
   PhCalendarBlank,
   PhChatsCircle,
@@ -161,6 +168,13 @@ const loadError = ref(null);
 const months = ref(1);
 const paying = ref(null); // "plan:gateway" whose payment page is opening
 const payError = ref(null);
+
+// How the payment went, from the backend's redirect after the gateway (backend D116). Read once,
+// then dropped from the address so a reload doesn't show it again.
+const route = useRoute();
+const router = useRouter();
+const paid = ref(['paid', 'review', 'failed'].includes(route.query.payment) ? route.query.payment : null);
+if (route.query.payment) router.replace({ query: {} });
 const used = computed(() => Math.min(1, billing.value.replies_used / billing.value.replies));
 
 // What 100 replies cost on a plan, paying monthly or yearly: a way to compare plans.

@@ -1021,6 +1021,11 @@ export default {
 
   // The plan and paying for it (backend D106).
   billing: {
+    paid: {
+      paid: 'Payment received. Your plan is updated below.',
+      review: "Payment received, but your plan changed while you were paying, so it isn't applied yet. HeyDesk will sort it out and get in touch.",
+      failed: "The payment didn't go through. You can try again below.",
+    },
     title: 'Billing',
     subtitle: 'Your plan, how much of it you have used, and paying for the next month or year.',
     yourPlan: 'Your plan',
@@ -1054,12 +1059,12 @@ export default {
     pay: 'Pay',
     renew: 'Renew',
     opening: 'Opening...',
-    payHint: 'You pay by bKash, Nagad or card on SSLCommerz\'s page. A new plan starts at once; days you already paid for carry on.',
+    payHint: 'You pay by bKash, Nagad or card on SSLCommerz\'s page. A bigger plan starts at once and you pay only the difference for the days left. A smaller plan can be chosen once this one ends.',
     plans: { trial: 'Free trial', starter: 'Starter', growth: 'Growth', pro: 'Pro' },
     // One button per gateway HeyDesk has set up (backend D109).
     payWith: { sslcommerz: 'Pay with card (SSLCommerz)', bkash: 'Pay with bKash' },
     renewWith: { sslcommerz: 'Renew with card (SSLCommerz)', bkash: 'Renew with bKash' },
-    payNote: 'A new plan starts at once; days you already paid for carry on.',
+    payNote: 'A bigger plan starts at once and you pay only the difference for the days left. A smaller plan can be chosen once this one ends.',
     noGateway: "Paying online isn't set up yet. Contact HeyDesk to pay for a plan.",
   },
 
