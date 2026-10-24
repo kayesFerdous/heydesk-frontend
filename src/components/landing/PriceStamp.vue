@@ -402,7 +402,7 @@ onBeforeUnmount(() => {
   }
   100% {
     transform: none;
-    box-shadow: 0 0 0 10px rgb(212 243 107 / 0);
+    box-shadow: 0 0 0 10px rgb(0 74 172 / 0);
   }
 }
 

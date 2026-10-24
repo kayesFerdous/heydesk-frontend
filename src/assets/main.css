@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 /* The design tokens (DESIGN.md, v5 "Ink and lime"). Every colour, radius and
@@ -10,62 +10,62 @@
    orange and red are states (live, needs a person, destructive), never
    decoration. The pastel tints are decoration only, for avatars. */
 @theme {
-  --font-sans: 'Gabarito', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+  --font-sans: 'Geist', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Noto Color Emoji';
   /* Order and booking codes only (A-104, #12): a serial, like a cheque number. */
-  --font-serial: 'IBM Plex Mono', 'Noto Sans Bengali', ui-monospace, monospace;
+  --font-serial: 'Geist Mono', 'Noto Sans Bengali', ui-monospace, monospace;
 
   /* Action: black. `brand` is the name every button and link already uses. */
-  --color-brand: #111111;
-  --color-brand-hover: #2e2e2e;
+  --color-brand: #004aac;
+  --color-brand-hover: #003b8a;
   /* Selection: lime, pale for a selected row or an icon tile, full for the
      open page and the chosen filter. */
-  --color-brand-tint: #f0f8d2;
-  --color-brand-tint-strong: #d4f36b;
-  --color-lime: #d4f36b;
-  --color-lime-hover: #c8ea55;
+  --color-brand-tint: #edf3fc;
+  --color-brand-tint-strong: #d9e6f8;
+  --color-lime: #d9e6f8;
+  --color-lime-hover: #c6d9f3;
   /* The channels' own colours, only on their own logos (a conversation's
      avatar, its channel chip). */
   --color-telegram: #229ed9;
   --color-messenger: #0084ff;
   --color-whatsapp: #25d366;
   /* Pastel avatar tints: decoration only, never a state. */
-  --color-tint-lilac: #ebe3ff;
+  --color-tint-lilac: #e6e9fb;
   --color-tint-sky: #dcecfd;
-  --color-tint-sand: #f2ead8;
+  --color-tint-sand: #eef1f6;
 
   /* Surfaces: the warm grey canvas, white islands on it, a paper grey for rows
      and bands inside an island. */
-  --color-canvas: #f4f3ef;
+  --color-canvas: #eef2f8;
   --color-surface: #ffffff;
-  --color-sidebar: #f5f5f2;
-  --color-wash: #f5f5f2;
-  --color-hover: #ebebe6;
+  --color-sidebar: #f3f5f9;
+  --color-wash: #f7f9fc;
+  --color-hover: #ebeff6;
 
   /* The black panel (sidebar, the agent's chat tiles): its tiles and its
      quiet text. */
-  --color-night: #141413;
-  --color-night-tile: #1e1e1c;
-  --color-night-soft: #a3a39b;
+  --color-night: #0b1a33;
+  --color-night-tile: #16294a;
+  --color-night-soft: #9aa8c0;
 
   /* Rules */
-  --color-hairline: #e7e7e2;
-  --color-line-strong: #d4d4cc;
+  --color-hairline: #e2e7ef;
+  --color-line-strong: #c9d2df;
 
   /* Ink: near black, warm */
-  --color-ink: #111111;
-  --color-ink-soft: #5c5c56;
-  --color-ink-faint: #9b9b93;
+  --color-ink: #0b1a33;
+  --color-ink-soft: #4d5a70;
+  --color-ink-faint: #8591a5;
 
   /* States */
-  --color-success: #17804c;
-  --color-success-tint: #dcf5e6;
+  --color-success: #127a48;
+  --color-success-tint: #e7f4ed;
   /* "Needs a person": orange, the one warm colour on the screen. */
   --color-attention: #b54708;
-  --color-attention-tint: #ffe6d1;
+  --color-attention-tint: #fdf1e7;
   --color-attention-bright: #ff8a3d;
   --color-danger: #c22b2b;
-  --color-danger-tint: #fde8e8;
+  --color-danger-tint: #fdeeee;
 
   /* Soft, concentric: islands 20px, things inside them 12px, controls 10px.
      Only chips, counts and avatars are full pills. */
@@ -78,8 +78,8 @@
 
   /* Elevation is for things that float over the page (menus, sheets, the
      drawer). Islands sit flat on the canvas. */
-  --shadow-lift: 0 1px 2px rgb(17 17 17 / 0.06);
-  --shadow-float: 0 18px 44px -14px rgb(17 17 17 / 0.28), 0 2px 6px rgb(17 17 17 / 0.06);
+  --shadow-lift: 0 1px 2px rgb(11 26 51 / 0.06);
+  --shadow-float: 0 18px 44px -14px rgb(11 26 51 / 0.28), 0 2px 6px rgb(11 26 51 / 0.06);
 
   /* Exponential ease-out: motion settles rather than stopping. */
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);

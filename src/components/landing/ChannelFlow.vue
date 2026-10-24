@@ -624,10 +624,10 @@ onBeforeUnmount(() => {
 @keyframes breathe {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgb(212 243 107 / 0);
+    box-shadow: 0 0 0 0 rgb(0 74 172 / 0);
   }
   50% {
-    box-shadow: 0 0 0 7px rgb(212 243 107 / 0.45);
+    box-shadow: 0 0 0 7px rgb(0 74 172 / 0.45);
   }
 }
 
@@ -663,12 +663,12 @@ onBeforeUnmount(() => {
   from {
     box-shadow:
       inset 0 0 0 2px var(--color-ink),
-      0 0 0 0 rgb(17 17 17 / 0.2);
+      0 0 0 0 rgb(11 26 51 / 0.2);
   }
   to {
     box-shadow:
       inset 0 0 0 2px var(--color-ink),
-      0 0 0 10px rgb(17 17 17 / 0);
+      0 0 0 10px rgb(11 26 51 / 0);
   }
 }
 </style>

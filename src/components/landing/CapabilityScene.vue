@@ -455,10 +455,10 @@ onBeforeUnmount(() => {
 
 @keyframes ring {
   from {
-    box-shadow: 0 0 0 0 rgb(17 17 17 / 0.25);
+    box-shadow: 0 0 0 0 rgb(11 26 51 / 0.25);
   }
   to {
-    box-shadow: 0 0 0 12px rgb(17 17 17 / 0);
+    box-shadow: 0 0 0 12px rgb(11 26 51 / 0);
   }
 }
 
