@@ -2,7 +2,7 @@
   <!-- A save the backend refused: its sentence, then one line per field. -->
   <div
     v-if="message"
-    class="mb-6 flex gap-3 rounded-[var(--radius-card)] border border-danger/20 bg-danger-tint px-4 py-3 text-sm"
+    class="mb-6 flex gap-3 rounded-[var(--radius-panel)] border border-danger/20 bg-danger-tint px-4 py-3 text-sm"
     role="alert"
   >
     <PhWarningCircle :size="20" class="mt-px shrink-0 text-danger" />

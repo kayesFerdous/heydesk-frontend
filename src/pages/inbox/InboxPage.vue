@@ -1,10 +1,25 @@
 <template>
-  <!-- Three columns on the canvas: the list, the receipt, and the customer
-       with the next step. A phone shows the list, then one record with a way back. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
+  <section class="flex flex-col lg:h-full">
+    <!-- On a phone an opened record takes the whole screen, with a way back. -->
     <PageHeader :class="{ 'max-lg:hidden': opened }" :title="t('inbox.title')" :subtitle="t('inbox.subtitle')">
       <template #actions>
-        <div v-if="inbox.jobs.length > 1" class="tabs rounded-[0.875rem] bg-surface p-1" role="tablist">
+        <label class="relative block w-full sm:w-72">
+          <span class="sr-only">{{ t('inbox.search') }}</span>
+          <PhMagnifyingGlass
+            :size="16"
+            class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"
+          ></PhMagnifyingGlass>
+          <input
+            v-model.trim="query"
+            class="field pl-9"
+            type="search"
+            :placeholder="t('inbox.searchHint')"
+            @input="searchSoon"
+          />
+        </label>
+      </template>
+      <template v-if="inbox.jobs.length > 1" #tabs>
+        <div class="tabs" role="tablist">
           <button
             v-for="job in inbox.jobs"
             :key="job.job"
@@ -16,7 +31,7 @@
             @click="selectJob(job.job)"
           >
             {{ jobTab(job.job) }}
-            <span v-if="job.waiting" class="count" :class="{ '!bg-ink !text-white': job.job === currentJob }">{{ formatNumber(job.waiting) }}</span>
+            <span v-if="job.waiting" class="count">{{ formatNumber(job.waiting) }}</span>
           </button>
         </div>
       </template>
@@ -25,104 +40,88 @@
     <router-link
       v-if="inbox.needsHuman > 0"
       to="/conversations?filter=needs_human"
-      class="island mb-3 flex items-center gap-3 p-3 pr-5 text-sm transition-shadow hover:shadow-[var(--shadow-lift)]"
-      :class="{ 'max-lg:hidden': opened }"
+      class="notice mx-5 mb-4 items-center transition-colors hover:bg-wash sm:mx-8"
+      :class="{ 'mt-4': inbox.jobs.length > 1, 'max-lg:hidden': opened }"
     >
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-attention-tint text-attention" aria-hidden="true">
-        <PhUserSound :size="20" weight="bold"></PhUserSound>
-      </span>
+      <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
       <span class="min-w-0 flex-1">
-        <span class="block font-bold text-ink">
+        <span class="block font-semibold text-ink">
           {{ t('inbox.waitingForPerson', { n: formatNumber(inbox.needsHuman) }, inbox.needsHuman) }}
         </span>
-        <span class="block text-ink-soft">{{ t('inbox.handedOver') }}</span>
+        <span class="mt-0.5 block text-ink-soft">{{ t('inbox.handedOver') }}</span>
       </span>
-      <span class="flex items-center gap-1 font-bold whitespace-nowrap">
+      <span class="flex items-center gap-1 font-semibold whitespace-nowrap text-brand">
         {{ t('common.open') }}
         <PhArrowRight :size="14" weight="bold"></PhArrowRight>
       </span>
     </router-link>
 
-    <div v-if="noAgent" class="island">
-      <EmptyState :icon="PhSparkle" :title="t('common.letsSetUp')" :text="t('inbox.setUpText')">
-        <router-link to="/setup" class="btn btn-primary">{{ t('common.setUpYourAgent') }}</router-link>
-      </EmptyState>
-    </div>
+    <EmptyState
+      v-if="noAgent"
+      :icon="PhSparkle"
+      :title="t('common.letsSetUp')"
+      :text="t('inbox.setUpText')"
+    >
+      <router-link to="/setup" class="btn btn-primary">{{ t('common.setUpYourAgent') }}</router-link>
+    </EmptyState>
 
-    <LoadError v-else-if="error" class="island" :message="error" @retry="load"></LoadError>
+    <LoadError v-else-if="error" :message="error" @retry="load"></LoadError>
+
+    <SkeletonRows v-else-if="isLoading" :class="{ 'border-t border-hairline': inbox.jobs.length <= 1 }"></SkeletonRows>
+
+    <EmptyState
+      v-else-if="records.length === 0"
+      :icon="query ? PhMagnifyingGlass : PhTray"
+      :title="query ? t('inbox.noMatches') : t('inbox.emptyTitle')"
+      :text="query ? t('inbox.noMatchesText') : t('inbox.emptyText')"
+    >
+      <router-link v-if="!query" to="/channels" class="btn btn-secondary">{{ t('common.shareChatLink') }}</router-link>
+    </EmptyState>
 
     <div
       v-else
-      class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]"
+      class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_25rem]"
     >
-      <!-- The list -->
-      <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': opened, 'lg:col-span-full': !isLoading && !records.length }">
-        <label class="relative block p-3 pb-1">
-          <span class="sr-only">{{ t('inbox.search') }}</span>
-          <PhMagnifyingGlass
-            :size="16"
-            class="pointer-events-none absolute top-1/2 left-7 mt-1 -translate-y-1/2 text-ink-soft"
-          ></PhMagnifyingGlass>
-          <input
-            v-model.trim="query"
-            class="field !bg-wash pl-10 !border-transparent"
-            type="search"
-            :placeholder="t('inbox.searchHint')"
-            @input="searchSoon"
-          />
-        </label>
-
-        <SkeletonRows v-if="isLoading"></SkeletonRows>
-
-        <EmptyState
-          v-else-if="records.length === 0"
-          :icon="query ? PhMagnifyingGlass : PhTray"
-          :title="query ? t('inbox.noMatches') : t('inbox.emptyTitle')"
-          :text="query ? t('inbox.noMatchesText') : t('inbox.emptyText')"
-        >
-          <router-link v-if="!query" to="/channels" class="btn btn-secondary">{{ t('common.shareChatLink') }}</router-link>
-        </EmptyState>
-
-        <div v-else class="px-2 pb-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-          <div v-for="group in groups" :key="group.label">
-            <h2 class="day-head !border-hairline !px-2.5 !pt-3">
-              {{ group.label }}
-              <span v-if="isOrders" class="font-medium text-ink-soft">{{ dayTotal(group) }}</span>
-            </h2>
-            <div class="flex flex-col gap-1 pt-1.5">
-              <RecordRow
-                v-for="record in group.items"
-                :key="record.id"
-                :record="record"
-                :selected="record.id === selectedId"
-                @select="select(record.id)"
-              ></RecordRow>
-            </div>
-          </div>
-          <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
+      <div class="lg:min-h-0 lg:overflow-y-auto" :class="{ 'max-lg:hidden': opened }">
+        <div class="ledger ledger-head px-5 pt-3 sm:px-8" :class="{ 'ledger-money': isOrders }" aria-hidden="true">
+          <span>{{ t('home.columns.when') }}</span>
+          <span class="col-span-2">{{ t('home.columns.entry') }}</span>
+          <span>{{ t('home.columns.code') }}</span>
+          <span v-if="isOrders" class="text-right">{{ t('home.columns.amount') }}</span>
+          <span>{{ t('home.columns.status') }}</span>
         </div>
+        <div v-for="group in groups" :key="group.label">
+          <h2 class="day-head">
+            {{ group.label }}
+            <span v-if="isOrders" class="font-medium text-ink-soft">{{ dayTotal(group) }}</span>
+          </h2>
+          <RecordRow
+            v-for="record in group.items"
+            :key="record.id"
+            :record="record"
+            :selected="record.id === selectedId"
+            @select="select(record.id)"
+          ></RecordRow>
+        </div>
+        <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
       </div>
 
-      <!-- The record: its receipt, then the customer and the next step. Wide
-           screens give each its own column; narrower ones stack them. -->
-      <div
-        v-if="selected && !isLoading"
-        class="flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto xl:contents"
+      <aside
+        v-if="selected"
+        class="lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-hairline lg:bg-wash"
         :class="{ 'max-lg:hidden': !opened }"
       >
-        <button type="button" class="btn btn-secondary self-start lg:hidden" @click="opened = false">
+        <button type="button" class="btn btn-quiet mx-3 mt-3 lg:hidden" @click="opened = false">
           <PhArrowLeft :size="18"></PhArrowLeft>
           {{ t('inbox.back') }}
         </button>
-        <RecordDetail :record="selected" class="island xl:min-h-0 xl:overflow-y-auto"></RecordDetail>
-        <RecordNextStep
+        <RecordDetail
           :record="selected"
           :busy="isMoving"
           :error="moveError"
-          class="island xl:min-h-0 xl:overflow-y-auto"
           @move="move"
-        ></RecordNextStep>
-      </div>
+        ></RecordDetail>
+      </aside>
     </div>
   </section>
 </template>
@@ -145,7 +144,6 @@ import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import RecordRow from '../../components/records/RecordRow.vue';
 import RecordDetail from '../../components/records/RecordDetail.vue';
-import RecordNextStep from '../../components/records/RecordNextStep.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import { fetchRecords, fetchRecord, setRecordStatus } from '../../api/records.js';
@@ -327,12 +325,5 @@ async function move(status) {
 load();
 // New work came in (the counts went up): the list again, quietly, like a search.
 watch(() => inbox.arrivals, search);
-// The sidebar's count tiles link to /inbox?job=…, also while the Inbox is open.
-watch(
-  () => route.query.job,
-  (job) => {
-    if (job && job !== currentJob.value) selectJob(job);
-  },
-);
 onBeforeUnmount(() => clearTimeout(searchTimer));
 </script>

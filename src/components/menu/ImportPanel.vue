@@ -39,7 +39,7 @@
         <p class="mt-1 text-sm text-ink-soft">
           {{ Object.keys(suggestion.mapping).length ? t('menu.import.matched') : t('menu.import.matchByHand') }}
         </p>
-        <ul class="mt-3 divide-y divide-hairline rounded-[var(--radius-thumb)] border border-hairline bg-surface">
+        <ul class="mt-3 divide-y divide-hairline rounded-[var(--radius-control)] border border-hairline bg-surface">
           <li
             v-for="column in suggestion.columns"
             :key="column.name"
@@ -79,7 +79,7 @@
         <p class="text-sm font-semibold">
           {{ t('menu.import.found', { n: formatNumber(result.count), noun: itemNoun(kind, result.count) }) }}
         </p>
-        <ul class="mt-3 divide-y divide-hairline rounded-[var(--radius-thumb)] border border-hairline bg-surface text-sm">
+        <ul class="mt-3 divide-y divide-hairline rounded-[var(--radius-control)] border border-hairline bg-surface text-sm">
           <li v-for="item in result.preview" :key="item.code" class="flex justify-between gap-4 px-4 py-2.5">
             <span class="truncate">{{ item.name }}</span>
             <span class="font-semibold">{{ formatMoney(item.price) }}</span>

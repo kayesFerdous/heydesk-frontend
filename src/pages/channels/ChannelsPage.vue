@@ -1,10 +1,10 @@
 <template>
-  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section>
     <PageHeader :title="t('channelsPage.title')" :tip="t('channelsPage.subtitle')"></PageHeader>
 
-    <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
+    <LoadError v-if="loadError" :message="loadError" @retry="load"></LoadError>
 
-    <div v-else class="island px-5 pt-6 pb-4 sm:px-8">
+    <div v-else class="max-w-4xl px-5 pb-12 sm:px-8">
       <!-- Website chat: always on, needs only the link -->
       <SettingsGroup :title="t('channelsPage.websiteChat')" :tip="t('channelsPage.websiteChatText')">
         <template v-if="agent.publicKey">

@@ -842,6 +842,7 @@ export default {
 
   menu: {
     all: 'All',
+    allCategories: 'All categories',
     subtitle: 'Your agent only offers what is listed here, at these prices. Changes are live right away.',
     add: 'Add {noun}',
     search: 'Search {list}',

@@ -2,7 +2,7 @@
   <!-- On a phone: the daily screens one thumb away, everything else under More
        (which opens the full sidebar as a drawer). -->
   <nav
-    class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 flex gap-1 rounded-full bg-night p-1.5 shadow-[var(--shadow-float)]"
+    class="fixed inset-x-0 bottom-0 z-20 flex border-t border-hairline bg-surface/95 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur"
     :aria-label="t('shell.mainNav')"
   >
     <router-link
@@ -69,21 +69,19 @@ function active(item) {
 .tab-item {
   display: flex;
   flex: 1;
-  min-height: 3.25rem;
+  min-height: 3rem;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.125rem;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--color-night-soft);
+  color: var(--color-ink-soft);
 }
 
-/* The page you are on: a lime pill, like the sidebar. */
 .tab-item-active {
-  background-color: var(--color-lime);
-  color: var(--color-ink);
+  color: var(--color-brand);
 }
 
 .badge {
@@ -96,19 +94,12 @@ function active(item) {
   place-items: center;
   padding: 0 0.25rem;
   border-radius: 9999px;
-  background-color: var(--color-night-tile);
+  background-color: var(--color-brand);
   color: #fff;
   font-size: 0.625rem;
-  font-weight: 700;
 }
 
-.tab-item-active .badge {
-  background-color: var(--color-ink);
-}
-
-.badge-attention,
-.tab-item-active .badge-attention {
-  background-color: var(--color-attention-bright);
-  color: var(--color-ink);
+.badge-attention {
+  background-color: var(--color-attention);
 }
 </style>

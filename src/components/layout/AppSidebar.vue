@@ -1,45 +1,41 @@
 <template>
-  <aside class="group/sidebar relative flex min-h-0 flex-col bg-night text-white">
+  <aside class="group/sidebar relative flex min-h-0 flex-col bg-surface">
+    <!-- Fold or unfold: a small handle sitting on the sidebar's edge, shown
+         while the pointer is over the sidebar (or the handle has focus). -->
+    <button
+      v-if="collapsible"
+      type="button"
+      class="edge-toggle"
+      :aria-label="collapsed ? t('shell.expand') : t('shell.collapse')"
+      :title="collapsed ? t('shell.expand') : t('shell.collapse')"
+      :aria-expanded="!collapsed"
+      @click="ui.sidebarCollapsed = !collapsed"
+    >
+      <component :is="collapsed ? PhCaretRight : PhCaretLeft" :size="12" weight="bold"></component>
+    </button>
+
     <!-- One header, one logo: the HeyDesk mark, then whose desk this is and
          whether it is answering customers. Folded, only the mark stays. -->
-    <div class="shrink-0 px-3 pt-4">
+    <div class="shrink-0 px-3 pt-3">
       <router-link
         to="/"
-        class="flex min-w-0 items-center gap-3 rounded-[var(--radius-card)] p-1.5 transition-colors hover:bg-night-tile"
-        :class="{ 'justify-center': collapsed }"
+        class="flex min-w-0 items-center gap-2.5 rounded-[var(--radius-control)] p-2 transition-colors hover:bg-wash"
         :aria-label="t('shell.homeLink', { name: businessName })"
         :title="collapsed ? businessName : undefined"
       >
-        <BrandMark mark-only class="!h-10 !w-10"></BrandMark>
+        <BrandMark mark-only></BrandMark>
         <span v-if="!collapsed" class="min-w-0 flex-1">
-          <span class="block truncate text-[0.9375rem] font-bold">{{ businessName }}</span>
-          <span v-if="showStatus" class="flex items-center gap-1.5 text-xs font-medium text-night-soft">
-            <span class="h-2 w-2 shrink-0 rounded-full" :class="auth.isSuspended ? 'bg-attention-bright' : 'bg-lime'" aria-hidden="true"></span>
-            {{ auth.isSuspended ? t('common.pausedByHeyDesk') : t('shell.agentLive') }}
-          </span>
-          <span v-else class="block text-xs text-night-soft">{{ auth.seesBusiness ? t('shell.noAgentYet') : t('shell.platformAdmin') }}</span>
+          <span class="block truncate text-sm font-semibold">{{ businessName }}</span>
+          <LiveStatus v-if="showStatus" :paused="auth.isSuspended" :label="t('shell.agentLive')"></LiveStatus>
+          <span v-else class="block text-xs text-ink-soft">{{ auth.seesBusiness ? t('shell.noAgentYet') : t('shell.platformAdmin') }}</span>
         </span>
       </router-link>
     </div>
 
-    <!-- A customer waiting for a person is the one thing that cannot wait, so
-         it gets a strip of its own, only while someone waits. The other
-         counts sit beside their pages in the nav. -->
-    <router-link
-      v-if="showStatus && inbox.needsHuman && !collapsed"
-      to="/conversations?filter=needs_human"
-      class="mx-3 mt-4 flex shrink-0 items-center gap-2.5 rounded-[var(--radius-card)] bg-night-tile px-3 py-2.5 text-[0.8125rem] font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--color-night-tile),white_8%)]"
-      @click="$emit('navigate')"
-    >
-      <PhUserSound :size="18" weight="fill" class="shrink-0 text-attention-bright"></PhUserSound>
-      <span class="min-w-0 flex-1 truncate">{{ t('status.needs_human') }}</span>
-      <span class="nav-count nav-count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
-    </router-link>
-
-    <nav class="mt-4 min-h-0 flex-1 overflow-y-auto px-3" :aria-label="t('shell.mainNav')">
-      <div v-for="(group, index) in groups" :key="index" :class="{ 'mt-5': index > 0 }">
-        <p v-if="group.label && !collapsed" class="mb-1 px-3 text-xs font-medium text-night-soft">{{ group.label }}</p>
-        <hr v-else-if="group.label" class="mx-3 mb-3 border-night-tile" />
+    <nav class="mt-5 min-h-0 flex-1 overflow-y-auto px-3" :aria-label="t('shell.mainNav')">
+      <div v-for="(group, index) in groups" :key="index" :class="{ 'mt-6': index > 0 }">
+        <p v-if="group.label && !collapsed" class="mb-1 px-2.5 text-xs font-medium text-ink-soft">{{ group.label }}</p>
+        <hr v-else-if="group.label" class="mx-2 mb-3 border-hairline" />
         <ul class="flex flex-col gap-0.5">
           <li v-for="item in group.items" :key="item.to">
             <router-link
@@ -52,12 +48,12 @@
               @click="$emit('navigate')"
             >
               <span class="relative grid place-items-center">
-                <component :is="item.icon" :size="20" :weight="active(item) ? 'fill' : 'regular'" class="nav-icon"></component>
+                <component :is="item.icon" :size="18" :weight="active(item) ? 'fill' : 'regular'" class="nav-icon"></component>
                 <span v-if="collapsed && item.count" class="badge" :class="{ 'badge-attention': item.attention }">{{ formatNumber(item.count) }}</span>
               </span>
               <template v-if="!collapsed">
                 <span class="flex-1 truncate">{{ item.label }}</span>
-                <span v-if="item.count" class="nav-count" :class="{ 'nav-count-attention': item.attention }">
+                <span v-if="item.count" class="count" :class="{ 'count-attention': item.attention }">
                   {{ formatNumber(item.count) }}
                 </span>
               </template>
@@ -72,45 +68,45 @@
       <button
         v-if="auth.seesBusiness"
         type="button"
-        class="btn w-full bg-night-tile text-white hover:bg-[color-mix(in_srgb,var(--color-night-tile),white_8%)]"
+        class="btn btn-secondary w-full"
         :class="{ 'btn-icon': collapsed }"
         :aria-label="collapsed ? t('common.tryYourAgent') : undefined"
         :title="collapsed ? t('common.tryYourAgent') : undefined"
         @click="openTestChat"
       >
-        <PhChatCircleDots :size="18" weight="fill" class="text-lime"></PhChatCircleDots>
+        <PhChatCircleDots :size="18" class="text-brand"></PhChatCircleDots>
         <template v-if="!collapsed">{{ t('common.tryYourAgent') }}</template>
       </button>
 
       <!-- The account: who is signed in. It opens a small menu with the
            language, the account page and signing out. -->
-      <div ref="accountMenu" class="relative mt-3 border-t border-night-tile pt-3">
+      <div ref="accountMenu" class="relative mt-3 border-t border-hairline pt-3">
         <button
           type="button"
-          class="flex w-full items-center gap-2.5 rounded-[var(--radius-card)] p-1 text-left transition-colors hover:bg-night-tile"
-          :class="{ 'justify-center': collapsed, 'bg-night-tile': route.path === '/account' }"
+          class="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] p-1 text-left transition-colors hover:bg-wash"
+          :class="{ 'justify-center': collapsed, 'bg-brand-tint': route.path === '/account' }"
           :aria-label="collapsed ? t('shell.account') : undefined"
           :title="collapsed ? email : undefined"
           aria-haspopup="menu"
           :aria-expanded="accountOpen"
           @click="accountOpen = !accountOpen"
         >
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-night-tile text-sm font-bold text-white" aria-hidden="true">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-semibold text-brand" aria-hidden="true">
             {{ initial }}
           </span>
           <template v-if="!collapsed">
             <span class="min-w-0 flex-1">
-              <span class="block truncate text-[0.8125rem] font-semibold">{{ email }}</span>
-              <span class="block text-xs text-night-soft">{{ roleLabel }}</span>
+              <span class="block truncate text-[0.8125rem] font-medium">{{ email }}</span>
+              <span class="block text-xs text-ink-soft">{{ roleLabel }}</span>
             </span>
-            <PhCaretUpDown :size="16" class="shrink-0 text-night-soft"></PhCaretUpDown>
+            <PhCaretUpDown :size="16" class="shrink-0 text-ink-faint"></PhCaretUpDown>
           </template>
         </button>
 
         <transition name="menu">
           <div
             v-if="accountOpen"
-            class="absolute bottom-full left-0 z-30 mb-2 w-64 rounded-[var(--radius-card)] border border-hairline bg-surface p-3 text-ink shadow-[var(--shadow-float)]"
+            class="absolute bottom-full left-0 z-30 mb-2 w-64 rounded-[var(--radius-panel)] border border-hairline bg-surface p-3 shadow-[var(--shadow-float)]"
             role="menu"
           >
             <p class="truncate text-sm font-semibold">{{ email }}</p>
@@ -119,8 +115,8 @@
               <PhUserCircle :size="18" class="text-ink-soft"></PhUserCircle>
               {{ t('shell.accountSettings') }}
             </router-link>
-            <button type="button" class="menu-item -mx-1 mt-1 !w-[calc(100%+0.5rem)]" role="menuitem" @click="signOut">
-              <PhSignOut :size="18" class="text-ink-soft"></PhSignOut>
+            <button type="button" class="btn btn-quiet mt-1 w-full justify-start border-t border-hairline !rounded-none !px-1 pt-3" role="menuitem" @click="signOut">
+              <PhSignOut :size="18"></PhSignOut>
               {{ t('common.signOut') }}
             </button>
           </div>
@@ -131,18 +127,13 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import {
-  PhSignOut,
-  PhChatCircleDots,
-  PhCaretUpDown,
-  PhUserCircle,
-  PhUserSound,
-} from '@phosphor-icons/vue';
+import { PhSignOut, PhChatCircleDots, PhCaretLeft, PhCaretRight, PhCaretUpDown, PhUserCircle } from '@phosphor-icons/vue';
 
 import BrandMark from '../ui/BrandMark.vue';
+import LiveStatus from '../ui/LiveStatus.vue';
 import { navGroups, isActive } from '../../lib/navigation.js';
 import { formatNumber } from '../../lib/format.js';
 import { roleName } from '../../lib/team.js';
@@ -167,14 +158,6 @@ const inbox = useInboxStore();
 const ui = useUiStore();
 
 const collapsed = computed(() => props.collapsible && ui.sidebarCollapsed);
-// [ folds or unfolds, unless they are typing. The button is SidebarToggle, beside each page's title.
-function onKey(event) {
-  if (event.key !== '[' || event.metaKey || event.ctrlKey || event.altKey) return;
-  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-  ui.sidebarCollapsed = !ui.sidebarCollapsed;
-}
-onMounted(() => props.collapsible && window.addEventListener('keydown', onKey));
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 const email = computed(() => auth.me?.email ?? '');
 const initial = computed(() => email.value.charAt(0).toUpperCase());
 const showStatus = computed(() => auth.seesBusiness && agent.hasAgent);
@@ -227,6 +210,35 @@ function signOut() {
 </script>
 
 <style scoped>
+/* The fold handle: a small round button straddling the sidebar's right rule. */
+.edge-toggle {
+  position: absolute;
+  top: 1.75rem;
+  right: -0.75rem;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 999px;
+  background-color: var(--color-surface);
+  color: var(--color-ink-soft);
+  box-shadow: var(--shadow-lift);
+  opacity: 0;
+  transition: opacity 0.15s var(--ease-settle), color 0.15s var(--ease-settle), border-color 0.15s var(--ease-settle);
+}
+
+.group\/sidebar:hover .edge-toggle,
+.edge-toggle:focus-visible {
+  opacity: 1;
+}
+
+.edge-toggle:hover {
+  color: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
 .menu-enter-active,
 .menu-leave-active {
   transition: opacity 0.15s var(--ease-settle), transform 0.15s var(--ease-settle);
@@ -245,16 +257,23 @@ function signOut() {
   }
 }
 
+/* Touch screens have no hover: the handle stays visible. */
+@media (hover: none) {
+  .edge-toggle {
+    opacity: 1;
+  }
+}
+
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  height: 2.75rem;
-  padding: 0 0.875rem;
+  gap: 0.625rem;
+  height: 2.25rem;
+  padding: 0 0.625rem;
   border-radius: var(--radius-control);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-night-soft);
+  color: var(--color-ink-soft);
   transition: background-color 0.15s var(--ease-settle), color 0.15s var(--ease-settle);
 }
 
@@ -265,48 +284,30 @@ function signOut() {
 
 .nav-icon {
   flex-shrink: 0;
+  color: var(--color-ink-faint);
   transition: color 0.15s var(--ease-settle);
 }
 
 .nav-item:hover {
-  color: #fff;
-  background-color: color-mix(in srgb, var(--color-night-tile) 60%, var(--color-night));
+  color: var(--color-ink);
+  background-color: var(--color-wash);
 }
 
-/* The page you are on: a quiet fill, white words, and the one lime mark,
-   its filled icon. */
+.nav-item:hover .nav-icon {
+  color: var(--color-ink-soft);
+}
+
+/* The page you are on: a cobalt tint, cobalt words and a filled icon. */
 .nav-item-active,
 .nav-item-active:hover {
-  color: #fff;
+  color: var(--color-brand);
   font-weight: 600;
-  background-color: var(--color-night-tile);
+  background-color: var(--color-brand-tint);
 }
 
-.nav-item-active .nav-icon {
-  color: var(--color-lime);
-}
-
-.nav-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 0.375rem;
-  border-radius: 999px;
-  background-color: var(--color-night-tile);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.nav-item-active .nav-count {
-  background-color: color-mix(in srgb, var(--color-night-tile), white 12%);
-}
-
-.nav-count-attention,
-.nav-item-active .nav-count-attention {
-  background-color: var(--color-attention-bright);
-  color: var(--color-ink);
+.nav-item-active .nav-icon,
+.nav-item-active:hover .nav-icon {
+  color: var(--color-brand);
 }
 
 /* A count on a folded item sits on the icon's corner. */
@@ -319,22 +320,22 @@ function signOut() {
   min-width: 1rem;
   height: 1rem;
   padding: 0 0.25rem;
-  border: 2px solid var(--color-night);
+  border: 2px solid var(--color-surface);
   border-radius: 999px;
-  background-color: var(--color-night-tile);
+  background-color: var(--color-ink-soft);
   color: #fff;
   font-size: 0.625rem;
-  font-weight: 700;
+  font-weight: 600;
   box-sizing: content-box;
 }
 
-.nav-item-active .badge {
-  border-color: var(--color-night-tile);
+.badge-attention {
+  background-color: var(--color-attention);
 }
 
-.badge-attention,
-.nav-item-active .badge-attention {
-  background-color: var(--color-attention-bright);
-  color: var(--color-ink);
+@media (pointer: coarse) {
+  .nav-item {
+    height: 2.75rem;
+  }
 }
 </style>

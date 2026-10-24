@@ -38,10 +38,14 @@ export function groupByDay(items, field = 'created_at', timeZone = 'Asia/Dhaka')
   return groups;
 }
 
-// A fixed set of pastel tints so a list has rhythm without photos. The same
-// name always gets the same tint. No green or orange: those mean "live" and
-// "needs a person", never decoration.
-const AVATAR_TINTS = ['bg-tint-lilac text-ink', 'bg-tint-sky text-ink', 'bg-brand-tint text-ink', 'bg-tint-sand text-ink'];
+// A fixed set of brand-family tints so a list has rhythm without photos. The
+// same name always gets the same tint. No green or amber: those mean "live"
+// and "needs a person", never decoration.
+const AVATAR_TINTS = [
+  'bg-brand-tint text-brand',
+  'bg-brand-tint-strong text-brand-hover',
+  'bg-hover text-ink-soft',
+];
 
 export function avatarTint(name) {
   let sum = 0;

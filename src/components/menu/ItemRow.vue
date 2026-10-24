@@ -5,7 +5,7 @@
     class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem] sm:px-8"
   >
     <div class="flex min-w-0 items-center gap-3" :class="{ 'opacity-55': !item.available }">
-      <img v-if="item.photos?.length" :src="item.photos[0]" alt="" class="size-10 shrink-0 rounded-[var(--radius-thumb)] object-cover ring-1 ring-hairline" />
+      <img v-if="item.photos?.length" :src="item.photos[0]" alt="" class="size-10 shrink-0 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
       <div class="min-w-0">
         <p class="flex min-w-0 items-center gap-2">
           <span class="truncate text-sm font-semibold">{{ item.name }}</span>
@@ -120,7 +120,7 @@
           <p class="label flex items-center gap-1.5">{{ t('menu.row.photos') }} <InfoTip :text="t('menu.row.photosHint')"></InfoTip></p>
           <div class="flex flex-wrap items-center gap-2">
             <div v-for="(url, index) in photos" :key="url" class="relative">
-              <img :src="url" :alt="t('menu.row.photoOf', { name: draft.name, n: index + 1 })" class="size-20 rounded-[var(--radius-thumb)] object-cover ring-1 ring-hairline" />
+              <img :src="url" :alt="t('menu.row.photoOf', { name: draft.name, n: index + 1 })" class="size-20 rounded-[var(--radius-control)] object-cover ring-1 ring-hairline" />
               <button
                 type="button"
                 class="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-surface text-ink-soft shadow-[var(--shadow-lift)] ring-1 ring-hairline hover:text-danger"

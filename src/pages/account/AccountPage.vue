@@ -2,10 +2,10 @@
   <!-- Settings that belong to the person signed in, not to the business or
        the agent: their language, their password, their sign-in. Future personal
        settings (notifications) are one more SettingsGroup here. -->
-  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section>
     <PageHeader :title="t('shell.account')"></PageHeader>
 
-    <div class="island px-5 pt-6 pb-4 sm:px-8">
+    <div class="max-w-4xl px-5 pb-12 sm:px-8">
       <SettingsGroup :title="t('common.language')" :tip="t('account.languageTip')">
         <!-- Each language is shown in its own words and digits, so the way
              back is readable whichever one is on. -->

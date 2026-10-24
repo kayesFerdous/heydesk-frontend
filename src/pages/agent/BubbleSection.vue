@@ -5,8 +5,7 @@
   <form v-if="form" novalidate @submit.prevent="save">
     <FormProblems :message="saveError" :problems="problems"></FormProblems>
 
-    <!-- Wide screens show this preview beside the form instead (AgentPage). -->
-    <SettingsGroup :title="t('bubble.preview')" :tip="t('bubble.previewTip')" class="xl:hidden">
+    <SettingsGroup :title="t('bubble.preview')" :tip="t('bubble.previewTip')">
       <BubblePreview
         :colour="form.colour"
         :side="form.side"
@@ -18,7 +17,7 @@
       ></BubblePreview>
     </SettingsGroup>
 
-    <SettingsGroup :title="t('bubble.look')" class="xl:border-t-0 xl:pt-2">
+    <SettingsGroup :title="t('bubble.look')">
       <div>
         <p class="label">{{ t('bubble.colour') }}</p>
         <div class="flex flex-wrap items-center gap-2">
@@ -173,7 +172,6 @@ const { form, isDirty, isSaving, saveError, problems, errors, savedNote, save, r
   patchFrom: (f) => ({
     widget: { ...f, starters: f.starters.map((s) => s.trim()).filter(Boolean), logo: logo.value },
   }),
-  previewFrom: (f) => ({ colour: f.colour, side: f.side, nudge: f.nudge, starters: [...f.starters] }),
 });
 
 async function pickLogo(event) {

@@ -1,6 +1,6 @@
 <template>
-  <div class="flex min-h-dvh flex-col bg-canvas p-3">
-    <header class="flex items-center justify-between px-3 py-2 sm:px-5">
+  <div class="flex min-h-dvh flex-col bg-surface">
+    <header class="flex items-center justify-between border-b border-hairline px-5 py-4 sm:px-10">
       <BrandMark></BrandMark>
       <div class="flex items-center gap-2">
         <LanguageSwitch></LanguageSwitch>
@@ -10,7 +10,7 @@
       </div>
     </header>
 
-    <main class="island mx-auto mt-3 mb-6 w-full max-w-3xl px-5 pt-8 pb-10 sm:px-10">
+    <main class="mx-auto w-full max-w-3xl flex-1 px-5 pt-10 pb-16 sm:px-10">
       <ol class="flex items-center gap-3 text-sm" :aria-label="t('setup.progress')">
         <li
           v-for="(label, index) in steps"
@@ -22,7 +22,7 @@
           <span class="flex items-center gap-2" :aria-current="index === step ? 'step' : undefined">
             <span
               class="grid h-7 w-7 place-items-center rounded-full text-xs font-semibold"
-              :class="index < step ? 'bg-ink text-white' : index === step ? 'bg-lime text-ink' : 'bg-hover text-ink-soft'"
+              :class="index <= step ? 'bg-brand text-white' : 'bg-hover text-ink-soft'"
             >
               <PhCheck v-if="index < step" :size="14" weight="bold"></PhCheck>
               <template v-else>{{ formatNumber(index + 1) }}</template>
@@ -34,29 +34,29 @@
 
       <!-- Step 1: choose -->
       <section v-if="step === 0" class="mt-12">
-        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.chooseText') }}</p>
 
         <p v-if="loadError" class="mt-8 text-sm text-danger" role="alert">
           {{ loadError }}
-          <button type="button" class="link ml-2" @click="loadPresets">
+          <button type="button" class="ml-2 font-semibold text-brand hover:underline" @click="loadPresets">
             {{ t('common.tryAgain') }}
           </button>
         </p>
 
         <!-- The kinds of agent, as ruled rows: one line each, chosen like a radio. -->
-        <div v-else class="mt-8 flex flex-col gap-1.5" role="radiogroup" :aria-label="t('setup.kind')">
+        <div v-else class="mt-8 border-t border-line-strong" role="radiogroup" :aria-label="t('setup.kind')">
           <button
             v-for="preset in presets"
             :key="preset.id"
             type="button"
             role="radio"
             :aria-checked="preset.id === presetId"
-            class="flex w-full items-center gap-4 rounded-[var(--radius-card)] p-3 text-left transition-colors sm:p-4"
-            :class="preset.id === presetId ? 'bg-brand-tint' : 'bg-wash hover:bg-hover'"
+            class="row flex w-full items-center gap-4 px-2 py-4 text-left sm:px-3"
+            :class="{ 'row-selected': preset.id === presetId }"
             @click="presetId = preset.id"
           >
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface text-ink" aria-hidden="true">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-brand-tint text-brand" aria-hidden="true">
               <component :is="presetIcon(preset.id)" :size="22"></component>
             </span>
             <span class="min-w-0 flex-1">
@@ -78,7 +78,7 @@
 
       <!-- Step 2: details -->
       <section v-else-if="step === 1" class="mt-12">
-        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.detailsTitle') }}</h1>
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.detailsTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.detailsText') }}</p>
 
         <form class="mt-8 flex max-w-lg flex-col gap-5" novalidate @submit.prevent="create">
@@ -129,11 +129,11 @@
 
       <!-- Step 3: try it -->
       <section v-else class="mt-12">
-        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.readyTitle') }}</h1>
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.readyTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.readyText') }}</p>
 
         <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">
-          <div class="h-[28rem] overflow-hidden rounded-[var(--radius-card)] border border-hairline bg-wash">
+          <div class="h-[28rem] overflow-hidden rounded-[var(--radius-panel)] border border-hairline bg-wash">
             <AgentChat v-if="agent.publicKey" :public-key="agent.publicKey"></AgentChat>
           </div>
 

@@ -1,5 +1,5 @@
 <template>
-  <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
+  <section class="flex flex-col">
     <PageHeader :title="t('admin.title')" :subtitle="t('admin.subtitle')">
       <template #tabs>
         <div class="tabs" role="tablist">
@@ -19,7 +19,6 @@
       </template>
     </PageHeader>
 
-    <div class="island overflow-hidden pt-5">
     <!-- The overview loads its own numbers; the other tabs share the lists below. -->
     <OverviewSection v-if="tab === 'overview'"></OverviewSection>
 
@@ -89,7 +88,7 @@
     <div v-else-if="tab === 'owners'">
       <div
         v-if="temporary"
-        class="mx-5 my-5 rounded-[var(--radius-card)] bg-brand-tint px-4 py-3 text-sm sm:mx-8"
+        class="mx-5 my-5 rounded-[var(--radius-panel)] border border-brand/15 bg-brand-tint px-4 py-3 text-sm sm:mx-8"
         role="status"
       >
         <p class="font-semibold">{{ t('admin.newPassword', { email: temporary.email }) }}</p>
@@ -150,7 +149,6 @@
       </div>
       <ShowMore v-if="auditHasMore" :loading="loadingMore" :error="moreError" @more="moreAudit"></ShowMore>
       <p v-if="!audit.length" class="px-5 py-10 text-sm text-ink-soft sm:px-8">{{ t('admin.nothingYet') }}</p>
-    </div>
     </div>
   </section>
 </template>

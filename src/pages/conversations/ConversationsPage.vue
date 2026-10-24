@@ -1,32 +1,28 @@
 <template>
-  <!-- Three columns on the canvas: the list, the transcript, and who it was
-       with. A phone shows the list, then one conversation with a way back. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
-    <PageHeader :class="{ 'max-lg:hidden': selectedId }" :title="t('conversations.title')" :subtitle="t('conversations.subtitle')">
-      <template #actions>
-        <div class="tabs rounded-[0.875rem] bg-surface p-1" role="group" :aria-label="t('conversations.filter')">
-          <button type="button" class="tab" :class="{ 'tab-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
+  <section class="flex h-full flex-col lg:flex-row">
+    <!-- The list -->
+    <div
+      class="flex min-h-0 flex-col border-hairline lg:w-[22rem] lg:shrink-0 lg:border-r"
+      :class="selectedId ? 'hidden lg:flex' : 'flex flex-1'"
+    >
+      <header class="px-5 pt-6 pb-4 sm:px-8 sm:pt-9 lg:px-5">
+        <h1 class="text-[1.625rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('conversations.title') }}</h1>
+        <p class="mt-1 text-sm text-ink-soft">{{ t('conversations.subtitle') }}</p>
+        <div class="segmented mt-4" role="group" :aria-label="t('conversations.filter')">
+          <button type="button" class="segment" :class="{ 'segment-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
             {{ t('conversations.all') }}
           </button>
-          <button type="button" class="tab" :class="{ 'tab-active': filter === 'needs_human' }" :aria-pressed="filter === 'needs_human'" @click="setFilter('needs_human')">
+          <button type="button" class="segment" :class="{ 'segment-active': filter === 'needs_human' }" :aria-pressed="filter === 'needs_human'" @click="setFilter('needs_human')">
             {{ t('status.needs_human') }}
             <span v-if="inbox.needsHuman" class="count count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
           </button>
         </div>
-      </template>
-    </PageHeader>
-
-    <LoadError v-if="error" class="island" :message="error" @retry="load"></LoadError>
-
-    <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
-      <!-- The list -->
-      <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
         <!-- One channel at a time: its logo, and its name once chosen. -->
-        <nav class="flex shrink-0 flex-wrap gap-1.5 border-b border-hairline p-3" :aria-label="t('conversations.byChannel')">
+        <nav class="mt-3 flex flex-wrap gap-1.5" :aria-label="t('conversations.byChannel')">
           <button
             type="button"
-            class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
-            :class="!channel ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
+            class="chip h-8 px-3 text-[0.8125rem] font-semibold transition-colors"
+            :class="!channel ? 'bg-brand-tint text-brand' : 'bg-hover text-ink-soft hover:text-ink'"
             :aria-pressed="!channel"
             @click="setChannel(null)"
           >
@@ -36,79 +32,77 @@
             v-for="option in channelOptions"
             :key="option.id"
             type="button"
-            class="chip h-9 gap-1.5 text-sm font-semibold transition-colors"
-            :class="channel === option.id ? 'bg-lime px-3.5 text-ink' : 'w-9 justify-center bg-hover px-0 text-ink-soft hover:text-ink'"
+            class="chip h-8 gap-1.5 text-[0.8125rem] font-semibold transition-colors"
+            :class="channel === option.id ? 'bg-brand-tint px-3 text-brand' : 'w-8 justify-center bg-hover px-0 text-ink-soft hover:text-ink'"
             :aria-pressed="channel === option.id"
             :aria-label="option.label"
             :title="option.label"
             @click="setChannel(option.id)"
           >
-            <component :is="option.icon" :size="18" :weight="option.weight" :class="option.color"></component>
+            <component :is="option.icon" :size="16" :weight="option.weight" :class="option.color"></component>
             <span v-if="channel === option.id">{{ option.label }}</span>
           </button>
         </nav>
+      </header>
 
-        <SkeletonRows v-if="!loaded"></SkeletonRows>
+      <LoadError v-if="error" :message="error" @retry="load"></LoadError>
 
-        <EmptyState
-          v-else-if="!rows.length && channel && filter !== 'needs_human'"
-          :icon="channelOf(channel).icon"
-          :title="t('conversations.noneFrom', { channel: channelOf(channel).label })"
-          :text="t('conversations.noneFromText')"
-        ></EmptyState>
-        <EmptyState
-          v-else-if="!rows.length"
-          :icon="filter === 'needs_human' ? PhCheckCircle : PhChatsCircle"
-          :title="filter === 'needs_human' ? t('conversations.nobodyWaiting') : t('conversations.emptyTitle')"
-          :text="filter === 'needs_human' ? t('conversations.nobodyWaitingText') : t('conversations.emptyText')"
-        >
-          <button v-if="filter !== 'needs_human'" type="button" class="btn btn-secondary" @click="ui.testSheetOpen = true">
-            {{ t('common.tryYourAgent') }}
-          </button>
-        </EmptyState>
+      <SkeletonRows v-else-if="!loaded" class="border-t border-hairline"></SkeletonRows>
 
-        <div v-else class="px-2 pb-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-          <div v-for="group in groups" :key="group.label">
-            <h2 class="day-head !border-hairline !px-2.5 !pt-3">{{ group.label }}</h2>
-            <div class="flex flex-col gap-1 pt-1.5">
-              <ConversationRow
-                v-for="row in group.items"
-                :key="row.id"
-                :row="row"
-                :selected="row.id === selectedId"
-                @select="select(row.id)"
-              ></ConversationRow>
-            </div>
-          </div>
-          <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
+      <EmptyState
+        v-else-if="!rows.length && channel && filter !== 'needs_human'"
+        :icon="channelOf(channel).icon"
+        :title="t('conversations.noneFrom', { channel: channelOf(channel).label })"
+        :text="t('conversations.noneFromText')"
+      ></EmptyState>
+      <EmptyState
+        v-else-if="!rows.length"
+        :icon="filter === 'needs_human' ? PhCheckCircle : PhChatsCircle"
+        :title="filter === 'needs_human' ? t('conversations.nobodyWaiting') : t('conversations.emptyTitle')"
+        :text="filter === 'needs_human' ? t('conversations.nobodyWaitingText') : t('conversations.emptyText')"
+      >
+        <button v-if="filter !== 'needs_human'" type="button" class="btn btn-secondary" @click="ui.testSheetOpen = true">
+          {{ t('common.tryYourAgent') }}
+        </button>
+      </EmptyState>
+
+      <div v-else class="min-h-0 flex-1 overflow-y-auto">
+        <div v-for="group in groups" :key="group.label">
+          <h2 class="day-head lg:!px-5">
+            {{ group.label }}
+          </h2>
+          <ConversationRow
+            v-for="row in group.items"
+            :key="row.id"
+            :row="row"
+            :selected="row.id === selectedId"
+            @select="select(row.id)"
+          ></ConversationRow>
         </div>
+        <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
       </div>
+    </div>
 
-      <!-- The conversation: the transcript, then who it was with. Wide
-           screens give each its own column; narrower ones stack them. -->
-      <div v-if="detail" class="flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto xl:contents">
-        <ConversationTranscript
-          :conversation="detail"
-          :busy="isHandling"
-          :error="handleError"
-          class="island xl:min-h-0"
-          @back="select(null)"
-          @handled="handled"
-        ></ConversationTranscript>
-        <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>
-      </div>
-      <LoadError v-else-if="detailError" class="island" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
-      <div v-else-if="selectedId" class="island p-8" aria-hidden="true">
+    <!-- The transcript -->
+    <div class="min-h-0 min-w-0 flex-1" :class="selectedId ? 'flex flex-col' : 'hidden lg:flex lg:flex-col'">
+      <ConversationTranscript
+        v-if="detail"
+        :conversation="detail"
+        :busy="isHandling"
+        :error="handleError"
+        @back="select(null)"
+        @handled="handled"
+      ></ConversationTranscript>
+      <LoadError v-else-if="detailError" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
+      <div v-else-if="selectedId" class="p-8" aria-hidden="true">
         <div class="skeleton h-5 w-40"></div>
-        <div class="skeleton mt-8 h-12 w-2/3 !rounded-[var(--radius-card)]"></div>
-        <div class="skeleton mt-3 ml-auto h-12 w-1/2 !rounded-[var(--radius-card)]"></div>
+        <div class="skeleton mt-8 h-12 w-2/3"></div>
+        <div class="skeleton mt-3 ml-auto h-12 w-1/2"></div>
       </div>
-      <div v-else class="island hidden flex-col items-center justify-center p-8 text-center lg:flex xl:col-span-2">
-        <span class="grid h-14 w-14 place-items-center rounded-full bg-brand-tint" aria-hidden="true">
-          <PhChatsCircle :size="26"></PhChatsCircle>
-        </span>
-        <h2 class="mt-4 text-lg font-bold">{{ t('conversations.pick') }}</h2>
-        <p class="mt-1 max-w-xs text-sm text-ink-soft">{{ t('conversations.pickText') }}</p>
+      <div v-else class="m-auto max-w-xs p-8 text-center">
+        <PhChatsCircle :size="32" class="mx-auto text-ink-faint"></PhChatsCircle>
+        <h2 class="mt-3 text-base font-semibold">{{ t('conversations.pick') }}</h2>
+        <p class="mt-1 text-sm text-ink-soft">{{ t('conversations.pickText') }}</p>
       </div>
     </div>
   </section>
@@ -122,10 +116,8 @@ import { PhChatsCircle, PhCheckCircle } from '@phosphor-icons/vue';
 
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
-import ConversationSide from '../../components/conversations/ConversationSide.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
-import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import { fetchConversations, fetchConversation, markHandled } from '../../api/conversations.js';
@@ -163,16 +155,16 @@ const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelO
 // What the list is showing; a page asked for under another one is dropped.
 const listKey = computed(() => `${filter.value}|${channel.value}`);
 
-// The list endpoint has no previews. The name is the messaging app's, else a
-// record's the conversation made; the preview from its transcript, once loaded.
+// The list endpoint has no names or previews. The name comes from a record
+// the conversation made; the preview from its transcript, once loaded.
 const rows = computed(() =>
   list.value.map((c) => {
     const messages = details.value[c.id]?.messages ?? [];
-    const known = c.name || (recordsOf.value[c.id] || [])[0]?.customer_name;
+    const record = (recordsOf.value[c.id] || [])[0];
     return {
       ...c,
-      name: known || t('conversations.visitor'),
-      named: Boolean(known),
+      name: record?.customer_name || t('conversations.visitor'),
+      named: Boolean(record?.customer_name),
       preview: messages.length ? messages[messages.length - 1].text : '',
     };
   }),

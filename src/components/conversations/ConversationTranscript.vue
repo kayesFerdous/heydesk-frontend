@@ -1,51 +1,46 @@
 <template>
-  <!-- What was said, word for word, under a header saying who and where.
-       A hand-off shows at the top with the way to pick it up. -->
-  <div class="flex flex-col">
-    <header class="flex items-center gap-3 border-b border-hairline p-4 sm:px-6">
-      <button type="button" class="btn btn-secondary btn-icon btn-sm lg:hidden" :aria-label="t('conversations.back')" @click="$emit('back')">
-        <PhArrowLeft :size="18"></PhArrowLeft>
-      </button>
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold" :class="tint" aria-hidden="true">
-        <template v-if="named">{{ initials(name) }}</template>
-        <component :is="channel.icon" v-else :size="22" :weight="channel.weight"></component>
-      </span>
-      <div class="min-w-0">
-        <h2 class="truncate text-lg font-bold">{{ name }}</h2>
-        <p class="truncate text-sm text-ink-soft">{{ channel.long }}, {{ when }}</p>
+  <div class="flex h-full min-h-0 flex-col">
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4 sm:px-8">
+      <div class="flex min-w-0 items-center gap-3">
+        <button type="button" class="btn btn-quiet btn-icon lg:hidden" :aria-label="t('conversations.back')" @click="$emit('back')">
+          <PhArrowLeft :size="20"></PhArrowLeft>
+        </button>
+        <div class="min-w-0">
+          <h2 class="truncate text-lg font-semibold tracking-[-0.015em]">{{ name }}</h2>
+          <p class="text-sm text-ink-soft">
+            {{ channel.long }}, {{ when }}
+          </p>
+        </div>
       </div>
     </header>
 
-    <div class="px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
+    <div class="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8">
       <div
         v-if="conversation.status === 'needs_human'"
-        class="mx-auto mb-6 flex max-w-2xl flex-wrap items-center gap-3 rounded-[var(--radius-card)] bg-attention-tint p-4 text-sm"
+        class="notice mx-auto mb-6 max-w-2xl flex-wrap items-center"
         role="status"
       >
-        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface text-attention" aria-hidden="true">
-          <PhUserSound :size="20" weight="bold"></PhUserSound>
-        </span>
-        <div class="min-w-[12rem] flex-1">
-          <p class="font-bold text-ink">{{ t('conversations.askedForPerson', { name }) }}</p>
-          <p class="mt-0.5 text-ink">
+        <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold text-ink">{{ t('conversations.askedForPerson', { name }) }}</p>
+          <p class="mt-0.5 text-ink-soft">
             <template v-if="phone">{{ t('conversations.callToPickUp', { phone }) }}</template>
             <template v-else>{{ t('conversations.readThenReach') }}</template>
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
           <a v-if="phone" :href="`tel:${phone}`" class="btn btn-primary">
-            <PhPhone :size="16" weight="fill"></PhPhone>
+            <PhPhone :size="16"></PhPhone>
             {{ t('conversations.callBack') }}
           </a>
           <button
             type="button"
-            class="btn"
-            :class="phone ? 'btn-secondary' : 'btn-primary'"
+            class="btn btn-secondary"
             :title="t('conversations.handledHint')"
             :disabled="busy"
             @click="$emit('handled')"
           >
-            <PhCheck :size="16" weight="bold"></PhCheck>
+            <PhCheck :size="16"></PhCheck>
             {{ t('conversations.markHandled') }}
           </button>
         </div>
@@ -64,16 +59,16 @@
               {{ line.role === 'user' ? name : t('conversations.yourAgent') }}
             </p>
             <div
-              class="rounded-[var(--radius-card)] px-4 py-2.5 text-[0.9375rem] leading-relaxed whitespace-pre-wrap"
-              :class="line.role === 'user' ? 'rounded-tl-md bg-hover text-ink' : 'rounded-tr-md bg-brand-tint text-ink'"
+              class="rounded-[var(--radius-panel)] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap"
+              :class="line.role === 'user' ? 'rounded-tl-sm bg-hover text-ink' : 'rounded-tr-sm bg-brand-tint text-ink'"
             >
               <!-- The photo the visitor sent, and the products the agent showed (D57). -->
               <a v-if="line.photo" :href="line.photo" target="_blank" rel="noopener">
-                <img :src="line.photo" :alt="t('conversations.theirPhoto', { name })" class="mb-1.5 max-h-60 rounded-[0.875rem]" />
+                <img :src="line.photo" :alt="t('conversations.theirPhoto', { name })" class="mb-1.5 max-h-60 rounded-[var(--radius-control)]" />
               </a>
               <div v-if="line.photos?.length" class="flex flex-wrap gap-2">
                 <figure v-for="product in line.photos" :key="product.url" class="w-28">
-                  <img :src="product.url" :alt="product.name" class="aspect-square w-full rounded-[0.875rem] object-cover" />
+                  <img :src="product.url" :alt="product.name" class="aspect-square w-full rounded-[var(--radius-control)] object-cover" />
                   <figcaption class="mt-1 text-xs leading-snug">
                     <span class="block font-semibold">{{ product.name }}</span>
                     <span class="text-ink-soft">{{ product.price }}</span>
@@ -86,6 +81,25 @@
         </div>
         <p v-if="!conversation.messages.length" class="text-sm text-ink-soft">{{ t('conversations.nothingSaid') }}</p>
       </div>
+
+      <div v-if="conversation.records.length" class="mx-auto mt-8 max-w-2xl">
+        <h3 class="mb-2 text-sm font-semibold">{{ t('conversations.takenHere') }}</h3>
+        <router-link
+          v-for="record in conversation.records"
+          :key="record.id"
+          :to="`/inbox?job=${record.job}&open=${record.id}`"
+          class="mb-2 flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-hairline px-4 py-3 text-sm transition-colors hover:border-line-strong hover:bg-wash"
+        >
+          <span class="flex items-center gap-2 font-semibold">
+            {{ t(`records.name.${record.job}`) }}
+            <span class="serial font-medium text-ink-soft">{{ record.code }}</span>
+          </span>
+          <span class="flex items-center gap-3">
+            <span v-if="record.kind === 'order'" class="font-semibold">{{ formatMoney(record.total) }}</span>
+            <StatusChip :status="record.status"></StatusChip>
+          </span>
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -95,9 +109,9 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { PhArrowLeft, PhCheck, PhPhone, PhUserSound } from '@phosphor-icons/vue';
 
+import StatusChip from '../ui/StatusChip.vue';
 import { channelOf } from '../../lib/channels.js';
-import { formatTime, formatDay } from '../../lib/format.js';
-import { avatarTint, initials } from '../../lib/group.js';
+import { formatMoney, formatTime, formatDay } from '../../lib/format.js';
 
 const props = defineProps({
   conversation: { type: Object, required: true },
@@ -108,10 +122,7 @@ defineEmits(['back', 'handled']);
 const { t } = useI18n();
 
 const channel = computed(() => channelOf(props.conversation.channel));
-const known = computed(() => props.conversation.name || props.conversation.records[0]?.customer_name);
-const named = computed(() => Boolean(known.value));
-const name = computed(() => known.value || t('conversations.visitor'));
-const tint = computed(() => (named.value ? avatarTint(name.value) : channel.value.avatar));
+const name = computed(() => props.conversation.name || props.conversation.records[0]?.customer_name || t('conversations.visitor'));
 const phone = computed(() => props.conversation.records.find((r) => r.customer_phone)?.customer_phone ?? '');
 const when = computed(
   () => `${formatDay(props.conversation.created_at)}, ${formatTime(props.conversation.created_at)}`,

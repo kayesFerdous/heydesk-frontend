@@ -17,8 +17,8 @@
         <span class="block h-3 w-full max-w-sm rounded bg-hover"></span>
         <span class="block h-3 w-3/4 max-w-xs rounded bg-hover"></span>
         <div class="flex gap-3 pt-3">
-          <span class="block h-24 w-28 rounded-[var(--radius-thumb)] bg-hover"></span>
-          <span class="block h-24 w-28 rounded-[var(--radius-thumb)] bg-hover"></span>
+          <span class="block h-24 w-28 rounded-[var(--radius-control)] bg-hover"></span>
+          <span class="block h-24 w-28 rounded-[var(--radius-control)] bg-hover"></span>
         </div>
       </div>
 

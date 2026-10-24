@@ -1,17 +1,24 @@
 <template>
-  <!-- The record as a receipt: what was taken, the total, and the proof.
-       Who it is and the next step sit beside it, in RecordNextStep. -->
-  <div class="p-5 sm:p-7">
+  <!-- The record as a receipt slip: who, what, the total, the proof, and the
+       one next step. -->
+  <div class="flex h-full flex-col p-6">
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <p class="flex items-center gap-2 text-sm font-semibold text-ink-soft">
+        <p class="flex items-center gap-2 text-xs font-medium text-ink-soft">
           {{ t(`records.name.${record.job}`) }}
-          <span class="serial rounded-full bg-hover px-2.5 py-0.5 text-ink">{{ record.code }}</span>
+          <span class="serial !text-xs text-ink">{{ record.code }}</span>
         </p>
-        <h2 class="mt-2 truncate text-2xl font-semibold tracking-[-0.025em]">
+        <h2 class="mt-1.5 truncate text-xl font-semibold tracking-[-0.015em]">
           {{ record.customer_name || t('records.customer') }}
         </h2>
-        <p class="mt-0.5 text-sm text-ink-soft">{{ formatDay(record.created_at) }}, {{ formatTime(record.created_at) }}</p>
+        <a
+          v-if="record.customer_phone"
+          :href="`tel:${record.customer_phone}`"
+          class="mt-1 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-brand"
+        >
+          <PhPhone :size="14"></PhPhone>
+          {{ record.customer_phone }}
+        </a>
       </div>
       <!-- A new status lands like a stamp pressed on the slip. -->
       <transition name="stamp" mode="out-in">
@@ -19,13 +26,8 @@
       </transition>
     </div>
 
-    <p class="mt-5 flex items-center gap-2.5 rounded-[var(--radius-card)] bg-success-tint px-4 py-3 text-sm font-medium text-ink">
-      <PhSealCheck :size="18" weight="fill" class="shrink-0 text-success"></PhSealCheck>
-      {{ t('records.confirmedInChat', { day: formatDay(record.created_at), time: formatTime(record.created_at) }) }}
-    </p>
-
     <template v-if="record.kind === 'order'">
-      <ul class="mt-6 flex flex-col gap-3 text-[0.9375rem]">
+      <ul class="mt-6 flex flex-col gap-2.5 border-t border-hairline pt-5 text-sm">
         <li
           v-for="(line, index) in record.lines"
           :key="index"
@@ -44,9 +46,9 @@
         <span class="leader" aria-hidden="true"></span>
         <span class="font-medium">{{ record.delivery_charge ? formatMoney(record.delivery_charge) : t('records.free') }}</span>
       </p>
-      <div class="mt-5 flex items-baseline justify-between border-t border-line-strong pt-4">
-        <span class="text-sm font-semibold text-ink-soft">{{ t('records.total') }}</span>
-        <span class="text-[2rem] leading-none font-semibold tracking-[-0.025em]">{{ formatMoney(record.total) }}</span>
+      <div class="mt-4 flex items-baseline justify-between border-t border-line-strong pt-4">
+        <span class="text-sm text-ink-soft">{{ t('records.total') }}</span>
+        <span class="text-2xl font-semibold tracking-[-0.02em]">{{ formatMoney(record.total) }}</span>
       </div>
       <template v-if="record.paid">
         <p class="mt-2 flex justify-between gap-4 text-sm text-ink-soft">
@@ -74,7 +76,7 @@
     </template>
 
     <template v-else>
-      <dl class="mt-6 flex flex-col gap-4 text-[0.9375rem]">
+      <dl class="mt-6 flex flex-col gap-4 border-t border-hairline pt-5 text-sm">
         <div v-for="(value, key) in record.details" :key="key">
           <dt class="text-xs font-medium text-ink-soft">{{ t(`records.details.${key}`) }}</dt>
           <dd class="mt-0.5 leading-relaxed whitespace-pre-wrap">{{ value }}</dd>
@@ -85,21 +87,63 @@
         </div>
       </dl>
     </template>
+
+    <p class="mt-6 flex items-center gap-2 border-t border-dashed border-line-strong pt-4 text-xs text-ink-soft">
+      <PhSealCheck :size="16" weight="fill" class="shrink-0 text-success"></PhSealCheck>
+      {{ t('records.confirmedInChat', { day: formatDay(record.created_at), time: formatTime(record.created_at) }) }}
+    </p>
+
+    <p v-if="error" class="mt-4 text-sm text-danger" role="alert">{{ error }}</p>
+
+    <div class="mt-auto flex flex-col gap-2 pt-8">
+      <button
+        v-if="steps.primary"
+        type="button"
+        class="btn btn-primary w-full"
+        :disabled="busy"
+        @click="$emit('move', steps.primary.to)"
+      >
+        {{ steps.primary.label }}
+      </button>
+      <router-link
+        :to="`/conversations?open=${record.conversation_id}`"
+        class="btn btn-secondary w-full"
+      >
+        {{ t('records.readConversation') }}
+      </router-link>
+      <button
+        v-for="step in steps.others"
+        :key="step.to"
+        type="button"
+        class="btn btn-quiet w-full"
+        :disabled="busy"
+        @click="$emit('move', step.to)"
+      >
+        {{ step.label }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhClock, PhMapPin, PhSealCheck } from '@phosphor-icons/vue';
+import { PhClock, PhMapPin, PhPhone, PhSealCheck } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
 import OrderCall from '../calls/OrderCall.vue';
 import { formatMoney, formatNumber, formatTime, formatDay } from '../../lib/format.js';
+import { nextSteps } from '../../lib/flows.js';
 
-defineProps({
+const props = defineProps({
   record: { type: Object, required: true },
+  busy: { type: Boolean, default: false },
+  error: { type: String, default: null },
 });
+defineEmits(['move']);
 const { t } = useI18n();
+
+const steps = computed(() => nextSteps(props.record));
 
 // A shop line's size and colour: "M, Black".
 function choices(line) {

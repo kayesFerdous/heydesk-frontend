@@ -1,6 +1,6 @@
 <template>
-  <div class="grid min-h-dvh gap-3 bg-canvas p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-    <div class="island flex flex-col px-6 py-8 sm:px-12 lg:px-16">
+  <div class="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+    <div class="flex flex-col px-6 py-8 sm:px-12 lg:px-16">
       <BrandMark class="self-start"></BrandMark>
 
       <div class="my-auto w-full max-w-sm py-12">
@@ -10,11 +10,11 @@
           {{ mode === 'verify' && cameFrom === 'signup' ? t('signIn.changeEmail') : t('signIn.backToSignIn') }}
         </button>
 
-        <span v-if="stepIcon" class="mb-5 grid h-12 w-12 place-items-center rounded-full bg-lime text-ink" aria-hidden="true">
+        <span v-if="stepIcon" class="mb-5 grid h-11 w-11 place-items-center rounded-[var(--radius-panel)] bg-brand-tint text-brand" aria-hidden="true">
           <component :is="stepIcon" :size="22"></component>
         </span>
 
-        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
+        <h1 class="text-[1.75rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
           {{ t(`signIn.${mode}Title`) }}
         </h1>
         <!-- Where the code went, with the address in ink so a typo shows at a glance. -->
@@ -133,27 +133,27 @@
       </div>
     </div>
 
-    <!-- The brand panel: one black island showing the product doing its job.
+    <!-- The brand panel: one cobalt field showing the product doing its job.
          An example conversation (not real data): the agent reads the order
          back, the customer says yes, and only then does it reach the inbox. -->
-    <div class="relative hidden overflow-hidden rounded-[var(--radius-panel)] bg-night text-white lg:flex lg:flex-col lg:justify-center">
+    <div class="relative hidden overflow-hidden bg-brand text-white lg:flex lg:flex-col lg:justify-center">
       <div class="mx-auto w-full max-w-lg px-12 py-16">
-        <p class="text-xs font-medium text-night-soft">{{ t('signIn.example') }}</p>
+        <p class="text-xs font-medium text-white/60">{{ t('signIn.example') }}</p>
 
         <div class="mt-4 flex flex-col gap-2.5 text-sm leading-relaxed">
-          <p class="step max-w-[85%] self-end rounded-[var(--radius-card)] rounded-tr-md bg-night-tile px-4 py-2.5" style="--i: 0">
+          <p class="step max-w-[85%] self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-white/12 px-4 py-2.5" style="--i: 0">
             {{ t('signIn.exampleAsk') }}
           </p>
-          <p class="step max-w-[85%] rounded-[var(--radius-card)] rounded-tl-md bg-lime px-4 py-2.5 text-ink" style="--i: 1">
+          <p class="step max-w-[85%] rounded-[var(--radius-panel)] rounded-tl-sm bg-white px-4 py-2.5 text-ink" style="--i: 1">
             {{ t('signIn.exampleReadBack') }}
           </p>
-          <p class="step self-end rounded-[var(--radius-card)] rounded-tr-md bg-night-tile px-4 py-2.5" style="--i: 2">
+          <p class="step self-end rounded-[var(--radius-panel)] rounded-tr-sm bg-white/12 px-4 py-2.5" style="--i: 2">
             {{ t('signIn.exampleYes') }}
           </p>
         </div>
 
         <!-- The order lands as a passbook entry: dated, coded, stamped. -->
-        <div class="step mt-6 overflow-hidden rounded-[var(--radius-card)] bg-white text-sm text-ink" style="--i: 3">
+        <div class="step mt-6 overflow-hidden rounded-[var(--radius-panel)] bg-white text-sm text-ink" style="--i: 3">
           <p class="day-head static px-4">{{ t('format.today') }}</p>
           <div class="px-4 py-3.5">
             <InboxRow :row="exampleRow" :time="t('format.justNow')"></InboxRow>
@@ -164,10 +164,10 @@
           </div>
         </div>
 
-        <p class="mt-12 text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
+        <p class="mt-12 text-[1.625rem] leading-snug font-semibold tracking-[-0.02em] text-balance">
           {{ t('signIn.pitch') }}
         </p>
-        <p class="mt-3 text-night-soft">{{ t('signIn.pitchText') }}</p>
+        <p class="mt-3 text-white/75">{{ t('signIn.pitchText') }}</p>
       </div>
     </div>
   </div>
@@ -231,7 +231,7 @@ const stepIcon = computed(() => {
   if (asksCode.value) return PhEnvelopeSimpleOpen;
   return mode.value === 'forgot' ? PhLockKey : null;
 });
-// The example order on the black panel (not a real customer).
+// The example order on the cobalt panel (not a real customer).
 const exampleRow = computed(() => ({
   initials: 'TA',
   name: 'Tanvir Ahmed',
