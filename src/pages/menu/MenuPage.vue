@@ -63,23 +63,6 @@
       </div>
     </div>
 
-    <WooPanel
-      v-if="importOpen === 'woo'"
-      :current-count="items.length"
-      @close="importOpen = null"
-      @linked="onWooLinked"
-    ></WooPanel>
-
-    <ImportPanel
-      v-else-if="importOpen"
-      :key="importOpen"
-      :kind="agent.kind"
-      :current-count="items.length"
-      :sheet="importOpen === 'sheet'"
-      @close="importOpen = null"
-      @imported="onImported"
-    ></ImportPanel>
-
     <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
     <WooBar v-if="woo" :woo="woo" @synced="onSynced('woo', $event)" @unlinked="woo = null"></WooBar>
 
@@ -91,6 +74,24 @@
     <SkeletonRows v-if="!loaded"></SkeletonRows>
 
     <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+      <!-- In the scrolling part, so a long column list can be scrolled to. -->
+      <WooPanel
+        v-if="importOpen === 'woo'"
+        :current-count="items.length"
+        @close="importOpen = null"
+        @linked="onWooLinked"
+      ></WooPanel>
+
+      <ImportPanel
+        v-else-if="importOpen"
+        :key="importOpen"
+        :kind="agent.kind"
+        :current-count="items.length"
+        :sheet="importOpen === 'sheet'"
+        @close="importOpen = null"
+        @imported="onImported"
+      ></ImportPanel>
+
       <div v-if="items.length || adding" class="ledger-head sticky top-0 z-[1] grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem] gap-x-4 bg-surface px-5 pt-2 sm:px-8">
         <span>{{ capitalize(noun) }}</span>
         <span class="text-right">{{ agent.kind === 'clinic' ? t('menu.fee') : t('menu.price') }}</span>
