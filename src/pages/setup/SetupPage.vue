@@ -34,7 +34,7 @@
 
       <!-- Step 1: choose -->
       <section v-if="step === 0" class="mt-12">
-        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em]">{{ t('setup.chooseTitle') }}</h1>
+        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.chooseText') }}</p>
 
         <p v-if="loadError" class="mt-8 text-sm text-danger" role="alert">
@@ -78,7 +78,7 @@
 
       <!-- Step 2: details -->
       <section v-else-if="step === 1" class="mt-12">
-        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em]">{{ t('setup.detailsTitle') }}</h1>
+        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.detailsTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.detailsText') }}</p>
 
         <form class="mt-8 flex max-w-lg flex-col gap-5" novalidate @submit.prevent="create">
@@ -129,7 +129,7 @@
 
       <!-- Step 3: try it -->
       <section v-else class="mt-12">
-        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em]">{{ t('setup.readyTitle') }}</h1>
+        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.readyTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.readyText') }}</p>
 
         <div class="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]">

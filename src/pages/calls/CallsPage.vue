@@ -2,7 +2,7 @@
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :title="t('calls.title')" :subtitle="t('calls.subtitle')">
       <template #actions>
-        <div class="tabs rounded-full bg-surface p-1" role="tablist">
+        <div class="tabs rounded-[0.875rem] bg-surface p-1" role="tablist">
           <button
             v-for="tab in TABS"
             :key="tab"

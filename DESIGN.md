@@ -5,7 +5,13 @@ Product truth is in [PRODUCT.md](PRODUCT.md). Where code goes is in
 why. The tokens live in `src/assets/main.css` (`@theme`); this file and that
 block must agree.
 
-v5 (22 Oct 2026) replaces v4 ("Passbook", cobalt rules on white paper). The
+v5.1 (24 Oct 2026) keeps ink and lime but finishes it: a lighter paper canvas,
+a hairline round every island, soft 10px controls instead of pills, and
+headings at 600 instead of 800 (studied against Revora, Fin and Zendesk, which
+all keep one loud colour small, set headings light and round controls a
+little). Lime-as-slab on Home and the sidebar's count tiles are the next step.
+
+v5 (22 Oct 2026) replaced v4 ("Passbook", cobalt rules on white paper). The
 owner judged v4 too plain and picked this direction from three generated
 Home screens (the prompts are in [docs/image-prompts.md](docs/image-prompts.md)).
 Gigalogy's cobalt is gone with it; the owner chose that.
@@ -26,7 +32,7 @@ density 4 (roomy, big numbers, big tap targets).
 - **A black panel for where you can go**: the sidebar floats on the canvas
   with round corners. At its top, one count tile per job and one for
   customers waiting for a person, each a link to its list.
-- **Islands, not sheets.** Home lays white islands (28px corners, no shadow)
+- **Islands, not sheets.** Home lays white islands (20px corners, a hairline, no shadow)
   straight on the canvas. Every other page sits in one white island beside
   the sidebar.
 - **Lime is selection only**: the open page in the sidebar and the tab bar,
@@ -43,7 +49,7 @@ density 4 (roomy, big numbers, big tap targets).
 
 | Token | Value | Use |
 |---|---|---|
-| `--color-canvas` | `#ECECE8` | Behind everything: the app's background, Home's canvas |
+| `--color-canvas` | `#F4F3EF` | Behind everything: the app's background, Home's canvas |
 | `--color-surface` | `#FFFFFF` | Islands, fields, popovers |
 | `--color-wash` / `--color-sidebar` | `#F5F5F2` | Rows inside an island (Home's "Needs you", setup steps), detail panes, paper bands |
 | `--color-hover` | `#EBEBE6` | Hover, counts, skeletons, the segmented track, quiet bars |
@@ -57,7 +63,7 @@ density 4 (roomy, big numbers, big tap targets).
 | `--color-lime` (`--color-brand-tint-strong`) | `#D4F36B` | You are here: active nav, chosen tab, the agent tile, focus ring |
 | `--color-lilac` | `#CDB8FF` | Decoration only: Home's lead figure tile |
 | `--color-tint-lilac / -sky / -sand` | pastels | Avatar tints, decoration only |
-| `--color-night` / `-night-tile` / `-night-soft` | `#111111` / `#1F1F1F` / `#A3A39B` | The sidebar, its tiles, its quiet text |
+| `--color-night` / `-night-tile` / `-night-soft` | `#141413` / `#1E1E1C` / `#A3A39B` | The sidebar, its tiles, its quiet text |
 | `--color-success` / `-tint` | `#17804C` / `#DCF5E6` | Live, confirmed, ready |
 | `--color-attention` / `-tint` / `-bright` | `#B54708` / `#FFE6D1` / `#FF8A3D` | "Needs a person"; bright is for counts on black |
 | `--color-danger` / `-tint` | `#C22B2B` / `#FDE8E8` | Destructive actions and failed saves |
@@ -68,40 +74,42 @@ what the eye finds first. No gradients, no glass.
 
 ## Type
 
-**Gabarito** 400 to 800 for everything (geometric, chunky and friendly, with
+**Gabarito** 400 to 600 for everything (headings stop at 600: at 800 it reads as a toy) (geometric, chunky and friendly, with
 tabular figures; the detector flags Plus Jakarta Sans and Geist as overused), **IBM Plex Mono** 500 for serials only. Bangla falls back to
 **Noto Sans Bengali** with normal tracking and taller lines (`:lang(bn)`).
 
 | Role | Size / weight |
 |---|---|
-| Home greeting | 32-40px / 800, -0.03em |
-| Page title (`PageHeader`) | 28px / 800, -0.03em |
+| Home greeting | 32-40px / 600, -0.025em |
+| Page title (`PageHeader`) | 28px / 600, -0.025em |
 | Island title | 20px / 700 |
-| Big figures | 28-36px / 800 |
+| Big figures | 28-36px / 600 |
 | Body and controls | 14-15px / 400-700 |
 | Hints, meta, chips | 12-13px / 500-600 |
 
 ## Shape and elevation
 
-Concentric: **islands 28px** (`--radius-panel`), **things inside them 20px**
+Concentric: **islands 20px** (`--radius-panel`), **things inside them 12px**
 (`--radius-card`: rows, panels, popovers, textareas), **small boxes inside
-those 14px** (`--radius-thumb`: photos, tooltips, a ruled list in a panel),
-**controls and chips a full pill** (`--radius-control`, `--radius-stamp`). Islands sit flat; only
+those 8px** (`--radius-thumb`: photos, tooltips, a ruled list in a panel),
+**controls 10px** (`--radius-control`: buttons, fields, tabs, nav items; a
+track round tabs 14px), **chips, counts and avatars a full pill**
+(`--radius-stamp`). Islands carry a hairline and no shadow; only
 things over the page (menus, the drawer, sheets, the phone tab bar, tooltips)
 get `--shadow-float`.
 
 ## Components (classes in `main.css`, components in `src/components/ui/`)
 
-- **Buttons** `.btn` (44px pill) + `.btn-primary` (black) `| -secondary`
+- **Buttons** `.btn` (44px, 10px corners) + `.btn-primary` (black) `| -secondary`
   (white, ruled) `| -quiet | -danger | -lime` (the primary on black),
   `.btn-sm`, `.btn-icon` (round).
-- **Fields** `.field`: pills, a textarea 20px corners. Focus is an ink border
+- **Fields** `.field`: 10px corners, a textarea 12px. Focus is an ink border
   and a lime ring.
-- **Tabs** `.tabs` / `.tab` / `.tab-active`: pills, the open one lime.
-  **Segmented** `.segmented` / `.segment`: a grey pill track, the chosen
+- **Tabs** `.tabs` / `.tab` / `.tab-active`: 10px corners, the open one lime.
+  **Segmented** `.segmented` / `.segment`: a grey 10px track, the chosen
   segment white.
-- **Island** `.island`: a white block with 28px corners. **Panel** `.panel`:
-  a ruled 20px box inside an island. **Notice** `.notice`: a ruled white box,
+- **Island** `.island`: a white block with 20px corners and a hairline. **Panel** `.panel`:
+  a ruled 12px box inside an island. **Notice** `.notice`: a ruled white box,
   the orange carried by its icon.
 - **Rows** `.row`, `.row-selected` (pale lime), `.day-head`, `.ledger`: as v4.
 - **Chip** `.chip` via `StatusChip`: a soft pill, icon plus word.
@@ -113,7 +121,7 @@ get `--shadow-float`.
 ## The shell
 
 ```
- canvas #ECECE8
+ canvas #F4F3EF
 ┌──────────────┐  ┌──────────────────────────────────────────────────┐
 │ [h] Lakeview │  │ Inbox                                            │
 │  ● Agent live│  │ (Orders 2) (Messages)          [search........]  │
@@ -132,13 +140,13 @@ get `--shadow-float`.
 ```
 
 - `App.vue`: the canvas, 12px around and between. The sidebar (288px, folds
-  to 76px icons) is black with 28px corners. Each page lays out its own
+  to 76px icons) is black with 20px corners. Each page lays out its own
   white islands on the canvas under `PageHeader` (title on the canvas, tabs
-  on a white pill track). Settings-like pages (Channels, Team, Account,
+  on a white track). Settings-like pages (Channels, Team, Account,
   Knowledge, Calls, Admin) are one island.
 - The sidebar: the mark on a lime tile, the business name and live status,
-  the count tiles (hidden when folded), the grouped nav (active item a lime
-  pill with a filled icon; counts in dark pills, orange when someone waits),
+  the count tiles (hidden when folded), the grouped nav (active item lime
+  with a filled icon; counts in dark pills, orange when someone waits),
   "Try your agent" as a dark pill with a lime icon, the account row.
 - Under 768px: a floating black pill tab bar (Home, Inbox, Chats, Agent,
   More, the open one lime); More opens the sidebar as a drawer.
@@ -151,7 +159,7 @@ page. Language stays one click away in the account menu.
 
 ## Home
 
-On the canvas, no `PageHeader`: the greeting (40px, 800) and today's date.
+On the canvas, no `PageHeader`: the greeting (40px, 600) and today's date.
 Then a bento:
 
 - The setup guide across the top while anything is left (rounded grey steps,
@@ -168,7 +176,7 @@ Then a bento:
 
 ## Inbox and Conversations
 
-The title and line on the canvas, the switch (jobs, or All / Needs a person) as pills on a white track to the right.
+The title and line on the canvas, the switch (jobs, or All / Needs a person) as tabs on a white track to the right.
 A waiting hand-off shows as a white strip with an orange icon above the
 Inbox. Then three islands:
 
@@ -190,7 +198,7 @@ list, then one item with a way back.
 
 ## Settings and Menu
 
-`PageHeader` on the canvas, tabs on a white pill track under it.
+`PageHeader` on the canvas, tabs on a white track under it.
 
 - **Agent settings**: the form in one island (`SettingsGroup`s ruled apart,
   the floating `SaveBar`), and from 1280px a sticky **Preview** island beside

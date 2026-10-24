@@ -8,7 +8,7 @@
           {{ t(`records.name.${record.job}`) }}
           <span class="serial rounded-full bg-hover px-2.5 py-0.5 text-ink">{{ record.code }}</span>
         </p>
-        <h2 class="mt-2 truncate text-2xl font-extrabold tracking-[-0.025em]">
+        <h2 class="mt-2 truncate text-2xl font-semibold tracking-[-0.025em]">
           {{ record.customer_name || t('records.customer') }}
         </h2>
         <p class="mt-0.5 text-sm text-ink-soft">{{ formatDay(record.created_at) }}, {{ formatTime(record.created_at) }}</p>
@@ -46,7 +46,7 @@
       </p>
       <div class="mt-5 flex items-baseline justify-between border-t border-line-strong pt-4">
         <span class="text-sm font-semibold text-ink-soft">{{ t('records.total') }}</span>
-        <span class="text-[2rem] leading-none font-extrabold tracking-[-0.03em]">{{ formatMoney(record.total) }}</span>
+        <span class="text-[2rem] leading-none font-semibold tracking-[-0.025em]">{{ formatMoney(record.total) }}</span>
       </div>
       <template v-if="record.paid">
         <p class="mt-2 flex justify-between gap-4 text-sm text-ink-soft">

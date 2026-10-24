@@ -14,7 +14,7 @@
           <component :is="stepIcon" :size="22"></component>
         </span>
 
-        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance">
+        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
           {{ t(`signIn.${mode}Title`) }}
         </h1>
         <!-- Where the code went, with the address in ink so a typo shows at a glance. -->
@@ -164,7 +164,7 @@
           </div>
         </div>
 
-        <p class="mt-12 text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance">
+        <p class="mt-12 text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
           {{ t('signIn.pitch') }}
         </p>
         <p class="mt-3 text-night-soft">{{ t('signIn.pitchText') }}</p>

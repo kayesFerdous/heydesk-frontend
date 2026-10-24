@@ -90,7 +90,7 @@
       <div ref="accountMenu" class="relative mt-3 border-t border-night-tile pt-3">
         <button
           type="button"
-          class="flex w-full items-center gap-2.5 rounded-full p-1 text-left transition-colors hover:bg-night-tile"
+          class="flex w-full items-center gap-2.5 rounded-[var(--radius-card)] p-1 text-left transition-colors hover:bg-night-tile"
           :class="{ 'justify-center': collapsed, 'bg-night-tile': route.path === '/account' }"
           :aria-label="collapsed ? t('shell.account') : undefined"
           :title="collapsed ? email : undefined"
@@ -270,7 +270,7 @@ function signOut() {
   gap: 0.75rem;
   height: 2.75rem;
   padding: 0 0.875rem;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--color-night-soft);
@@ -292,11 +292,11 @@ function signOut() {
   background-color: var(--color-night-tile);
 }
 
-/* The page you are on: a lime pill, black words, a filled icon. */
+/* The page you are on: lime, black words, a filled icon. */
 .nav-item-active,
 .nav-item-active:hover {
   color: var(--color-ink);
-  font-weight: 700;
+  font-weight: 600;
   background-color: var(--color-lime);
 }
 

@@ -4,7 +4,7 @@
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :class="{ 'max-lg:hidden': selectedId }" :title="t('conversations.title')" :subtitle="t('conversations.subtitle')">
       <template #actions>
-        <div class="tabs rounded-full bg-surface p-1" role="group" :aria-label="t('conversations.filter')">
+        <div class="tabs rounded-[0.875rem] bg-surface p-1" role="group" :aria-label="t('conversations.filter')">
           <button type="button" class="tab" :class="{ 'tab-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
             {{ t('conversations.all') }}
           </button>

@@ -39,7 +39,7 @@
 
     <div v-if="data.total" class="mt-3 flex items-baseline justify-between border-t border-line-strong pt-3">
       <span class="text-sm font-semibold text-ink-soft">{{ t('chat.card.total') }}</span>
-      <span class="text-xl font-extrabold tracking-[-0.02em]">{{ data.total.text }}</span>
+      <span class="text-xl font-semibold tracking-[-0.02em]">{{ data.total.text }}</span>
     </div>
 
     <!-- Saved but waiting for a payment: the backend's pay page, in a new tab. -->

@@ -5,7 +5,7 @@
     <header class="flex items-start gap-3 px-1 pb-6 md:px-3 md:pt-3">
       <SidebarToggle class="mt-[0.3125rem] sm:mt-[0.5625rem]"></SidebarToggle>
       <div class="min-w-0">
-        <h1 class="text-[2rem] leading-tight font-extrabold tracking-[-0.03em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
+        <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
         <p class="mt-1 max-w-2xl text-base text-ink-soft">
           {{ today }}<template v-if="ready && agent.hasAgent && !conversationsToday"> &middot; {{ t('home.todayNone') }}</template>
         </p>
@@ -171,19 +171,19 @@
           <p class="mt-0.5 truncate text-sm text-ink/70">{{ agent.config.name }}</p>
 
           <ul class="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
-            <li class="flex h-10 items-center gap-2 rounded-full bg-surface px-4">
+            <li class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-surface px-4">
               <PhGlobe :size="18"></PhGlobe>{{ t('channelsPage.websiteChat') }}
             </li>
-            <li v-if="telegram" class="flex h-10 items-center gap-2 rounded-full bg-surface px-4">
+            <li v-if="telegram" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-surface px-4">
               <PhTelegramLogo :size="18"></PhTelegramLogo>@{{ telegram.username }}
             </li>
             <li v-else-if="auth.canManage">
-              <router-link to="/channels" class="flex h-10 items-center gap-2 rounded-full border border-dashed border-ink/40 px-4 hover:bg-surface/60">
+              <router-link to="/channels" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-ink/40 px-4 hover:bg-surface/60">
                 <PhTelegramLogo :size="18"></PhTelegramLogo>{{ t('home.connectTelegram') }}
               </router-link>
             </li>
             <li v-if="auth.canManage">
-              <router-link to="/knowledge" class="flex h-10 items-center gap-2 rounded-full bg-surface px-4 hover:bg-surface/80">
+              <router-link to="/knowledge" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-surface px-4 hover:bg-surface/80">
                 <PhBooks :size="18"></PhBooks>{{ t('home.documents', { n: formatNumber(documentCount) }, documentCount) }}
               </router-link>
             </li>
@@ -191,11 +191,11 @@
 
           <button
             type="button"
-            class="mt-4 flex h-14 w-full items-center gap-3 rounded-full bg-surface pr-1.5 pl-5 text-left text-sm text-ink-soft transition-shadow hover:shadow-[var(--shadow-lift)]"
+            class="mt-4 flex h-14 w-full items-center gap-3 rounded-2xl bg-surface pr-1.5 pl-5 text-left text-sm text-ink-soft transition-shadow hover:shadow-[var(--shadow-lift)]"
             @click="ui.testSheetOpen = true"
           >
             <span class="min-w-0 flex-1 truncate">{{ t('home.askAgent') }}</span>
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink text-white" aria-hidden="true">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-control)] bg-ink text-white" aria-hidden="true">
               <PhPaperPlaneTilt :size="18" weight="fill"></PhPaperPlaneTilt>
             </span>
           </button>
@@ -216,12 +216,12 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="island flex min-w-0 flex-col bg-lilac p-5">
             <h2 class="truncate text-[0.9375rem] font-bold">{{ lead.label }}</h2>
-            <p class="mt-2 truncate text-[1.75rem] leading-none font-extrabold tracking-[-0.03em] sm:text-[2.25rem]">{{ lead.value }}</p>
+            <p class="mt-2 truncate text-[1.75rem] leading-none font-semibold tracking-[-0.025em] sm:text-[2.25rem]">{{ lead.value }}</p>
             <HourBars class="mt-5 h-16" :values="lead.hours" :label="lead.label" bar-class="bg-ink/15"></HourBars>
           </div>
           <div class="island flex min-w-0 flex-col p-5">
             <h2 class="truncate text-[0.9375rem] font-bold">{{ t('home.figures.conversations') }}</h2>
-            <p class="mt-2 text-[1.75rem] leading-none font-extrabold tracking-[-0.03em] sm:text-[2.25rem]">{{ formatNumber(conversationsToday) }}</p>
+            <p class="mt-2 text-[1.75rem] leading-none font-semibold tracking-[-0.025em] sm:text-[2.25rem]">{{ formatNumber(conversationsToday) }}</p>
             <HourBars class="mt-5 h-16" :values="conversationHours" :label="t('home.figures.conversations')"></HourBars>
           </div>
         </div>

@@ -4,7 +4,7 @@
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :class="{ 'max-lg:hidden': opened }" :title="t('inbox.title')" :subtitle="t('inbox.subtitle')">
       <template #actions>
-        <div v-if="inbox.jobs.length > 1" class="tabs rounded-full bg-surface p-1" role="tablist">
+        <div v-if="inbox.jobs.length > 1" class="tabs rounded-[0.875rem] bg-surface p-1" role="tablist">
           <button
             v-for="job in inbox.jobs"
             :key="job.job"
