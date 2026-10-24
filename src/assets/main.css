@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 /* The design tokens (DESIGN.md, v5 "Ink and lime"). Every colour, radius and
@@ -10,20 +10,20 @@
    orange and red are states (live, needs a person, destructive), never
    decoration. The pastel tints are decoration only, for avatars. */
 @theme {
-  --font-sans: 'Geist', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+  --font-sans: Arial, Helvetica, 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Noto Color Emoji';
   /* Order and booking codes only (A-104, #12): a serial, like a cheque number. */
-  --font-serial: 'Geist Mono', 'Noto Sans Bengali', ui-monospace, monospace;
+  --font-serial: 'Courier New', 'Noto Sans Bengali', ui-monospace, monospace;
 
   /* Action: black. `brand` is the name every button and link already uses. */
-  --color-brand: #004aac;
-  --color-brand-hover: #003b8a;
+  --color-brand: #2b5797;
+  --color-brand-hover: #234a80;
   /* Selection: lime, pale for a selected row or an icon tile, full for the
      open page and the chosen filter. */
-  --color-brand-tint: #edf3fc;
-  --color-brand-tint-strong: #d9e6f8;
-  --color-lime: #d9e6f8;
-  --color-lime-hover: #c6d9f3;
+  --color-brand-tint: #e6ebf2;
+  --color-brand-tint-strong: #d3dbe7;
+  --color-lime: #d3dbe7;
+  --color-lime-hover: #c3cddc;
   /* The channels' own colours, only on their own logos (a conversation's
      avatar, its channel chip). */
   --color-telegram: #229ed9;
@@ -36,11 +36,11 @@
 
   /* Surfaces: the warm grey canvas, white islands on it, a paper grey for rows
      and bands inside an island. */
-  --color-canvas: #eef2f8;
+  --color-canvas: #e4e4e4;
   --color-surface: #ffffff;
-  --color-sidebar: #f3f5f9;
-  --color-wash: #f7f9fc;
-  --color-hover: #ebeff6;
+  --color-sidebar: #efefef;
+  --color-wash: #f4f4f4;
+  --color-hover: #e9e9e9;
 
   /* The black panel (sidebar, the agent's chat tiles): its tiles and its
      quiet text. */
@@ -49,13 +49,13 @@
   --color-night-soft: #9aa8c0;
 
   /* Rules */
-  --color-hairline: #e2e7ef;
-  --color-line-strong: #c9d2df;
+  --color-hairline: #cccccc;
+  --color-line-strong: #a8a8a8;
 
   /* Ink: near black, warm */
-  --color-ink: #0b1a33;
-  --color-ink-soft: #4d5a70;
-  --color-ink-faint: #8591a5;
+  --color-ink: #222222;
+  --color-ink-soft: #555555;
+  --color-ink-faint: #888888;
 
   /* States */
   --color-success: #127a48;
@@ -88,11 +88,11 @@
 /* Cobalt cover: the dark panels (sidebar, phone tab bar, sign-in pitch) turn
    light by re-pointing their own colours, so no component changes. */
 .bg-night {
-  --color-night: var(--color-surface);
+  --color-night: var(--color-sidebar);
   --color-night-tile: var(--color-hover);
   --color-night-soft: var(--color-ink-soft);
   --color-white: var(--color-ink);
-  border: 1px solid var(--color-hairline);
+  border: 0;
 }
 
 /* The sidebar's own white words and lime marks, now on white. */
@@ -430,4 +430,57 @@ aside.bg-night .nav-item.nav-item-active {
 .reveal.is-shown {
   opacity: 1;
   transform: none;
+}
+
+/* Cobalt cover, plain finish: square, flat, cramped, on purpose. Outside
+   @layer and with !important so it wins over the utilities. */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.h-dvh.bg-canvas {
+  gap: 0 !important;
+  padding: 0 !important;
+}
+
+aside.bg-night {
+  border-right: 1px solid var(--color-line-strong);
+}
+
+aside.bg-night .nav-item.nav-item-active {
+  background-color: var(--color-hover);
+}
+
+nav.bg-night.fixed {
+  inset: auto 0 0 0 !important;
+  border-top: 1px solid var(--color-line-strong);
+}
+
+.page {
+  gap: 0.25rem !important;
+}
+
+.island,
+.panel {
+  border-color: var(--color-line-strong);
+}
+
+header h1 {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+h2,
+h3 {
+  letter-spacing: 0 !important;
+}
+
+.btn {
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  font-weight: 400;
 }
