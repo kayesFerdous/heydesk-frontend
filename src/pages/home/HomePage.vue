@@ -1,6 +1,7 @@
 <template>
-  <!-- Home lays its islands straight on the grey canvas, under a greeting:
-       what needs the owner, the agent, today's figures, today by hour. -->
+  <!-- Home lays its islands straight on the canvas, under a greeting: what
+       needs the owner first and widest, today's figures under it, the agent
+       beside them. -->
   <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <header class="flex items-start gap-3 px-1 pb-6 md:px-3 md:pt-3">
       <SidebarToggle class="mt-[0.3125rem] sm:mt-[0.5625rem]"></SidebarToggle>
@@ -26,17 +27,14 @@
     </div>
 
     <div v-else-if="!ready" class="grid gap-3 xl:grid-cols-12" aria-hidden="true">
-      <div class="island p-6 xl:col-span-7">
-        <div class="skeleton h-6 w-32"></div>
-        <div v-for="n in 4" :key="n" class="skeleton mt-4 h-16 w-full !rounded-[var(--radius-card)]"></div>
-      </div>
-      <div class="grid content-start gap-3 xl:col-span-5">
-        <div class="skeleton h-56 !rounded-[var(--radius-panel)]"></div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="skeleton h-48 !rounded-[var(--radius-panel)]"></div>
-          <div class="skeleton h-48 !rounded-[var(--radius-panel)]"></div>
+      <div class="grid content-start gap-3 xl:col-span-8">
+        <div class="island p-6">
+          <div class="skeleton h-6 w-32"></div>
+          <div v-for="n in 3" :key="n" class="skeleton mt-4 h-16 w-full !rounded-[var(--radius-card)]"></div>
         </div>
+        <div class="skeleton h-28 !rounded-[var(--radius-panel)]"></div>
       </div>
+      <div class="skeleton h-72 !rounded-[var(--radius-panel)] xl:col-span-4"></div>
     </div>
 
     <div v-else class="grid gap-3 xl:grid-cols-12">
@@ -45,7 +43,7 @@
       <div v-if="!setupDone && auth.canManage" class="island overflow-hidden xl:col-span-12">
         <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-3 sm:px-6">
           <div>
-            <h2 class="text-xl font-bold tracking-[-0.02em]">{{ t('setup.finish') }}</h2>
+            <h2 class="section-title">{{ t('setup.finish') }}</h2>
             <p class="mt-0.5 text-sm text-ink-soft">
               {{ t('home.stepsLeft', { n: formatNumber(todo.length), done: formatNumber(doneCount), total: formatNumber(steps.length) }, todo.length) }}
             </p>
@@ -93,143 +91,135 @@
         </ol>
       </div>
 
-      <div class="flex min-w-0 flex-col gap-3 xl:col-span-7">
+      <div class="flex min-w-0 flex-col gap-3 xl:col-span-8">
         <!-- What needs a person now: hand-offs first, then new records. -->
         <div class="island min-w-0 p-5 sm:p-6">
-        <div class="flex items-center justify-between gap-4">
-          <h2 class="text-xl font-bold tracking-[-0.02em]">{{ t('home.needsYou') }}</h2>
-          <router-link to="/inbox" class="btn btn-secondary btn-sm btn-icon" :aria-label="t('home.openInbox')" :title="t('home.openInbox')">
-            <PhArrowRight :size="16" weight="bold"></PhArrowRight>
-          </router-link>
-        </div>
-
-        <p v-if="!attention.length" class="mt-4 flex items-center gap-3 rounded-[var(--radius-card)] bg-wash p-4 text-sm">
-          <PhCheckCircle :size="24" weight="fill" class="shrink-0 text-success"></PhCheckCircle>
-          <span>
-            <span class="font-semibold">{{ t('home.nothingWaiting') }}</span>{{ ' ' }}<span class="text-ink-soft">{{ t('home.nothingWaitingText') }}</span>
-          </span>
-        </p>
-
-        <ul v-else class="mt-4 flex flex-col gap-2">
-          <li v-for="item in attention" :key="item.id" class="flex items-center gap-2 rounded-[var(--radius-card)] bg-wash p-2 pr-2.5 transition-colors hover:bg-hover">
-            <router-link :to="item.to" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-card)] p-1">
-              <span
-                class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold"
-                :class="item.handoff ? 'bg-attention-tint text-attention' : item.tint"
-                aria-hidden="true"
-              >
-                <PhUserSound v-if="item.handoff" :size="20" weight="bold"></PhUserSound>
-                <template v-else>{{ item.initials }}</template>
-              </span>
-              <span class="min-w-0 flex-1">
-                <span class="block truncate text-[0.9375rem] font-bold">{{ item.title }}</span>
-                <span class="block truncate text-sm text-ink-soft">
-                  <span v-if="item.code" class="serial">{{ item.code }}</span><template v-if="item.code">, </template>{{ item.text }}
-                </span>
-              </span>
-              <span class="hidden shrink-0 flex-col items-end gap-1 sm:flex">
-                <StatusChip :status="item.status"></StatusChip>
-                <span class="text-xs text-ink-soft">{{ item.when }}<template v-if="item.amount">, {{ item.amount }}</template></span>
-              </span>
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="section-title">{{ t('home.needsYou') }}</h2>
+            <router-link to="/inbox" class="btn btn-secondary btn-sm btn-icon" :aria-label="t('home.openInbox')" :title="t('home.openInbox')">
+              <PhArrowRight :size="16" weight="bold"></PhArrowRight>
             </router-link>
-            <!-- A customer waiting for a person: call them from here. -->
-            <a
-              v-if="item.phone"
-              :href="`tel:${item.phone}`"
-              class="btn btn-primary btn-icon shrink-0"
-              :aria-label="t('home.call', { name: item.name })"
-              :title="t('home.call', { name: item.name })"
-            >
-              <PhPhone :size="18" weight="fill"></PhPhone>
-            </a>
-          </li>
-        </ul>
-        <i18n-t v-if="moreWaiting" keypath="home.moreWaiting" tag="p" class="mt-3 px-1 text-sm text-ink-soft" scope="global">
-          <template #n>{{ formatNumber(moreWaiting) }}</template>
-          <template #inbox><router-link to="/inbox" class="link">{{ t('home.inbox') }}</router-link></template>
-        </i18n-t>
-      </div>
-
-        <!-- When customers came today: conversations per hour, the busiest in black. -->
-        <div class="island flex min-h-72 flex-1 flex-col p-5 sm:p-6">
-          <h2 class="text-xl font-bold tracking-[-0.02em]">{{ t('home.byHour') }}</h2>
-          <p class="mt-0.5 text-sm text-ink-soft">{{ t('home.byHourText') }}</p>
-          <HourBars class="mt-10 min-h-40 flex-1" large :now="nowHour" :values="conversationHours" :label="t('home.byHour')"></HourBars>
-        </div>
-      </div>
-
-      <div class="grid min-w-0 content-start gap-3 xl:col-span-5">
-        <!-- The agent: is it on, where customers reach it, and one tap to try it. -->
-        <div class="island bg-lime p-5 sm:p-6">
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="text-xl font-bold tracking-[-0.02em]">{{ t('nav.yourAgent') }}</h2>
-            <span class="flex items-center gap-1.5 text-sm font-semibold">
-              <span class="h-2.5 w-2.5 rounded-full" :class="auth.isSuspended ? 'bg-attention' : 'bg-ink'" aria-hidden="true"></span>
-              {{ auth.isSuspended ? t('common.pausedByHeyDesk') : t('common.live') }}
-            </span>
           </div>
-          <p class="mt-0.5 truncate text-sm text-ink/70">{{ agent.config.name }}</p>
 
-          <ul class="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
-            <li class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-surface px-4">
-              <PhGlobe :size="18"></PhGlobe>{{ t('channelsPage.websiteChat') }}
-            </li>
-            <li v-if="telegram" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-surface px-4">
-              <PhTelegramLogo :size="18"></PhTelegramLogo>@{{ telegram.username }}
-            </li>
-            <li v-else-if="auth.canManage">
-              <router-link to="/channels" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-ink/40 px-4 hover:bg-surface/60">
-                <PhTelegramLogo :size="18"></PhTelegramLogo>{{ t('home.connectTelegram') }}
+          <p v-if="!attention.length" class="mt-4 flex items-center gap-3 rounded-[var(--radius-card)] bg-wash p-4 text-sm">
+            <PhCheckCircle :size="24" weight="fill" class="shrink-0 text-success"></PhCheckCircle>
+            <span>
+              <span class="font-semibold">{{ t('home.nothingWaiting') }}</span>{{ ' ' }}<span class="text-ink-soft">{{ t('home.nothingWaitingText') }}</span>
+            </span>
+          </p>
+
+          <ul v-else class="mt-4 flex flex-col gap-2">
+            <li v-for="item in attention" :key="item.id" class="flex items-center gap-2 rounded-[var(--radius-card)] bg-wash p-2 pr-2.5 transition-colors hover:bg-hover">
+              <router-link :to="item.to" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-card)] p-1">
+                <span
+                  class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold"
+                  :class="item.handoff ? 'bg-attention-tint text-attention' : item.tint"
+                  aria-hidden="true"
+                >
+                  <PhUserSound v-if="item.handoff" :size="20" weight="bold"></PhUserSound>
+                  <template v-else>{{ item.initials }}</template>
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-[0.9375rem] font-bold">{{ item.title }}</span>
+                  <span class="block truncate text-sm text-ink-soft">
+                    <span v-if="item.code" class="serial">{{ item.code }}</span><template v-if="item.code">, </template>{{ item.text }}
+                  </span>
+                </span>
+                <span class="hidden shrink-0 flex-col items-end gap-1 sm:flex">
+                  <StatusChip :status="item.status"></StatusChip>
+                  <span class="text-xs text-ink-soft">{{ item.when }}<template v-if="item.amount">, {{ item.amount }}</template></span>
+                </span>
               </router-link>
-            </li>
-            <li v-if="auth.canManage">
-              <router-link to="/knowledge" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-surface px-4 hover:bg-surface/80">
-                <PhBooks :size="18"></PhBooks>{{ t('home.documents', { n: formatNumber(documentCount) }, documentCount) }}
-              </router-link>
+              <!-- A customer waiting for a person: call them from here. -->
+              <a
+                v-if="item.phone"
+                :href="`tel:${item.phone}`"
+                class="btn btn-primary btn-icon shrink-0"
+                :aria-label="t('home.call', { name: item.name })"
+                :title="t('home.call', { name: item.name })"
+              >
+                <PhPhone :size="18" weight="fill"></PhPhone>
+              </a>
             </li>
           </ul>
+          <i18n-t v-if="moreWaiting" keypath="home.moreWaiting" tag="p" class="mt-3 px-1 text-sm text-ink-soft" scope="global">
+            <template #n>{{ formatNumber(moreWaiting) }}</template>
+            <template #inbox><router-link to="/inbox" class="link">{{ t('home.inbox') }}</router-link></template>
+          </i18n-t>
+        </div>
 
-          <button
-            type="button"
-            class="mt-4 flex h-14 w-full items-center gap-3 rounded-2xl bg-surface pr-1.5 pl-5 text-left text-sm text-ink-soft transition-shadow hover:shadow-[var(--shadow-lift)]"
-            @click="ui.testSheetOpen = true"
+        <!-- Today in figures, ruled apart like a statement. A figure's hours
+             show under it once something happened; a quiet day stays quiet. -->
+        <div class="island overflow-hidden">
+          <ul
+            class="grid grid-cols-2 gap-px bg-hairline max-sm:[&>li:last-child:nth-child(odd)]:col-span-2 sm:grid-cols-[repeat(var(--cells),minmax(0,1fr))]"
+            :style="{ '--cells': figures.length }"
           >
-            <span class="min-w-0 flex-1 truncate">{{ t('home.askAgent') }}</span>
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-control)] bg-ink text-white" aria-hidden="true">
-              <PhPaperPlaneTilt :size="18" weight="fill"></PhPaperPlaneTilt>
-            </span>
-          </button>
-
-          <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 px-1 text-sm font-semibold">
-            <button type="button" class="inline-flex items-center gap-1.5 hover:underline" @click="copyLink">
-              <component :is="copied ? PhCheck : PhLink" :size="16" weight="bold"></component>
-              {{ copied ? t('common.copied') : t('home.copyChatLink') }}
-            </button>
-            <router-link v-if="auth.canManage" to="/agent" class="inline-flex items-center gap-1.5 hover:underline">
-              <PhSlidersHorizontal :size="16" weight="bold"></PhSlidersHorizontal>
-              {{ t('home.editSettings') }}
-            </router-link>
-          </div>
+            <li v-for="cell in figures" :key="cell.id" class="flex min-w-0 flex-col bg-surface p-5">
+              <h2 class="truncate text-sm font-medium text-ink-soft">{{ cell.label }}</h2>
+              <p class="mt-1.5 truncate text-[1.75rem] leading-none font-semibold tracking-[-0.025em]">{{ cell.value }}</p>
+              <HourBars v-if="cell.hours.some((n) => n > 0)" class="mt-4 h-8" :values="cell.hours" :label="cell.label"></HourBars>
+            </li>
+          </ul>
         </div>
-
-        <!-- Today's figures, each with its hours underneath. -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="island flex min-w-0 flex-col bg-lilac p-5">
-            <h2 class="truncate text-[0.9375rem] font-bold">{{ lead.label }}</h2>
-            <p class="mt-2 truncate text-[1.75rem] leading-none font-semibold tracking-[-0.025em] sm:text-[2.25rem]">{{ lead.value }}</p>
-            <HourBars class="mt-5 h-16" :values="lead.hours" :label="lead.label" bar-class="bg-ink/15"></HourBars>
-          </div>
-          <div class="island flex min-w-0 flex-col p-5">
-            <h2 class="truncate text-[0.9375rem] font-bold">{{ t('home.figures.conversations') }}</h2>
-            <p class="mt-2 text-[1.75rem] leading-none font-semibold tracking-[-0.025em] sm:text-[2.25rem]">{{ formatNumber(conversationsToday) }}</p>
-            <HourBars class="mt-5 h-16" :values="conversationHours" :label="t('home.figures.conversations')"></HourBars>
-          </div>
-        </div>
-        <p v-if="others.length" class="flex flex-wrap gap-x-5 gap-y-1 px-2 text-sm text-ink-soft">
-          <span v-for="cell in others" :key="cell.id">{{ cell.label }} <span class="font-bold text-ink">{{ cell.value }}</span></span>
-        </p>
       </div>
 
+      <!-- The agent: is it on, where customers reach it, and one tap to try it. -->
+      <div class="island min-w-0 self-start p-5 sm:p-6 xl:col-span-4">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="section-title">{{ t('nav.yourAgent') }}</h2>
+          <span class="flex items-center gap-1.5 text-sm font-semibold">
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              :class="auth.isSuspended ? 'bg-attention' : 'bg-lime ring-1 ring-ink/25'"
+              aria-hidden="true"
+            ></span>
+            {{ auth.isSuspended ? t('common.pausedByHeyDesk') : t('common.live') }}
+          </span>
+        </div>
+        <p class="mt-0.5 truncate text-sm text-ink-soft">{{ agent.config.name }}</p>
+
+        <ul class="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
+          <li class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-wash px-3.5">
+            <PhGlobe :size="18"></PhGlobe>{{ t('channelsPage.websiteChat') }}
+          </li>
+          <li v-if="telegram" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-wash px-3.5">
+            <PhTelegramLogo :size="18"></PhTelegramLogo>@{{ telegram.username }}
+          </li>
+          <li v-else-if="auth.canManage">
+            <router-link to="/channels" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-line-strong px-3.5 hover:border-ink">
+              <PhTelegramLogo :size="18"></PhTelegramLogo>{{ t('home.connectTelegram') }}
+            </router-link>
+          </li>
+          <li v-if="auth.canManage">
+            <router-link to="/knowledge" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-wash px-3.5 hover:bg-hover">
+              <PhBooks :size="18"></PhBooks>{{ t('home.documents', { n: formatNumber(documentCount) }, documentCount) }}
+            </router-link>
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          class="mt-4 flex h-14 w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface pr-1.5 pl-5 text-left text-sm text-ink-soft transition-colors hover:border-ink"
+          @click="ui.testSheetOpen = true"
+        >
+          <span class="min-w-0 flex-1 truncate">{{ t('home.askAgent') }}</span>
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-control)] bg-ink text-white" aria-hidden="true">
+            <PhPaperPlaneTilt :size="18" weight="fill"></PhPaperPlaneTilt>
+          </span>
+        </button>
+
+        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 px-1 text-sm font-semibold">
+          <button type="button" class="inline-flex items-center gap-1.5 hover:underline" @click="copyLink">
+            <component :is="copied ? PhCheck : PhLink" :size="16" weight="bold"></component>
+            {{ copied ? t('common.copied') : t('home.copyChatLink') }}
+          </button>
+          <router-link v-if="auth.canManage" to="/agent" class="inline-flex items-center gap-1.5 hover:underline">
+            <PhSlidersHorizontal :size="16" weight="bold"></PhSlidersHorizontal>
+            {{ t('home.editSettings') }}
+          </router-link>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -261,7 +251,7 @@ import { fetchConversations } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';
 import { fetchDocuments } from '../../api/agent.js';
 import { formatMoney, formatNumber, formatAgo, formatToday, greeting } from '../../lib/format.js';
-import { isToday, avatarTint, initials, hourOf, todayByHour } from '../../lib/group.js';
+import { isToday, avatarTint, initials, todayByHour } from '../../lib/group.js';
 import { chatLink, itemsLabel } from '../../lib/presets.js';
 import { channelOf } from '../../lib/channels.js';
 import { summarize } from '../../lib/records.js';
@@ -299,8 +289,8 @@ const conversationsToday = computed(
   () => conversations.value.filter((c) => isToday(c.created_at, timezone.value)).length,
 );
 
-// Today's figures. The lilac tile leads with the money orders brought in,
-// else the first job's count; the other jobs follow in one line under it.
+// Today's figures: conversations, then the lead (the money orders brought in,
+// else the first job's count), then the other jobs.
 // ponytail: counted from the first page (100 of each), enough for a day of a
 // small business; a figures endpoint when one outgrows it.
 const todayRecords = computed(() => records.value.filter((r) => isToday(r.created_at, timezone.value)));
@@ -324,7 +314,11 @@ const lead = computed(() => {
 });
 const others = computed(() => jobFigures.value.filter((cell) => cell.id !== lead.value.id));
 const conversationHours = computed(() => todayByHour(conversations.value, timezone.value));
-const nowHour = computed(() => hourOf(new Date().toISOString(), timezone.value));
+const figures = computed(() => [
+  { id: 'conversations', label: t('home.figures.conversations'), value: formatNumber(conversationsToday.value), hours: conversationHours.value },
+  ...(lead.value.label ? [lead.value] : []),
+  ...others.value,
+]);
 
 const steps = computed(() =>
   setupSteps({

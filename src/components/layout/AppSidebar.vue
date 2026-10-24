@@ -22,22 +22,19 @@
       </router-link>
     </div>
 
-    <!-- What is waiting, one tile per job plus the customers who asked for a
-         person: the first thing an owner looks for, one click from its list. -->
-    <!-- On a short screen the nav needs the room; its counts say the same. -->
-    <ul v-if="tiles.length && !collapsed" class="mt-4 grid shrink-0 grid-cols-2 gap-2 px-3 [@media(max-height:50rem)]:hidden">
-      <li v-for="(tile, index) in tiles" :key="tile.to" :class="{ 'col-span-2': tiles.length % 2 && index === tiles.length - 1 }">
-        <router-link :to="tile.to" class="tile" @click="$emit('navigate')">
-          <span class="flex items-start justify-between gap-2">
-            <component :is="tile.icon" :size="20" class="mt-0.5 text-night-soft"></component>
-            <span class="text-[1.625rem] leading-none font-bold" :class="{ 'text-attention-bright': tile.attention && tile.count }">
-              {{ formatNumber(tile.count) }}
-            </span>
-          </span>
-          <span class="mt-2 block truncate text-xs font-medium text-night-soft">{{ tile.label }}</span>
-        </router-link>
-      </li>
-    </ul>
+    <!-- A customer waiting for a person is the one thing that cannot wait, so
+         it gets a strip of its own, only while someone waits. The other
+         counts sit beside their pages in the nav. -->
+    <router-link
+      v-if="showStatus && inbox.needsHuman && !collapsed"
+      to="/conversations?filter=needs_human"
+      class="mx-3 mt-4 flex shrink-0 items-center gap-2.5 rounded-[var(--radius-card)] bg-night-tile px-3 py-2.5 text-[0.8125rem] font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--color-night-tile),white_8%)]"
+      @click="$emit('navigate')"
+    >
+      <PhUserSound :size="18" weight="fill" class="shrink-0 text-attention-bright"></PhUserSound>
+      <span class="min-w-0 flex-1 truncate">{{ t('status.needs_human') }}</span>
+      <span class="nav-count nav-count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
+    </router-link>
 
     <nav class="mt-4 min-h-0 flex-1 overflow-y-auto px-3" :aria-label="t('shell.mainNav')">
       <div v-for="(group, index) in groups" :key="index" :class="{ 'mt-5': index > 0 }">
@@ -147,7 +144,6 @@ import {
 
 import BrandMark from '../ui/BrandMark.vue';
 import { navGroups, isActive } from '../../lib/navigation.js';
-import { jobIcon, jobTab } from '../../lib/records.js';
 import { formatNumber } from '../../lib/format.js';
 import { roleName } from '../../lib/team.js';
 import { useAuthStore } from '../../stores/auth.js';
@@ -196,21 +192,6 @@ const groups = computed(() =>
     needsHuman: inbox.needsHuman,
   }),
 );
-
-// One tile per job ("Orders 4") and one for customers waiting for a person.
-const tiles = computed(() => {
-  if (!showStatus.value || !inbox.loaded) return [];
-  return [
-    ...inbox.jobs.map((job) => ({ to: `/inbox?job=${job.job}`, label: jobTab(job.job), count: job.waiting, icon: jobIcon(job.job) })),
-    {
-      to: '/conversations?filter=needs_human',
-      label: t('status.needs_human'),
-      count: inbox.needsHuman,
-      icon: PhUserSound,
-      attention: true,
-    },
-  ];
-});
 
 // The badges are best effort. If the API is down the pages say so; the
 // sidebar just shows no numbers. Loaded for the business on screen, and again
@@ -289,15 +270,20 @@ function signOut() {
 
 .nav-item:hover {
   color: #fff;
+  background-color: color-mix(in srgb, var(--color-night-tile) 60%, var(--color-night));
+}
+
+/* The page you are on: a quiet fill, white words, and the one lime mark,
+   its filled icon. */
+.nav-item-active,
+.nav-item-active:hover {
+  color: #fff;
+  font-weight: 600;
   background-color: var(--color-night-tile);
 }
 
-/* The page you are on: lime, black words, a filled icon. */
-.nav-item-active,
-.nav-item-active:hover {
-  color: var(--color-ink);
-  font-weight: 600;
-  background-color: var(--color-lime);
+.nav-item-active .nav-icon {
+  color: var(--color-lime);
 }
 
 .nav-count {
@@ -314,26 +300,13 @@ function signOut() {
 }
 
 .nav-item-active .nav-count {
-  background-color: var(--color-ink);
+  background-color: color-mix(in srgb, var(--color-night-tile), white 12%);
 }
 
 .nav-count-attention,
 .nav-item-active .nav-count-attention {
   background-color: var(--color-attention-bright);
   color: var(--color-ink);
-}
-
-/* A count tile: what waits in one list, the number big and bottom right. */
-.tile {
-  display: block;
-  padding: 0.75rem 0.875rem;
-  border-radius: var(--radius-card);
-  background-color: var(--color-night-tile);
-  transition: background-color 0.15s var(--ease-settle);
-}
-
-.tile:hover {
-  background-color: color-mix(in srgb, var(--color-night-tile), white 8%);
 }
 
 /* A count on a folded item sits on the icon's corner. */
@@ -356,8 +329,7 @@ function signOut() {
 }
 
 .nav-item-active .badge {
-  border-color: var(--color-lime);
-  background-color: var(--color-ink);
+  border-color: var(--color-night-tile);
 }
 
 .badge-attention,

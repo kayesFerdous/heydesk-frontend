@@ -8,7 +8,7 @@
    hold the work. Black means "do this" (the primary button), lime means "you
    are here" (the open page, the chosen filter, the selected row). Green,
    orange and red are states (live, needs a person, destructive), never
-   decoration. Lilac is the one decorative tint, for a figure tile on Home. */
+   decoration. The pastel tints are decoration only, for avatars. */
 @theme {
   --font-sans: 'Gabarito', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Noto Color Emoji';
@@ -24,7 +24,6 @@
   --color-brand-tint-strong: #d4f36b;
   --color-lime: #d4f36b;
   --color-lime-hover: #c8ea55;
-  --color-lilac: #cdb8ff;
   /* The channels' own colours, only on their own logos (a conversation's
      avatar, its channel chip). */
   --color-telegram: #229ed9;

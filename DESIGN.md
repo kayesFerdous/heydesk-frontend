@@ -9,7 +9,10 @@ v5.1 (24 Oct 2026) keeps ink and lime but finishes it: a lighter paper canvas,
 a hairline round every island, soft 10px controls instead of pills, and
 headings at 600 instead of 800 (studied against Revora, Fin and Zendesk, which
 all keep one loud colour small, set headings light and round controls a
-little). Lime-as-slab on Home and the sidebar's count tiles are the next step.
+little). Its second step took lime off the slabs: the sidebar's count tiles
+went (the nav counts say the same), the open page became a quiet fill with a
+lime icon, and Home puts "Needs you" first and widest, with today's figures
+ruled under it and a white agent island beside it.
 
 v5 (22 Oct 2026) replaced v4 ("Passbook", cobalt rules on white paper). The
 owner judged v4 too plain and picked this direction from three generated
@@ -30,14 +33,14 @@ density 4 (roomy, big numbers, big tap targets).
 > white islands on a warm grey canvas.
 
 - **A black panel for where you can go**: the sidebar floats on the canvas
-  with round corners. At its top, one count tile per job and one for
-  customers waiting for a person, each a link to its list.
+  with round corners. Its counts sit beside their pages; a customer waiting
+  for a person also gets an orange strip at the top, only while they wait.
 - **Islands, not sheets.** Home lays white islands (20px corners, a hairline, no shadow)
   straight on the canvas. Every other page sits in one white island beside
   the sidebar.
 - **Lime is selection only**: the open page in the sidebar and the tab bar,
-  the chosen tab or filter, a selected row (pale lime), the agent's tile on
-  Home. It is never a button colour on white.
+  the chosen tab or filter, a selected row (pale lime), the agent's live dot
+  on Home. It is a mark, never a slab, and never a button colour on white.
 - **One black primary per screen.** On a black surface the primary is lime
   (`.btn-lime`).
 - **Lists stay rows** with hairlines, grouped Today / Yesterday, inside an
@@ -59,9 +62,8 @@ density 4 (roomy, big numbers, big tap targets).
 | `--color-ink-soft` | `#5C5C56` | Secondary text |
 | `--color-ink-faint` | `#9B9B93` | Icons only, never text |
 | `--color-brand` | `#111111` | The primary button and links (the token keeps its old name) |
-| `--color-brand-tint` | `#F0F8D2` | Pale lime: a selected row, icon tiles, the "New" chip |
-| `--color-lime` (`--color-brand-tint-strong`) | `#D4F36B` | You are here: active nav, chosen tab, the agent tile, focus ring |
-| `--color-lilac` | `#CDB8FF` | Decoration only: Home's lead figure tile |
+| `--color-brand-tint` | `#F0F8D2` | Pale lime: a selected row, the "New" chip |
+| `--color-lime` (`--color-brand-tint-strong`) | `#D4F36B` | You are here: the open page's icon, chosen tab, the live dot, focus ring |
 | `--color-tint-lilac / -sky / -sand` | pastels | Avatar tints, decoration only |
 | `--color-night` / `-night-tile` / `-night-soft` | `#141413` / `#1E1E1C` / `#A3A39B` | The sidebar, its tiles, its quiet text |
 | `--color-success` / `-tint` | `#17804C` / `#DCF5E6` | Live, confirmed, ready |
@@ -114,7 +116,7 @@ get `--shadow-float`.
 - **Rows** `.row`, `.row-selected` (pale lime), `.day-head`, `.ledger`: as v4.
 - **Chip** `.chip` via `StatusChip`: a soft pill, icon plus word.
 - **HourBars** (`components/home/`): today hour by hour, the busiest hour in
-  black; small on a figure tile, large with labels and a "Now" line.
+  black, under a figure on Home once that figure is above zero.
 - `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `InfoTip`,
   `SettingsGroup`, `.popover`: as v4, in the new shapes.
 
@@ -145,8 +147,10 @@ get `--shadow-float`.
   on a white track). Settings-like pages (Channels, Team, Account,
   Knowledge, Calls, Admin) are one island.
 - The sidebar: the mark on a lime tile, the business name and live status,
-  the count tiles (hidden when folded), the grouped nav (active item lime
-  with a filled icon; counts in dark pills, orange when someone waits),
+  an orange "Needs a person" strip while someone waits (hidden when folded,
+  where the count sits on the Conversations icon), the grouped nav (the open
+  item a quiet fill with its filled icon in lime; counts in dark pills,
+  orange when someone waits),
   "Try your agent" as a dark pill with a lime icon, the account row.
 - Under 768px: a floating black pill tab bar (Home, Inbox, Chats, Agent,
   More, the open one lime); More opens the sidebar as a drawer.
@@ -164,15 +168,16 @@ Then a bento:
 
 - The setup guide across the top while anything is left (rounded grey steps,
   the next one's number on lime, its button the primary).
-- Left: **Needs you** (hand-offs first, with a black call button when the
-  customer left a phone; then new records with code, line, chip, time and
-  amount), and **Today by hour** under it (conversations per hour, the
-  busiest black, a dashed "Now").
-- Right: **Your agent** on lime (live state, channels as white pills, "Ask
-  your agent something" opening the test chat, copy the chat link, edit
-  settings), then two figure tiles: lilac leads with the money taken today
-  (or the first job's count), white with today's conversations, each with
-  its hours underneath. The other jobs' counts follow in one line.
+- Left, two thirds wide: **Needs you** (hand-offs first, with a black call
+  button when the customer left a phone; then new records with code, line,
+  chip, time and amount), and under it **today's figures** in one island,
+  ruled apart by hairlines: conversations, then the lead (the money taken
+  today, or the first job's count), then the other jobs. A figure above zero
+  shows its hours underneath (`HourBars`); a quiet day shows only numbers.
+  On a phone the figures sit two to a row.
+- Right: **Your agent**, a white island (a lime live dot and the word,
+  channels as grey chips, "Ask your agent something" opening the test chat,
+  copy the chat link, edit settings).
 
 ## Inbox and Conversations
 
@@ -355,8 +360,9 @@ Landing motion (every piece explains something, all of it off under
    lime tile for the app icon and favicon; black mark and wordmark on white.
    The files are in `public/brand/`. The customer chat carries the business's
    name, not ours.
-2. **The count tiles** at the top of the sidebar: what waits, per list.
-3. **The lime agent tile** on Home, with the test chat one tap away.
+2. **The orange strip** at the top of the sidebar while a customer waits
+   for a person.
+3. **The agent island** on Home, with the test chat one tap away.
 4. **Setup guide** of five outcome-worded steps, only the ones left.
 5. **Status is always an icon plus a word.**
 6. **Proof line on every record**: "Read back to the customer and confirmed in
