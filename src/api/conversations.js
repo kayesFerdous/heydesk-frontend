@@ -19,6 +19,12 @@ export function fetchConversations({ status, channel, assigned, q, done, limit, 
   return request('/conversations' + (query ? `?${query}` : ''));
 }
 
+// The inbox's numbers (backend I1): how many shown chats wait for a person, how many of
+// those are the caller's, and how many nobody has. `{needs_human, mine, unassigned}`.
+export function fetchCounts() {
+  return request('/conversations/counts');
+}
+
 // The transcript only. The orders, appointments or messages that came out of
 // it come from the page's own records list (`byConversation` in records.js).
 export function fetchConversation(conversationId) {

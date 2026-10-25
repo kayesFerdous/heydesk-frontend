@@ -3,31 +3,21 @@
        with. A phone shows the list, then one conversation with a way back. -->
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :class="{ 'max-lg:hidden': selectedId }" :title="t('conversations.title')" :subtitle="t('conversations.subtitle')">
-      <template #actions>
-        <div class="tabs rounded-[0.875rem] bg-surface p-1" role="group" :aria-label="t('conversations.filter')">
-          <button type="button" class="tab" :class="{ 'tab-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="setFilter('all')">
-            {{ t('conversations.all') }}
+      <!-- Who has it (backend I1): one choice, with how many there wait for a person. -->
+      <template v-if="!auth.isViewing" #actions>
+        <div class="tabs rounded-[0.875rem] bg-surface p-1" role="group" :aria-label="t('conversations.assign.filter')">
+          <button
+            v-for="option in whoOptions"
+            :key="option.id"
+            type="button"
+            class="tab"
+            :class="{ 'tab-active': who === option.id }"
+            :aria-pressed="who === option.id"
+            @click="setWho(option.id)"
+          >
+            {{ option.label }}
+            <span v-if="option.waiting" class="count count-attention" :title="t('status.needs_human')">{{ formatNumber(option.waiting) }}</span>
           </button>
-          <button type="button" class="tab" :class="{ 'tab-active': filter === 'needs_human' }" :aria-pressed="filter === 'needs_human'" @click="setFilter('needs_human')">
-            {{ t('status.needs_human') }}
-            <span v-if="inbox.needsHuman" class="count count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
-          </button>
-          <button type="button" class="tab" :class="{ 'tab-active': filter === 'done' }" :aria-pressed="filter === 'done'" @click="setFilter('done')">
-            {{ t('conversations.later.doneList') }}
-          </button>
-          <!-- Who has it (backend I1): mine, or no one's yet. -->
-          <template v-if="!auth.isViewing">
-            <button type="button" class="tab" :class="{ 'tab-active': filter === 'mine' }" :aria-pressed="filter === 'mine'" @click="setFilter('mine')">
-              {{ t('conversations.assign.mine') }}
-            </button>
-            <button type="button" class="tab" :class="{ 'tab-active': filter === 'unassigned' }" :aria-pressed="filter === 'unassigned'" @click="setFilter('unassigned')">
-              {{ t('conversations.assign.unassigned') }}
-            </button>
-            <!-- Who is blocked (backend I2) -->
-            <button type="button" class="tab" :class="{ 'tab-active': filter === 'blocked' }" :aria-pressed="filter === 'blocked'" @click="setFilter('blocked')">
-              {{ t('conversations.them.blockedList') }}
-            </button>
-          </template>
         </div>
       </template>
     </PageHeader>
@@ -37,42 +27,67 @@
     <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
       <!-- The list -->
       <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
-        <!-- A name, a phone, an order code or any words (backend I3) -->
-        <div class="shrink-0 px-3 pt-3">
-          <input
-            v-model="searchText"
-            class="field"
-            type="search"
-            :placeholder="t('conversations.later.search')"
-            :aria-label="t('conversations.later.search')"
-          />
+        <!-- Who is blocked (backend I2): a list of its own, a step away from the chats. -->
+        <div v-if="filter === 'blocked'" class="flex shrink-0 items-center gap-2 border-b border-hairline p-3">
+          <button type="button" class="btn btn-quiet btn-icon btn-sm" :aria-label="t('conversations.them.backToChats')" @click="setFilter(null)">
+            <PhArrowLeft :size="18"></PhArrowLeft>
+          </button>
+          <h2 class="text-sm font-bold">{{ t('conversations.them.blockedLink') }}</h2>
         </div>
-        <!-- One channel at a time: its logo, and its name once chosen. -->
-        <nav class="flex shrink-0 flex-wrap gap-1.5 border-b border-hairline p-3" :aria-label="t('conversations.byChannel')">
-          <button
-            type="button"
-            class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
-            :class="!channel ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
-            :aria-pressed="!channel"
-            @click="setChannel(null)"
-          >
-            {{ t('conversations.all') }}
-          </button>
-          <button
-            v-for="option in channelOptions"
-            :key="option.id"
-            type="button"
-            class="chip h-9 gap-1.5 text-sm font-semibold transition-colors"
-            :class="channel === option.id ? 'bg-lime px-3.5 text-ink' : 'w-9 justify-center bg-hover px-0 text-ink-soft hover:text-ink'"
-            :aria-pressed="channel === option.id"
-            :aria-label="option.label"
-            :title="option.label"
-            @click="setChannel(option.id)"
-          >
-            <component :is="option.icon" :size="18" :weight="option.weight" :class="option.color"></component>
-            <span v-if="channel === option.id">{{ option.label }}</span>
-          </button>
-        </nav>
+
+        <template v-else>
+          <!-- A name, a phone, an order code or any words (backend I3) -->
+          <div class="shrink-0 px-3 pt-3">
+            <input
+              v-model="searchText"
+              class="field"
+              type="search"
+              :placeholder="t('conversations.later.search')"
+              :aria-label="t('conversations.later.search')"
+            />
+          </div>
+          <!-- Narrow it down: waiting for a person or done, then one channel (its logo, and its
+               name once chosen). Each one pressed again lets go. -->
+          <nav class="flex shrink-0 flex-col gap-2 border-b border-hairline p-3" :aria-label="t('conversations.filter')">
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
+                :class="filter === 'needs_human' ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
+                :aria-pressed="filter === 'needs_human'"
+                @click="setFilter('needs_human')"
+              >
+                {{ t('status.needs_human') }}
+                <span v-if="waitingHere" class="count count-attention">{{ formatNumber(waitingHere) }}</span>
+              </button>
+              <button
+                type="button"
+                class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
+                :class="filter === 'done' ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
+                :aria-pressed="filter === 'done'"
+                @click="setFilter('done')"
+              >
+                {{ t('conversations.later.doneList') }}
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                v-for="option in channelOptions"
+                :key="option.id"
+                type="button"
+                class="chip h-9 gap-1.5 text-sm font-semibold transition-colors"
+                :class="channel === option.id ? 'bg-lime px-3.5 text-ink' : 'w-9 justify-center bg-hover px-0 text-ink-soft hover:text-ink'"
+                :aria-pressed="channel === option.id"
+                :aria-label="option.label"
+                :title="option.label"
+                @click="setChannel(option.id)"
+              >
+                <component :is="option.icon" :size="18" :weight="option.weight" :class="option.color"></component>
+                <span v-if="channel === option.id">{{ option.label }}</span>
+              </button>
+            </div>
+          </nav>
+        </template>
 
         <BlockedList v-if="filter === 'blocked'" @open="select"></BlockedList>
 
@@ -85,10 +100,10 @@
           :text="query ? t('conversations.later.noMatchText') : t('conversations.later.noneDoneText')"
         ></EmptyState>
         <EmptyState
-          v-else-if="!rows.length && (filter === 'mine' || filter === 'unassigned')"
+          v-else-if="!rows.length && who !== 'all'"
           :icon="PhCheckCircle"
-          :title="filter === 'mine' ? t('conversations.assign.noneMine') : t('conversations.assign.noneFree')"
-          :text="filter === 'mine' ? t('conversations.assign.noneMineText') : t('conversations.assign.noneFreeText')"
+          :title="who === 'mine' ? t('conversations.assign.noneMine') : t('conversations.assign.noneFree')"
+          :text="who === 'mine' ? t('conversations.assign.noneMineText') : t('conversations.assign.noneFreeText')"
         ></EmptyState>
         <EmptyState
           v-else-if="!rows.length && channel && filter !== 'needs_human'"
@@ -116,12 +131,23 @@
                 :key="row.id"
                 :row="row"
                 :selected="row.id === selectedId"
+                :me-id="auth.me?.id || ''"
                 @select="select(row.id)"
               ></ConversationRow>
             </div>
           </div>
           <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
         </div>
+
+        <button
+          v-if="filter !== 'blocked' && !auth.isViewing"
+          type="button"
+          class="mt-auto flex shrink-0 items-center gap-2 border-t border-hairline px-4 py-3 text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
+          @click="setFilter('blocked')"
+        >
+          <PhProhibit :size="16"></PhProhibit>
+          {{ t('conversations.them.blockedLink') }}
+        </button>
       </div>
 
       <!-- The conversation: the transcript, then who it was with. Wide
@@ -131,13 +157,13 @@
           :conversation="detail"
           :busy="isHandling"
           :error="handleError"
+          :can-take="!auth.isViewing && !detail.assigned_to"
           class="island xl:min-h-0"
           @back="select(null)"
           @handled="handled"
+          @take="assign(auth.me?.id)"
         >
           <template v-if="!auth.isViewing" #actions>
-            <DoneSnooze :conversation="detail" :busy="isLater" :error="laterError" @done="done" @snooze="snooze"></DoneSnooze>
-            <VisitorControl :visitor="detail.visitor" :busy="isChanging" :error="changeError" @change="changeThem"></VisitorControl>
             <AssignControl
               :conversation="detail"
               :members="members"
@@ -147,6 +173,14 @@
               :error="assignError"
               @assign="assign"
             ></AssignControl>
+            <ConversationActions
+              :conversation="detail"
+              :busy="isLater || isChanging"
+              :error="laterError || changeError"
+              @done="done"
+              @snooze="snooze"
+              @change="changeThem"
+            ></ConversationActions>
           </template>
         </ConversationTranscript>
         <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>
@@ -172,15 +206,14 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhChatsCircle, PhCheckCircle, PhMagnifyingGlass } from '@phosphor-icons/vue';
+import { PhArrowLeft, PhChatsCircle, PhCheckCircle, PhMagnifyingGlass, PhProhibit } from '@phosphor-icons/vue';
 
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
 import ConversationSide from '../../components/conversations/ConversationSide.vue';
 import AssignControl from '../../components/conversations/AssignControl.vue';
-import VisitorControl from '../../components/conversations/VisitorControl.vue';
+import ConversationActions from '../../components/conversations/ConversationActions.vue';
 import BlockedList from '../../components/conversations/BlockedList.vue';
-import DoneSnooze from '../../components/conversations/DoneSnooze.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
@@ -222,7 +255,7 @@ const error = ref(null);
 const detailError = ref(null);
 const isHandling = ref(false);
 const handleError = ref(null);
-const members = ref([]); // the team, for the owner's "Assign to" (backend I1)
+const members = ref([]); // the team with their open chats, for the owner's Assign (backend I1)
 const isAssigning = ref(false);
 const assignError = ref(null);
 const isChanging = ref(false); // blocking, or turning the AI off (backend I2)
@@ -233,13 +266,26 @@ const searchText = ref(''); // what's typed; `query` follows it after a pause
 const query = ref('');
 let searchTimer = null;
 
-const FILTERS = ['needs_human', 'mine', 'unassigned', 'blocked', 'done'];
-const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : 'all'));
+// Two choices, both in the URL so a link can open them: whose chats (`who`, backend I1), and
+// which of them (`filter`): waiting for a person, done (I3), or the blocked visitors (I2).
+const WHO = ['mine', 'unassigned'];
+const FILTERS = ['needs_human', 'done', 'blocked'];
+const who = computed(() => (!auth.isViewing && WHO.includes(route.query.who) ? route.query.who : 'all'));
+const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : null));
+const whoOptions = computed(() => [
+  { id: 'mine', label: t('conversations.assign.mine'), waiting: inbox.mineWaiting },
+  { id: 'unassigned', label: t('conversations.assign.unassigned'), waiting: inbox.unassignedWaiting },
+  { id: 'all', label: t('conversations.assign.all'), waiting: 0 },
+]);
+// How many of the chats in this tab wait for a person, on the "Needs a person" chip.
+const waitingHere = computed(
+  () => ({ mine: inbox.mineWaiting, unassigned: inbox.unassignedWaiting, all: inbox.needsHuman })[who.value],
+);
 const selectedId = computed(() => route.query.open || null);
 const channel = computed(() => (CHANNEL_IDS.includes(route.query.channel) ? route.query.channel : null));
 const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelOf(id) })));
 // What the list is showing; a page asked for under another one is dropped.
-const listKey = computed(() => `${filter.value}|${channel.value}|${query.value}`);
+const listKey = computed(() => `${who.value}|${filter.value}|${channel.value}|${query.value}`);
 
 // The list endpoint has no previews. The name is the messaging app's, else a
 // record's the conversation made; the preview from its transcript, once loaded.
@@ -261,30 +307,23 @@ const detail = computed(() => {
   return found ? { ...found, records: recordsOf.value[found.id] || [] } : null;
 });
 
-function setFilter(next) {
-  const query = channel.value ? { channel: channel.value } : {};
-  if (next !== 'all') query.filter = next;
-  router.replace({ query });
+// Changes some of the URL's choices and keeps the rest; an empty one is left out.
+function go(changes) {
+  const next = { ...route.query, ...changes };
+  Object.keys(next).forEach((key) => next[key] || delete next[key]);
+  router.replace({ query: next });
 }
-
-function setChannel(next) {
-  const query = filter.value === 'all' ? {} : { filter: filter.value };
-  if (next) query.channel = next;
-  router.replace({ query });
-}
-
-function select(id) {
-  const query = { ...route.query };
-  if (id) query.open = id;
-  else delete query.open;
-  router.replace({ query });
-}
+// A new list closes the open chat. A filter or channel pressed again lets go.
+const setWho = (next) => go({ who: next === 'all' ? null : next, open: null });
+const setFilter = (next) => go({ filter: next === filter.value ? null : next, open: null });
+const setChannel = (next) => go({ channel: next === channel.value ? null : next, open: null });
+const select = (id) => go({ open: id });
 
 // One page of the list, newest activity first, older than `before` if given.
 function fetchPage(before) {
   return fetchConversations({
     status: filter.value === 'needs_human' ? 'needs_human' : undefined,
-    assigned: { mine: 'me', unassigned: 'none' }[filter.value],
+    assigned: { mine: 'me', unassigned: 'none' }[who.value],
     done: filter.value === 'done',
     q: query.value || undefined,
     channel: channel.value || undefined,
@@ -393,12 +432,14 @@ async function assign(userId) {
     const updated = await assignConversation(id, userId);
     details.value[id] = { ...details.value[id], ...updated };
     const fits =
-      (filter.value === 'mine' && updated.assigned_to === auth.me?.id) ||
-      (filter.value === 'unassigned' && !updated.assigned_to) ||
-      !['mine', 'unassigned'].includes(filter.value);
+      who.value === 'all' ||
+      (who.value === 'mine' && updated.assigned_to === auth.me?.id) ||
+      (who.value === 'unassigned' && !updated.assigned_to);
     list.value = fits
       ? list.value.map((c) => (c.id === id ? { ...c, ...updated } : c))
       : list.value.filter((c) => c.id !== id);
+    inbox.load().catch(() => {}); // the tabs' numbers
+    loadMembers(); // and everyone's open chats
   } catch (err) {
     // e.g. 403: a colleague took it first. Show the sentence.
     assignError.value = err.message;
@@ -468,7 +509,10 @@ watch(searchText, (text) => {
   searchTimer = setTimeout(() => (query.value = text.trim()), 300);
 });
 // Only the owner gives a chat to someone else, so only they need the team.
-if (auth.canManage && !auth.isViewing) fetchMembers().then((found) => (members.value = found)).catch(() => {});
+function loadMembers() {
+  if (auth.canManage && !auth.isViewing) fetchMembers().then((found) => (members.value = found)).catch(() => {});
+}
+loadMembers();
 watch(() => inbox.arrivals, refresh);
 watch(
   selectedId,

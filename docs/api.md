@@ -55,7 +55,7 @@ lists) and can read the settings, but gets 403 `forbidden` on any change under `
 
 | Call | What it does |
 |---|---|
-| `GET /team/members` | `[{id, email, role: owner/moderator, status: active/invited, invited_at, joined_at}]`, owners first |
+| `GET /team/members` | `[{id, email, role: owner/moderator, status: active/invited, invited_at, joined_at, open_chats}]`, owners first. `open_chats`: chats waiting for them or with them now, the count a hand-off goes by (D129); shown on Team and in the *Assign* list |
 | `POST /team/members` `{email}` | 201 with the member (`invited`); an email with a code goes to them. 409 `conflict` if the email has an account or the team has 10 moderators; 429 counts with the code emails |
 | `POST /team/members/{id}/invite` | Sends the invite again with a new code. 204; 409 once they've joined |
 | `DELETE /team/members/{id}` | Removes a moderator (invited or joined). 204; 404 for an owner |
@@ -278,7 +278,11 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ### Conversations (`conversations.js`)
 | Call | What it does |
 |---|---|
-| `GET /conversations?status=active\|needs_human&channel=` | `[{id, channel, name, status, created_at, updated_at}]`. `name`: the visitor's name from Telegram or WhatsApp, else null (backend D104). `channel`: web, voice, telegram, messenger or whatsapp (422 for another); the Conversations page's channel filter (`?channel=` in its URL) |
+| `GET /conversations?status=active\|needs_human&channel=&assigned=me\|none&done=&q=` | `[{id, channel, name, status, assigned_to, assigned_email, done_at, snoozed_until, created_at, updated_at}]`. `name`: the visitor's name from Telegram or WhatsApp, else null (backend D104). `channel`: web, voice, telegram, messenger or whatsapp (422 for another); the Conversations page's channel filter (`?channel=` in its URL). `assigned`: the caller's chats or no one's (D126; the page's *Mine* and *Unassigned* tabs, `?who=` in its URL). Done and snoozed chats are left out; `done=true` lists only the done ones; `q` searches names and what was said (D128) |
+| `GET /conversations/counts` | `{needs_human, mine, unassigned}`: how many shown chats wait for a person, and of those the caller's and no one's (D129). The `inbox` store asks with its other counts; the tabs and the *Needs a person* chip show them |
+| `PUT /conversations/{id}/assignee` `{user_id \| null}` | Who has it (D126). The owner gives any chat to anyone on the team or no one; a moderator takes an unassigned one (their own id) and gives back their own (`null`); anything else 403. Client: `assignConversation`, the *Assign* button (`AssignControl.vue`) |
+| `PUT /conversations/{id}/done` `{done}`, `PUT /conversations/{id}/snooze` `{until \| null}` | Done until the visitor writes again; snoozed until a time in the next 30 days, 422 beyond (D128). Client: `markDone`, `snoozeConversation`, in `ConversationActions.vue` |
+| `PATCH /visitors/{id}` `{blocked}` or `{ai_off}`, `GET /visitors/blocked` | Block or unblock a chat's visitor, or turn the AI off for them; who is blocked now (D127). A conversation's `visitor` says which is on |
 | `PATCH /conversations/{id}` `{status: "active"}` | Marks a hand-off handled: the agent answers again, as after `/done` on Telegram (D83). `status` is `active`, `needs_human` or `human` (the team is answering, D43); only `active` is accepted (422), and a conversation already `active` is 409 `invalid_transition`. Client: `markHandled` in `api/conversations.js` |
 | `GET /conversations/{id}` | Plus `messages[{role: user/assistant, text, photo, photos}]` and `records[]`. `photo`: the URL of the photo the visitor sent (their `text` starts with the backend's `[Photo. ...]` line); `photos`: `[{code, name, price, url}]` the agent showed, on a line with empty `text` (D57) |
 

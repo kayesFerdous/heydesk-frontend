@@ -1,6 +1,6 @@
 <template>
-  <!-- One conversation in the list: who, the last thing said, when, and
-       whether they wait for a person. The selected one sits on pale lime. -->
+  <!-- One conversation in the list: who, the last thing said, when, whether they
+       wait for a person, and who on the team has it. The selected one sits on pale lime. -->
   <button
     type="button"
     class="flex w-full items-center gap-3 rounded-[var(--radius-card)] p-2.5 text-left transition-colors"
@@ -21,11 +21,23 @@
 
     <span class="flex shrink-0 flex-col items-end gap-1">
       <span class="text-xs text-ink-soft">{{ formatTime(row.updated_at) }}</span>
-      <StatusChip v-if="row.status === 'needs_human'" status="needs_human"></StatusChip>
-      <!-- Web chat is the usual case: only another channel is worth a word. -->
-      <span v-else-if="row.channel !== 'web'" class="chip bg-hover text-ink-soft">
-        <component :is="channel.icon" :size="14" :weight="channel.brand ? 'fill' : 'bold'" :class="channel.color"></component>
-        {{ channel.label }}
+      <span class="flex items-center gap-1">
+        <StatusChip v-if="row.status === 'needs_human'" status="needs_human"></StatusChip>
+        <!-- Web chat is the usual case: only another channel is worth a word. -->
+        <span v-else-if="row.channel !== 'web'" class="chip bg-hover text-ink-soft">
+          <component :is="channel.icon" :size="14" :weight="channel.brand ? 'fill' : 'bold'" :class="channel.color"></component>
+          {{ channel.label }}
+        </span>
+        <!-- Who has it (backend I1): "You", or a colleague's first letter. No one: nothing. -->
+        <span v-if="row.assigned_to === meId" class="chip bg-lime text-ink">{{ t('conversations.assign.you') }}</span>
+        <span
+          v-else-if="row.assigned_to"
+          class="grid h-6 w-6 place-items-center rounded-full bg-hover text-[0.6875rem] font-bold text-ink-soft"
+          :title="t('conversations.assign.with', { email: row.assigned_email || '' })"
+          :aria-label="t('conversations.assign.with', { email: row.assigned_email || '' })"
+        >
+          {{ (row.assigned_email || '?').charAt(0).toUpperCase() }}
+        </span>
       </span>
     </span>
   </button>
@@ -43,6 +55,7 @@ import { avatarTint, initials } from '../../lib/group.js';
 const props = defineProps({
   row: { type: Object, required: true },
   selected: { type: Boolean, default: false },
+  meId: { type: String, default: '' }, // to say "You" on the signed-in person's chats
 });
 defineEmits(['select']);
 const { t } = useI18n();

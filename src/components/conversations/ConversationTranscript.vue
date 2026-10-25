@@ -2,7 +2,7 @@
   <!-- What was said, word for word, under a header saying who and where.
        A hand-off shows at the top with the way to pick it up. -->
   <div class="flex flex-col">
-    <header class="flex items-center gap-3 border-b border-hairline p-4 sm:px-6">
+    <header class="flex flex-wrap items-center gap-3 border-b border-hairline p-4 sm:px-6">
       <button type="button" class="btn btn-secondary btn-icon btn-sm lg:hidden" :aria-label="t('conversations.back')" @click="$emit('back')">
         <PhArrowLeft :size="18"></PhArrowLeft>
       </button>
@@ -10,12 +10,14 @@
         <template v-if="named">{{ initials(name) }}</template>
         <component :is="channel.icon" v-else :size="22" :weight="channel.weight"></component>
       </span>
-      <div class="min-w-0">
+      <div class="min-w-0 flex-1">
         <h2 class="truncate text-lg font-bold">{{ name }}</h2>
         <p class="truncate text-sm text-ink-soft">{{ channel.long }}, {{ when }}</p>
       </div>
-      <!-- Who has it (backend I1), from the page. -->
-      <slot name="actions"></slot>
+      <!-- Who has it (backend I1), Done and the rest, from the page. -->
+      <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
+        <slot name="actions"></slot>
+      </div>
     </header>
 
     <div class="px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
@@ -33,8 +35,14 @@
             <template v-if="phone">{{ t('conversations.callToPickUp', { phone }) }}</template>
             <template v-else>{{ t('conversations.readThenReach') }}</template>
           </p>
+          <p v-if="canTake" class="mt-0.5 text-ink-soft">{{ t('conversations.assign.nobodyHasIt') }}</p>
         </div>
         <div class="flex flex-wrap gap-2">
+          <!-- Nobody has it yet (backend I1): taking it is the first step. -->
+          <button v-if="canTake" type="button" class="btn btn-secondary" :disabled="busy" @click="$emit('take')">
+            <PhHandGrabbing :size="16"></PhHandGrabbing>
+            {{ t('conversations.assign.take') }}
+          </button>
           <a v-if="phone" :href="`tel:${phone}`" class="btn btn-primary">
             <PhPhone :size="16" weight="fill"></PhPhone>
             {{ t('conversations.callBack') }}
@@ -95,7 +103,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhArrowLeft, PhCheck, PhPhone, PhUserSound } from '@phosphor-icons/vue';
+import { PhArrowLeft, PhCheck, PhHandGrabbing, PhPhone, PhUserSound } from '@phosphor-icons/vue';
 
 import { channelOf } from '../../lib/channels.js';
 import { formatTime, formatDay } from '../../lib/format.js';
@@ -105,8 +113,9 @@ const props = defineProps({
   conversation: { type: Object, required: true },
   busy: { type: Boolean, default: false }, // marking the hand-off handled
   error: { type: String, default: null },
+  canTake: { type: Boolean, default: false }, // waiting, and nobody on the team has it (I1)
 });
-defineEmits(['back', 'handled']);
+defineEmits(['back', 'handled', 'take']);
 const { t } = useI18n();
 
 const channel = computed(() => channelOf(props.conversation.channel));

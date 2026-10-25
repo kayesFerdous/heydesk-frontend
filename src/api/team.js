@@ -1,7 +1,8 @@
 import { request } from './client.js';
 
 // The business's team (backend D97): the owner and the moderators they added.
-// `[{id, email, role: owner/moderator, status: active/invited, invited_at, joined_at}]`.
+// `[{id, email, role: owner/moderator, status: active/invited, invited_at, joined_at, open_chats}]`;
+// open_chats: waiting for them or with them now, what a hand-off goes by (backend I1).
 export function fetchMembers() {
   return request('/team/members');
 }

@@ -28,6 +28,11 @@
               <PhEnvelopeSimple :size="14"></PhEnvelopeSimple>
               {{ t('team.invited') }}
             </span>
+            <!-- How busy they are now (backend I1): what a hand-off goes by. -->
+            <span v-else class="chip bg-hover text-ink-soft" :title="t('conversations.assign.openHint')">
+              <PhChatsCircle :size="14"></PhChatsCircle>
+              {{ t('conversations.assign.open', { n: formatNumber(member.open_chats || 0) }) }}
+            </span>
 
             <!-- Removing asks once more, in the row: it signs them out at once. -->
             <span v-if="confirmingId === member.id" class="flex items-center gap-2 text-sm">
@@ -89,6 +94,33 @@
         </form>
       </SettingsGroup>
 
+      <!-- Who gets a chat when a customer asks for a person (backend I1). Saved at once. -->
+      <SettingsGroup v-if="agent.config" :title="t('team.handoffs.title')" :tip="t('team.handoffs.tip')">
+        <fieldset class="flex max-w-xl flex-col gap-2" :disabled="savingHandoffs">
+          <legend class="sr-only">{{ t('team.handoffs.title') }}</legend>
+          <label
+            v-for="choice in HANDOFF_CHOICES"
+            :key="choice.id"
+            class="panel flex cursor-pointer items-start gap-3 p-4 transition-colors"
+            :class="{ 'border-ink': autoAssign === choice.on }"
+          >
+            <input
+              type="radio"
+              name="handoffs"
+              class="mt-0.5 h-4 w-4 accent-[var(--color-ink)]"
+              :checked="autoAssign === choice.on"
+              @change="saveHandoffs(choice.on)"
+            />
+            <span>
+              <span class="block text-sm font-semibold">{{ t(`team.handoffs.${choice.id}`) }}</span>
+              <span class="block text-sm text-ink-soft">{{ t(`team.handoffs.${choice.id}Text`) }}</span>
+            </span>
+          </label>
+          <p v-if="handoffsError" class="text-sm text-danger" role="alert">{{ handoffsError }}</p>
+          <p v-else-if="handoffsSaved" class="text-sm text-success" role="status">{{ t('team.handoffs.saved') }}</p>
+        </fieldset>
+      </SettingsGroup>
+
       <SettingsGroup :title="t('team.activityTitle')" :tip="t('team.activityTip')">
         <p v-if="!activity.length" class="text-sm text-ink-soft">{{ t('team.nothingYet') }}</p>
         <div v-for="group in activityGroups" :key="group.label">
@@ -115,7 +147,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCheckCircle, PhEnvelopeSimple, PhUserPlus, PhWarningCircle } from '@phosphor-icons/vue';
+import { PhChatsCircle, PhCheckCircle, PhEnvelopeSimple, PhUserPlus, PhWarningCircle } from '@phosphor-icons/vue';
 
 import PageHeader from '../../components/ui/PageHeader.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';
@@ -123,7 +155,7 @@ import LoadError from '../../components/ui/LoadError.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import { fetchActivity, fetchMembers, inviteMember, removeMember, resendInvite } from '../../api/team.js';
-import { formatDay, formatTime } from '../../lib/format.js';
+import { formatDay, formatNumber, formatTime } from '../../lib/format.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { describeActivity, roleName } from '../../lib/team.js';
 import { useAgentStore } from '../../stores/agent.js';
@@ -150,6 +182,9 @@ const inviting = ref(false);
 const inviteError = ref(null);
 const sent = ref('');
 const busyId = ref(null);
+const savingHandoffs = ref(false);
+const handoffsError = ref(null);
+const handoffsSaved = ref(false);
 const confirmingId = ref(null);
 const rowError = ref(null);
 
@@ -166,6 +201,28 @@ async function load() {
   } catch (error) {
     loadError.value = error.message;
   }
+}
+
+// New hand-offs wait for someone to take them, or go to the least busy moderator.
+const HANDOFF_CHOICES = [
+  { id: 'wait', on: false },
+  { id: 'spread', on: true },
+];
+const autoAssign = computed(() => Boolean(agent.config?.handoff.auto_assign));
+
+async function saveHandoffs(on) {
+  savingHandoffs.value = true;
+  handoffsError.value = null;
+  handoffsSaved.value = false;
+  try {
+    // The hand-off settings go as one (backend: a top-level field replaces the old one).
+    await agent.save({ handoff: { ...agent.config.handoff, auto_assign: on } });
+    handoffsSaved.value = true;
+    refreshActivity();
+  } catch (error) {
+    handoffsError.value = error.message;
+  }
+  savingHandoffs.value = false;
 }
 
 async function more() {
@@ -233,4 +290,5 @@ async function remove(member) {
 }
 
 load();
+agent.load().catch(() => {}); // for the hand-off choice
 </script>
