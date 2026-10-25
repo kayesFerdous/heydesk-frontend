@@ -231,6 +231,8 @@ const blank = computed(() => ({
   stock: null,
   variants: [],
   photos: [],
+  videos: [],
+  goes_with: [],
 }));
 
 // A new search or category starts from the top again.

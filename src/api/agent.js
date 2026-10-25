@@ -148,6 +148,8 @@ function itemToProduct(item) {
     stock,
     variants: item.variants || [], // stock per size and colour (D56)
     photos: item.photos || [], // their URLs; the first is the one the agent shows (D57)
+    videos: item.videos || [], // links; its card links the first (backend D125)
+    goes_with: item.goes_with || [], // codes the agent offers with it, once (backend D125)
   };
 }
 

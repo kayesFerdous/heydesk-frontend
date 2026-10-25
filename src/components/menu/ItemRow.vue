@@ -106,6 +106,17 @@
             {{ t('menu.row.countBySize') }}
           </button>
         </div>
+        <!-- Videos and what goes with it (backend D125). -->
+        <div class="sm:col-span-2">
+          <FieldLabel :html-for="`v-${uid}`" :tip="t('menu.row.videosHint')">{{ t('menu.row.videos') }}</FieldLabel>
+          <input :id="`v-${uid}`" v-model="videosText" class="field" :class="{ 'field-invalid': errors.videos }" type="text" inputmode="url" placeholder="https://youtu.be/…" />
+          <p v-if="errors.videos" class="error-text">{{ errors.videos }}</p>
+        </div>
+        <div class="sm:col-span-2">
+          <FieldLabel :html-for="`g-${uid}`" :tip="t('menu.row.goesWithHint')">{{ t('menu.row.goesWith') }}</FieldLabel>
+          <input :id="`g-${uid}`" v-model="goesWithText" class="field" :class="{ 'field-invalid': errors.goes_with }" type="text" placeholder="pajama-white, tupi" />
+          <p v-if="errors.goes_with" class="error-text">{{ errors.goes_with }}</p>
+        </div>
       </template>
       <div v-else class="sm:col-span-2">
         <FieldLabel :html-for="`t-${uid}`" :tip="t('menu.row.tagsHint')">{{ t('menu.row.tags') }}</FieldLabel>
@@ -206,6 +217,7 @@ const FACT_ICONS = {
 };
 
 const MAX_PHOTOS = 3; // a product's photos; the first is the one the agent shows
+const MAX_LINKS = 3; // a product's videos, and the products that go with it (backend D125)
 
 // "M, L , XL" -> ["M", "L", "XL"]
 function list(text) {
@@ -248,6 +260,8 @@ const stockText = ref('');
 // Stock per size and colour (D56): [{ size, colour, stock }], "" for any size or colour.
 const counts = ref([]);
 const wasText = ref('');
+const videosText = ref('');
+const goesWithText = ref('');
 const photos = ref([]); // their URLs, as the backend gave them
 const uploading = ref(false);
 const errors = ref({});
@@ -301,6 +315,8 @@ function fillForm() {
   stockText.value = item.stock === null || item.stock === undefined ? '' : String(item.stock);
   counts.value = (item.variants || []).map((v) => ({ size: v.size, colour: v.colour, stock: String(v.stock) }));
   wasText.value = item.was_price ? String(item.was_price / 100) : '';
+  videosText.value = (item.videos || []).join(', ');
+  goesWithText.value = (item.goes_with || []).join(', ');
   photos.value = [...(item.photos || [])];
   errors.value = {};
   confirming.value = false;
@@ -349,6 +365,12 @@ function submit() {
   if (counts.value.some((c) => c.stock === '' || !(Number.isInteger(Number(c.stock)) && Number(c.stock) >= 0))) {
     found.variants = t('menu.row.stockBySizeError');
   }
+  const videos = list(videosText.value);
+  const goesWith = list(goesWithText.value);
+  if (videos.length > MAX_LINKS || videos.some((link) => !/^https?:\/\//.test(link))) {
+    found.videos = t('menu.row.videosError');
+  }
+  if (goesWith.length > MAX_LINKS) found.goes_with = t('menu.row.goesWithError');
   if (!draft.value.name) found.name = t('menu.row.nameError');
   if (priceText.value === '' || Number.isNaN(price) || price < 0) found.price = t('menu.row.priceError');
   if (!draft.value.category) found.category = t('menu.row.categoryError');
@@ -366,6 +388,8 @@ function submit() {
           available: variants.length ? true : stock !== 0,
           was_price: was === null ? null : Math.round(was * 100),
           photos: photos.value,
+          videos,
+          goes_with: goesWith,
         }
       : {};
   emit('save', {

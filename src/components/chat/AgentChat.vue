@@ -51,12 +51,17 @@
           <div v-else class="text-[0.9375rem] leading-relaxed whitespace-pre-wrap text-ink">
             <span v-if="message.text"><template v-for="(part, i) in linkParts(message.text)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="font-medium break-all text-brand underline">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></span>
 
-            <!-- Products the agent showed (D57): swipe along a row of them; a tap opens the product's
-                 page (D121). Order this says "Order [code]", as the button on Messenger does (D123). -->
+            <!-- Products the agent showed (D57): swipe along a row of up to 10 (D125); a tap opens the
+                 product's page (D121). Order this says "Order [code]", as the button on Messenger does (D123).
+                 A product with no photo is a card with its name, and one with a video links it. -->
             <div v-if="message.photos?.length" class="-mr-4 mt-3 flex snap-x gap-3 overflow-x-auto pr-4 pb-1 sm:mr-0 sm:pr-0">
-              <div v-for="product in message.photos" :key="product.url" class="flex w-40 shrink-0 snap-start flex-col">
+              <div v-for="product in message.photos" :key="product.code" class="flex w-40 shrink-0 snap-start flex-col">
                 <a :href="productPage(product)" target="_blank" rel="noopener" class="block"><figure>
+                  <div v-if="!product.url" class="grid aspect-square w-full place-items-center rounded-[var(--radius-thumb)] bg-wash text-ink-soft ring-1 ring-hairline">
+                    <PhImage :size="28"></PhImage>
+                  </div>
                   <img
+                    v-else
                     :src="product.url"
                     :alt="product.name"
                     class="aspect-square w-full rounded-[var(--radius-thumb)] bg-wash object-cover ring-1 ring-hairline"
@@ -74,6 +79,9 @@
                     {{ t('chat.card.details') }}
                   </a>
                 </div>
+                <a v-if="product.video" :href="product.video" target="_blank" rel="noopener" class="btn btn-quiet btn-sm mt-1">
+                  ▶ {{ t('chat.card.video') }}
+                </a>
               </div>
             </div>
 
