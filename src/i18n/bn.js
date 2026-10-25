@@ -751,6 +751,13 @@ export default {
     link: 'Messenger লিংক',
     open: 'Messenger-এ খুলুন',
     disconnectWarning: 'কাস্টমাররা আপনার পেজে আর উত্তর পাবেন না।',
+    withFacebook: 'Facebook দিয়ে যুক্ত করুন',
+    withFacebookText: 'Facebook-এ লগ ইন করে আপনার পেজ বেছে নিন। HeyDesk নিজেই সেটি যুক্ত করে দেবে।',
+    loggingIn: 'Facebook-এর অপেক্ষায়...',
+    choosePage: 'কোন পেজে আপনার এজেন্ট উত্তর দেবে, বেছে নিন।',
+    noPages: 'এই Facebook অ্যাকাউন্টে কোনো পেজ নেই। যে অ্যাকাউন্ট দিয়ে আপনার পেজ চালান, সেটি দিয়ে লগ ইন করুন।',
+    sdkBlocked: 'Facebook লগ ইন লোড হয়নি। এই সাইটের জন্য ব্লকার বন্ধ করুন, অথবা আবার চেষ্টা করুন।',
+    byHand: 'এর বদলে পেজ আইডি আর টোকেন দিন',
   },
 
   whatsapp: {

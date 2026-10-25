@@ -757,6 +757,13 @@ export default {
     link: 'Messenger link',
     open: 'Open in Messenger',
     disconnectWarning: 'Customers will stop getting replies on your Page.',
+    withFacebook: 'Connect with Facebook',
+    withFacebookText: 'Log in with Facebook and choose your Page. HeyDesk connects it for you.',
+    loggingIn: 'Waiting for Facebook...',
+    choosePage: 'Choose the Page your agent answers on.',
+    noPages: 'This Facebook account manages no Pages. Log in with the account that runs your Page.',
+    sdkBlocked: "Facebook's login didn't load. Turn off a blocker for this site, or try again.",
+    byHand: 'Enter a Page ID and token instead',
   },
 
   whatsapp: {

@@ -39,10 +39,37 @@
       <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
     </div>
 
-    <!-- Not connected, steps closed. What it is sits in the row's tip. -->
+    <!-- Logged in with Facebook, several Pages: pick one -->
+    <div v-else-if="pages.length" class="flex flex-col gap-3">
+      <p class="text-sm">{{ t('messenger.choosePage') }}</p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="p in pages"
+          :key="p.id"
+          type="button"
+          class="btn btn-secondary"
+          :disabled="busy"
+          @click="connectPage(p.id)"
+        >
+          <PhFacebookLogo :size="16"></PhFacebookLogo>
+          {{ p.name }}
+        </button>
+      </div>
+      <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
+      <button type="button" class="self-start text-sm font-semibold text-ink-soft hover:underline" @click="close">{{ t('common.notNow') }}</button>
+    </div>
+
+    <!-- Not connected: Connect with Facebook. What it is sits in the row's tip. -->
     <div v-else-if="!open">
-      <p class="text-sm text-ink-soft">{{ t('common.notConnected') }}</p>
-      <button type="button" class="btn btn-secondary mt-3" @click="open = true">{{ t('messenger.setUp') }}</button>
+      <p class="text-sm text-ink-soft">{{ t('messenger.withFacebookText') }}</p>
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <button type="button" class="btn btn-primary" :disabled="busy" @click="withFacebook">
+          <PhFacebookLogo :size="16" weight="fill"></PhFacebookLogo>
+          {{ busy ? t('messenger.loggingIn') : t('messenger.withFacebook') }}
+        </button>
+        <button type="button" class="text-sm font-semibold text-ink-soft hover:underline" @click="open = true">{{ t('messenger.byHand') }}</button>
+      </div>
+      <p v-if="error" class="mt-3 text-sm text-danger" role="alert">{{ error }}</p>
     </div>
 
     <!-- Not connected: the Page id and its token -->
@@ -83,11 +110,19 @@
 <script setup>
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhArrowSquareOut, PhCheckCircle } from '@phosphor-icons/vue';
+import { PhArrowSquareOut, PhCheckCircle, PhFacebookLogo } from '@phosphor-icons/vue';
 
 import CopyField from '../ui/CopyField.vue';
 import InfoTip from '../ui/InfoTip.vue';
-import { connectMessenger, disconnectMessenger, fetchMessenger } from '../../api/messenger.js';
+import {
+  connectFacebookPage,
+  connectMessenger,
+  disconnectMessenger,
+  fetchFacebookLogin,
+  fetchFacebookPages,
+  fetchMessenger,
+} from '../../api/messenger.js';
+import { facebookLogin } from '../../lib/facebook.js';
 
 defineEmits(['copied']);
 const { t } = useI18n();
@@ -101,6 +136,8 @@ const token = ref('');
 const busy = ref(false);
 const error = ref(null);
 const confirmingDisconnect = ref(false);
+const userToken = ref(null); // Facebook's login, kept only until a Page is chosen
+const pages = ref([]); // the login's Pages, when there are several to choose from
 
 async function load() {
   loading.value = true;
@@ -115,6 +152,8 @@ async function load() {
 
 function close() {
   open.value = false;
+  userToken.value = null;
+  pages.value = [];
   pageId.value = '';
   token.value = '';
   error.value = null;
@@ -128,6 +167,45 @@ async function connect() {
     close();
   } catch (err) {
     error.value = err.fields?.token || err.fields?.page_id || err.message;
+  }
+  busy.value = false;
+}
+
+// Facebook's window: log in, then one Page connects at once and several are a list.
+async function withFacebook() {
+  busy.value = true;
+  error.value = null;
+  try {
+    const login = await fetchFacebookLogin();
+    let token = null;
+    try {
+      token = await facebookLogin(login.app_id, login.scope);
+    } catch {
+      error.value = t('messenger.sdkBlocked');
+    }
+    if (token) {
+      const found = await fetchFacebookPages(token);
+      if (found.length === 0) error.value = t('messenger.noPages');
+      else if (found.length === 1) page.value = await connectFacebookPage(token, found[0].id);
+      else {
+        userToken.value = token;
+        pages.value = found;
+      }
+    }
+  } catch (err) {
+    error.value = err.fields?.page_id || err.fields?.user_token || err.message;
+  }
+  busy.value = false;
+}
+
+async function connectPage(pageId) {
+  busy.value = true;
+  error.value = null;
+  try {
+    page.value = await connectFacebookPage(userToken.value, pageId);
+    close();
+  } catch (err) {
+    error.value = err.fields?.page_id || err.fields?.token || err.message;
   }
   busy.value = false;
 }
