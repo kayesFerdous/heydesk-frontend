@@ -494,6 +494,23 @@ export default {
   },
 
   conversations: {
+    later: {
+      search: 'Search names, phones, order codes, words',
+      done: 'Done',
+      doneHint: 'Hide it until they write again.',
+      notDone: 'Not done',
+      doneList: 'Done',
+      snooze: 'Snooze',
+      inAnHour: 'For an hour',
+      tomorrow: 'Until tomorrow, 9:00',
+      nextWeek: 'For a week',
+      wake: 'Back now',
+      snoozedUntil: 'Snoozed until {when}',
+      noMatch: 'Nothing matches',
+      noMatchText: 'Try a phone number, an order code or other words.',
+      noneDone: 'Nothing is done yet',
+      noneDoneText: 'A chat you mark Done waits here until the customer writes again.',
+    },
     them: {
       block: 'Block',
       blockHint: 'The agent stops answering them, and their messages cost nothing. They are told once.',

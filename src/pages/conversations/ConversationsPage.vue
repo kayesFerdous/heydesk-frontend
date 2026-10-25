@@ -12,6 +12,9 @@
             {{ t('status.needs_human') }}
             <span v-if="inbox.needsHuman" class="count count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
           </button>
+          <button type="button" class="tab" :class="{ 'tab-active': filter === 'done' }" :aria-pressed="filter === 'done'" @click="setFilter('done')">
+            {{ t('conversations.later.doneList') }}
+          </button>
           <!-- Who has it (backend I1): mine, or no one's yet. -->
           <template v-if="!auth.isViewing">
             <button type="button" class="tab" :class="{ 'tab-active': filter === 'mine' }" :aria-pressed="filter === 'mine'" @click="setFilter('mine')">
@@ -34,6 +37,16 @@
     <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
       <!-- The list -->
       <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
+        <!-- A name, a phone, an order code or any words (backend I3) -->
+        <div class="shrink-0 px-3 pt-3">
+          <input
+            v-model="searchText"
+            class="field"
+            type="search"
+            :placeholder="t('conversations.later.search')"
+            :aria-label="t('conversations.later.search')"
+          />
+        </div>
         <!-- One channel at a time: its logo, and its name once chosen. -->
         <nav class="flex shrink-0 flex-wrap gap-1.5 border-b border-hairline p-3" :aria-label="t('conversations.byChannel')">
           <button
@@ -65,6 +78,12 @@
 
         <SkeletonRows v-else-if="!loaded"></SkeletonRows>
 
+        <EmptyState
+          v-else-if="!rows.length && (query || filter === 'done')"
+          :icon="query ? PhMagnifyingGlass : PhCheckCircle"
+          :title="query ? t('conversations.later.noMatch') : t('conversations.later.noneDone')"
+          :text="query ? t('conversations.later.noMatchText') : t('conversations.later.noneDoneText')"
+        ></EmptyState>
         <EmptyState
           v-else-if="!rows.length && (filter === 'mine' || filter === 'unassigned')"
           :icon="PhCheckCircle"
@@ -117,6 +136,7 @@
           @handled="handled"
         >
           <template v-if="!auth.isViewing" #actions>
+            <DoneSnooze :conversation="detail" :busy="isLater" :error="laterError" @done="done" @snooze="snooze"></DoneSnooze>
             <VisitorControl :visitor="detail.visitor" :busy="isChanging" :error="changeError" @change="changeThem"></VisitorControl>
             <AssignControl
               :conversation="detail"
@@ -152,7 +172,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhChatsCircle, PhCheckCircle } from '@phosphor-icons/vue';
+import { PhChatsCircle, PhCheckCircle, PhMagnifyingGlass } from '@phosphor-icons/vue';
 
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
@@ -160,12 +180,21 @@ import ConversationSide from '../../components/conversations/ConversationSide.vu
 import AssignControl from '../../components/conversations/AssignControl.vue';
 import VisitorControl from '../../components/conversations/VisitorControl.vue';
 import BlockedList from '../../components/conversations/BlockedList.vue';
+import DoneSnooze from '../../components/conversations/DoneSnooze.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
-import { fetchConversations, fetchConversation, markHandled, assignConversation, changeVisitor } from '../../api/conversations.js';
+import {
+  fetchConversations,
+  fetchConversation,
+  markHandled,
+  assignConversation,
+  changeVisitor,
+  markDone,
+  snoozeConversation,
+} from '../../api/conversations.js';
 import { fetchMembers } from '../../api/team.js';
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
@@ -198,14 +227,19 @@ const isAssigning = ref(false);
 const assignError = ref(null);
 const isChanging = ref(false); // blocking, or turning the AI off (backend I2)
 const changeError = ref(null);
+const isLater = ref(false); // Done or Snooze (backend I3)
+const laterError = ref(null);
+const searchText = ref(''); // what's typed; `query` follows it after a pause
+const query = ref('');
+let searchTimer = null;
 
-const FILTERS = ['needs_human', 'mine', 'unassigned', 'blocked'];
+const FILTERS = ['needs_human', 'mine', 'unassigned', 'blocked', 'done'];
 const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : 'all'));
 const selectedId = computed(() => route.query.open || null);
 const channel = computed(() => (CHANNEL_IDS.includes(route.query.channel) ? route.query.channel : null));
 const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelOf(id) })));
 // What the list is showing; a page asked for under another one is dropped.
-const listKey = computed(() => `${filter.value}|${channel.value}`);
+const listKey = computed(() => `${filter.value}|${channel.value}|${query.value}`);
 
 // The list endpoint has no previews. The name is the messaging app's, else a
 // record's the conversation made; the preview from its transcript, once loaded.
@@ -251,6 +285,8 @@ function fetchPage(before) {
   return fetchConversations({
     status: filter.value === 'needs_human' ? 'needs_human' : undefined,
     assigned: { mine: 'me', unassigned: 'none' }[filter.value],
+    done: filter.value === 'done',
+    q: query.value || undefined,
     channel: channel.value || undefined,
     limit: PAGE_SIZE,
     before,
@@ -370,6 +406,29 @@ async function assign(userId) {
   isAssigning.value = false;
 }
 
+// Done or not done, snoozed or back now (backend I3). A chat that leaves this list goes from
+// it: done or snoozed out of the usual list, or not done out of "Done". A search keeps them all.
+async function later(call) {
+  const id = selectedId.value;
+  isLater.value = true;
+  laterError.value = null;
+  try {
+    const updated = await call(id);
+    details.value[id] = { ...details.value[id], ...updated };
+    const hidden = Boolean(updated.done_at) || (updated.snoozed_until && new Date(updated.snoozed_until) > new Date());
+    const fits = query.value || (filter.value === 'done' ? Boolean(updated.done_at) : !hidden);
+    list.value = fits
+      ? list.value.map((c) => (c.id === id ? { ...c, ...updated } : c))
+      : list.value.filter((c) => c.id !== id);
+    inbox.load().catch(() => {});
+  } catch (err) {
+    laterError.value = err.message; // e.g. 422: a time too far ahead
+  }
+  isLater.value = false;
+}
+const done = (isDone) => later((id) => markDone(id, isDone));
+const snooze = (until) => later((id) => snoozeConversation(id, until));
+
 // Block or unblock this chat's visitor, or turn the AI off or on for them (backend I2).
 async function changeThem(change) {
   const id = selectedId.value;
@@ -404,6 +463,10 @@ async function showMore() {
 }
 
 watch(listKey, load, { immediate: true });
+watch(searchText, (text) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => (query.value = text.trim()), 300);
+});
 // Only the owner gives a chat to someone else, so only they need the team.
 if (auth.canManage && !auth.isViewing) fetchMembers().then((found) => (members.value = found)).catch(() => {});
 watch(() => inbox.arrivals, refresh);
@@ -414,6 +477,7 @@ watch(
     handleError.value = null;
     assignError.value = null;
     changeError.value = null;
+    laterError.value = null;
     if (id && !details.value[id]) loadDetail(id);
   },
   { immediate: true },
