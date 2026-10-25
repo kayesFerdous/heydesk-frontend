@@ -12,6 +12,15 @@
             {{ t('status.needs_human') }}
             <span v-if="inbox.needsHuman" class="count count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
           </button>
+          <!-- Who has it (backend I1): mine, or no one's yet. -->
+          <template v-if="!auth.isViewing">
+            <button type="button" class="tab" :class="{ 'tab-active': filter === 'mine' }" :aria-pressed="filter === 'mine'" @click="setFilter('mine')">
+              {{ t('conversations.assign.mine') }}
+            </button>
+            <button type="button" class="tab" :class="{ 'tab-active': filter === 'unassigned' }" :aria-pressed="filter === 'unassigned'" @click="setFilter('unassigned')">
+              {{ t('conversations.assign.unassigned') }}
+            </button>
+          </template>
         </div>
       </template>
     </PageHeader>
@@ -50,6 +59,12 @@
 
         <SkeletonRows v-if="!loaded"></SkeletonRows>
 
+        <EmptyState
+          v-else-if="!rows.length && (filter === 'mine' || filter === 'unassigned')"
+          :icon="PhCheckCircle"
+          :title="filter === 'mine' ? t('conversations.assign.noneMine') : t('conversations.assign.noneFree')"
+          :text="filter === 'mine' ? t('conversations.assign.noneMineText') : t('conversations.assign.noneFreeText')"
+        ></EmptyState>
         <EmptyState
           v-else-if="!rows.length && channel && filter !== 'needs_human'"
           :icon="channelOf(channel).icon"
@@ -94,7 +109,19 @@
           class="island xl:min-h-0"
           @back="select(null)"
           @handled="handled"
-        ></ConversationTranscript>
+        >
+          <template v-if="!auth.isViewing" #actions>
+            <AssignControl
+              :conversation="detail"
+              :members="members"
+              :me-id="auth.me?.id || ''"
+              :can-assign-anyone="auth.canManage"
+              :busy="isAssigning"
+              :error="assignError"
+              @assign="assign"
+            ></AssignControl>
+          </template>
+        </ConversationTranscript>
         <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>
       </div>
       <LoadError v-else-if="detailError" class="island" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
@@ -123,12 +150,14 @@ import { PhChatsCircle, PhCheckCircle } from '@phosphor-icons/vue';
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
 import ConversationSide from '../../components/conversations/ConversationSide.vue';
+import AssignControl from '../../components/conversations/AssignControl.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
-import { fetchConversations, fetchConversation, markHandled } from '../../api/conversations.js';
+import { fetchConversations, fetchConversation, markHandled, assignConversation } from '../../api/conversations.js';
+import { fetchMembers } from '../../api/team.js';
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber } from '../../lib/format.js';
@@ -155,8 +184,12 @@ const error = ref(null);
 const detailError = ref(null);
 const isHandling = ref(false);
 const handleError = ref(null);
+const members = ref([]); // the team, for the owner's "Assign to" (backend I1)
+const isAssigning = ref(false);
+const assignError = ref(null);
 
-const filter = computed(() => (route.query.filter === 'needs_human' ? 'needs_human' : 'all'));
+const FILTERS = ['needs_human', 'mine', 'unassigned'];
+const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : 'all'));
 const selectedId = computed(() => route.query.open || null);
 const channel = computed(() => (CHANNEL_IDS.includes(route.query.channel) ? route.query.channel : null));
 const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelOf(id) })));
@@ -206,6 +239,7 @@ function select(id) {
 function fetchPage(before) {
   return fetchConversations({
     status: filter.value === 'needs_human' ? 'needs_human' : undefined,
+    assigned: { mine: 'me', unassigned: 'none' }[filter.value],
     channel: channel.value || undefined,
     limit: PAGE_SIZE,
     before,
@@ -301,6 +335,29 @@ async function handled() {
   isHandling.value = false;
 }
 
+// Someone takes the chat, gives it back, or the owner gives it to someone (backend I1).
+// It leaves "Mine" or "Unassigned" when it no longer fits there.
+async function assign(userId) {
+  const id = selectedId.value;
+  isAssigning.value = true;
+  assignError.value = null;
+  try {
+    const updated = await assignConversation(id, userId);
+    details.value[id] = { ...details.value[id], ...updated };
+    const fits =
+      (filter.value === 'mine' && updated.assigned_to === auth.me?.id) ||
+      (filter.value === 'unassigned' && !updated.assigned_to) ||
+      !['mine', 'unassigned'].includes(filter.value);
+    list.value = fits
+      ? list.value.map((c) => (c.id === id ? { ...c, ...updated } : c))
+      : list.value.filter((c) => c.id !== id);
+  } catch (err) {
+    // e.g. 403: a colleague took it first. Show the sentence.
+    assignError.value = err.message;
+  }
+  isAssigning.value = false;
+}
+
 // The next page: conversations quieter than the oldest one on screen.
 async function showMore() {
   const asked = listKey.value;
@@ -321,12 +378,15 @@ async function showMore() {
 }
 
 watch(listKey, load, { immediate: true });
+// Only the owner gives a chat to someone else, so only they need the team.
+if (auth.canManage && !auth.isViewing) fetchMembers().then((found) => (members.value = found)).catch(() => {});
 watch(() => inbox.arrivals, refresh);
 watch(
   selectedId,
   (id) => {
     detailError.value = null;
     handleError.value = null;
+    assignError.value = null;
     if (id && !details.value[id]) loadDetail(id);
   },
   { immediate: true },

@@ -14,6 +14,8 @@
         <h2 class="truncate text-lg font-bold">{{ name }}</h2>
         <p class="truncate text-sm text-ink-soft">{{ channel.long }}, {{ when }}</p>
       </div>
+      <!-- Who has it (backend I1), from the page. -->
+      <slot name="actions"></slot>
     </header>
 
     <div class="px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
