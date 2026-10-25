@@ -3,7 +3,7 @@
     <div class="max-w-2xl">
       <h2 class="section-title">
         {{ sheet ? t('menu.sheet.title') : t('menu.import.title') }}
-        <InfoTip :text="sheet ? t('menu.sheet.intro') : t('menu.import.intro')" class="ml-0.5 -translate-y-px"></InfoTip>
+        <InfoTip :text="sheet ? t('menu.sheet.intro') : adds ? t('menu.import.introShop') : t('menu.import.intro')" class="ml-0.5 -translate-y-px"></InfoTip>
       </h2>
 
       <!-- A Google Sheet (backend D58): its link, shared as "Anyone with the link". -->
@@ -85,16 +85,18 @@
             <span class="font-semibold">{{ formatMoney(item.price) }}</span>
           </li>
         </ul>
-        <p class="mt-3 text-sm text-attention">
+        <p v-if="adds" class="mt-3 text-sm text-ink-soft">{{ t('menu.import.adds') }}</p>
+        <p v-else class="mt-3 text-sm text-attention">
           {{ t('menu.import.replaces', { n: formatNumber(currentCount), noun: itemNoun(kind, currentCount) }) }}
         </p>
-        <p v-if="sheet" class="mt-1 text-sm text-ink-soft">{{ t('menu.sheet.after') }}</p>
+        <p v-if="sheet" class="mt-1 text-sm text-ink-soft">{{ adds ? t('menu.sheet.afterShop') : t('menu.sheet.after') }}</p>
       </div>
 
       <div class="mt-5 flex gap-2">
         <button v-if="result" type="button" class="btn btn-primary" :disabled="busy" @click="confirm">
           <template v-if="busy">{{ t('menu.import.importing') }}</template>
           <template v-else-if="sheet">{{ t('menu.sheet.keep', { n: formatNumber(result.count) }) }}</template>
+          <template v-else-if="adds">{{ t('menu.import.addWith', { n: formatNumber(result.count) }) }}</template>
           <template v-else>{{ t('menu.import.replaceWith', { n: formatNumber(result.count) }) }}</template>
         </button>
         <button type="button" class="btn btn-quiet" :disabled="busy" @click="$emit('close')">{{ t('common.cancel') }}</button>
@@ -121,8 +123,11 @@ const props = defineProps({
   // From a Google Sheet that stays linked, instead of a file read once.
   sheet: { type: Boolean, default: false },
 });
+// `imported`: with what the import answered, `{ saved, count, preview, added }`.
 const emit = defineEmits(['close', 'imported']);
 const { t, te } = useI18n();
+// A shop's import adds and updates, and never deletes (backend D120); the others replace.
+const adds = props.kind === 'shop';
 
 const csv = ref('');
 const fileName = ref('');
@@ -223,8 +228,7 @@ async function confirm() {
   busy.value = true;
   clearError();
   try {
-    await send(false);
-    emit('imported');
+    emit('imported', await send(false));
   } catch (err) {
     showError(err);
   }

@@ -51,9 +51,16 @@
           <div v-else class="text-[0.9375rem] leading-relaxed whitespace-pre-wrap text-ink">
             <span v-if="message.text"><template v-for="(part, i) in linkParts(message.text)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="font-medium break-all text-brand underline">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></span>
 
-            <!-- Products the agent showed (D57): swipe along a row of them. -->
+            <!-- Products the agent showed (D57): swipe along a row of them; a tap opens the product's page (D121). -->
             <div v-if="message.photos?.length" class="-mr-4 mt-3 flex snap-x gap-3 overflow-x-auto pr-4 pb-1 sm:mr-0 sm:pr-0">
-              <figure v-for="product in message.photos" :key="product.url" class="w-40 shrink-0 snap-start">
+              <a
+                v-for="product in message.photos"
+                :key="product.url"
+                :href="productPage(product)"
+                target="_blank"
+                rel="noopener"
+                class="block w-40 shrink-0 snap-start"
+              ><figure>
                 <img
                   :src="product.url"
                   :alt="product.name"
@@ -63,7 +70,7 @@
                   <span class="line-clamp-2 font-medium">{{ product.name }}</span>
                   <span class="text-ink-soft">{{ product.price }}</span>
                 </figcaption>
-              </figure>
+              </figure></a>
             </div>
 
             <!-- What a tool showed: a bill to say yes to, a receipt, where an order is, doctors (D110). -->
@@ -239,6 +246,11 @@ const props = defineProps({
 // `reply`: the agent finished a reply or the team wrote, for the website's unread dot.
 const emit = defineEmits(['reply']);
 const { t } = useI18n();
+
+// A product's public page, on the backend (D121): `from=web`, as closing it goes back here.
+function productPage(product) {
+  return `/p/${props.publicKey}/${encodeURIComponent(product.code)}?from=web`;
+}
 
 const messages = ref([]);
 const conversationId = ref(null);

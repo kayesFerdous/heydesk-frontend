@@ -70,7 +70,7 @@ lists) and can read the settings, but gets 403 `forbidden` on any change under `
 | `PATCH /agent` `{...config fields}` | Top-level fields replace: send the whole `knowledge`, the whole `handoff`. Live on next message. 422 `invalid_config` |
 | `GET /agent/items` | The menu/services list |
 | `PUT /agent/items` `[Item]` | Replace the whole list, in order |
-| `POST /menu/import`, `/doctors/import`, `/products/import` `{csv, mapping?, dry_run?}` | `{saved, count, preview[5]}`. Replaces the list unless `dry_run`. `mapping` is `{ourField: theirColumn}` from `/suggest`, as the owner checked it; without it columns are matched by name. 422 `invalid_config` with `fields` per row ("row 3") or `mapping` (D53) |
+| `POST /menu/import`, `/doctors/import`, `/products/import` `{csv, mapping?, dry_run?}` | `{saved, count, preview[5], added}`. Replaces the list unless `dry_run`; a shop's `/products/import` adds instead (D120): a row with the code, or else the name, of a product it has updates it, the rest are added (`added`: how many; null on a dry run), none is deleted. `mapping` is `{ourField: theirColumn}` from `/suggest`, as the owner checked it; without it columns are matched by name. 422 `invalid_config` with `fields` per row ("row 3") or `mapping` (D53) |
 | `POST /menu/import/suggest`, `/doctors/import/suggest`, `/products/import/suggest` `{csv}` | `{columns[{name, about, required}], headers[], samples[3]{header: text}, mapping{field: header}, by_ai}`. The AI's guess at the match; `by_ai: false` means it matched by name only. One model call per request (D53) |
 | `POST /agent/sheet/suggest` `{url}` | A Google Sheet's link (shared "Anyone with the link: Viewer"): the same answer as the import's `/suggest`, for that tab. 422 `invalid_config` `fields.url` for a link that isn't a sheet or a sheet that isn't shared (D58) |
 | `PUT /agent/sheet` `{url, mapping, dry_run?}` | Answers like the import: `{saved, count, preview[5]}`, 422 per row. Unless `dry_run`, links the sheet and takes the list from it; from then on the server reads it every 5 minutes (D58) |
@@ -84,15 +84,18 @@ lists) and can read the settings, but gets 403 `forbidden` on any change under `
 
 `Item`: `{code, name, description, price (minor units), category, tags[], available, attributes{}}`.
 
-While a sheet is linked, the list is the sheet's: `PUT /menu`, `PUT /doctors`
-and every CSV import are 409 `sheet_linked`, and `PUT /products` takes only
-each product's `photos`. A shop's stock in the sheet is what's on the shelf:
-the server takes off orders not shipped yet, and only when a product's stock
-cell changed (D58). The Products/Menu/Doctors page shows `SheetBar` and locks
-the rows (`ItemRow` `locked`: a shop can still change photos).
+While a sheet is linked, a menu or doctors list is the sheet's: `PUT /menu`,
+`PUT /doctors` and their CSV imports are 409 `sheet_linked`, and the page locks
+the rows (`ItemRow` `locked`). A shop's sheet only adds and updates its own
+products (D120): `PUT /products` and `/products/import` still work, a product
+the sheet has changes back when its row changes there, and one deleted in the
+sheet leaves the list; the rest stay. A shop's stock in the sheet is what's on
+the shelf: the server takes off orders not shipped yet, and only when a
+product's stock cell changed (D58). The page shows `SheetBar`.
 
-A shop can link its WooCommerce store instead of a sheet (D75), never both: the
-same 409 `sheet_linked` and photos-only `PUT /products` apply. Its stock is the
+A shop can link its WooCommerce store instead of a sheet (D75), never both
+(409 `sheet_linked`). Like a sheet it adds and updates its own products, and a
+product deleted in the store leaves the list (D120). Its stock is the
 store's, and the orders placed here are written into the store, so the owner sees
 them in WooCommerce too. The Products page has "From WooCommerce" in the Import
 menu (`WooPanel`) and shows `WooBar` while one is linked.
@@ -114,7 +117,13 @@ sizes[], colours[], stock (null: not counted; 0: sold out), variants[], photos[]
 Products page shows `was_price` crossed out when it's above `price`. `photos` (D57): up to 3 URLs
 from `POST /products/photos` (`/media/...`, served by the backend; the dev server forwards
 `/media`); the first is the one the agent shows. A URL that isn't one of the business's product
-photos is a 422. A CSV import keeps each product's photos by its code.
+photos is a 422. A CSV import keeps each product's photos when its row has none.
+
+A product's public page is `<backend>/p/<public_key>/<code>?from=web|messenger|telegram|whatsapp`
+(D121): server-rendered HTML with its photos, name, price, the sizes and colours in stock and
+the description, and on Messenger and Telegram a button back to the chat. Anything else is a
+404 page. The chat's product cards (`AgentChat`) open it in a new tab; the dev server and
+Vercel forward `/p/` to the backend.
 
 `Variant` (D56): `{size, colour, stock}`, stock per size and colour. An empty size or colour means
 any of them (`{size: "L", colour: "", stock: 4}` counts L in every colour). When there are variants
@@ -271,7 +280,7 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 |---|---|
 | `GET /conversations?status=active\|needs_human&channel=` | `[{id, channel, name, status, created_at, updated_at}]`. `name`: the visitor's name from Telegram or WhatsApp, else null (backend D104). `channel`: web, voice, telegram, messenger or whatsapp (422 for another); the Conversations page's channel filter (`?channel=` in its URL) |
 | `PATCH /conversations/{id}` `{status: "active"}` | Marks a hand-off handled: the agent answers again, as after `/done` on Telegram (D83). `status` is `active`, `needs_human` or `human` (the team is answering, D43); only `active` is accepted (422), and a conversation already `active` is 409 `invalid_transition`. Client: `markHandled` in `api/conversations.js` |
-| `GET /conversations/{id}` | Plus `messages[{role: user/assistant, text, photo, photos}]` and `records[]`. `photo`: the URL of the photo the visitor sent (their `text` starts with the backend's `[Photo. ...]` line); `photos`: `[{name, price, url}]` the agent showed, on a line with empty `text` (D57) |
+| `GET /conversations/{id}` | Plus `messages[{role: user/assistant, text, photo, photos}]` and `records[]`. `photo`: the URL of the photo the visitor sent (their `text` starts with the backend's `[Photo. ...]` line); `photos`: `[{code, name, price, url}]` the agent showed, on a line with empty `text` (D57) |
 
 ### Visitor chat (`chat.js`, public, the public key is the credential)
 | Call | What it does |

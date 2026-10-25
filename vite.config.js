@@ -41,6 +41,10 @@ export default defineConfig({
       '/pay/': {
         target: 'http://localhost:8000',
       },
+      // A product's public page (/p/<key>/<code>, backend D121), from a product card in the chat.
+      '/p/': {
+        target: 'http://localhost:8000',
+      },
       // The gateway's return after paying for a plan (/billing/<id>/back, /billing/<id>/bkash).
       // The trailing slash keeps the SPA's own /billing page here.
       '/billing/': {

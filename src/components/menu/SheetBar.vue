@@ -6,7 +6,7 @@
       <PhTable v-else :size="16" class="mt-0.5 shrink-0 text-success"></PhTable>
       <div class="min-w-0">
         <p>
-          {{ t('menu.sheet.linked') }}
+          {{ kind === 'shop' ? t('menu.sheet.linkedShop') : t('menu.sheet.linked') }}
           <a :href="sheet.url" target="_blank" rel="noopener" class="font-medium text-brand hover:underline">{{ t('menu.sheet.open') }}</a>
         </p>
         <p v-if="error || sheet.problem" class="text-danger" role="alert">{{ error || sheet.problem }}</p>
@@ -38,6 +38,7 @@ import { useAuthStore } from '../../stores/auth.js';
 
 defineProps({
   sheet: { type: Object, required: true }, // { url, synced_at, problem }
+  kind: { type: String, default: null }, // the desk: a shop's sheet joins its list (backend D120)
 });
 // `synced`: the sheet as read now; `unlinked`: the list is edited here again.
 const emit = defineEmits(['synced', 'unlinked']);

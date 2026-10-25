@@ -3,7 +3,7 @@
        bring a list in, and the list itself. -->
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
-      <template v-if="loaded && !linked && auth.canManage" #actions>
+      <template v-if="loaded && !locked && auth.canManage" #actions>
         <!-- The ways to bring a whole list in, behind one button. -->
         <div ref="importRoot" class="relative">
           <button type="button" class="btn btn-secondary" aria-haspopup="menu" :aria-expanded="importMenu" @click="importMenu = !importMenu">
@@ -16,11 +16,11 @@
               <PhFileCsv :size="18" class="text-ink-soft"></PhFileCsv>
               {{ t('menu.import.fromFile') }}
             </button>
-            <button type="button" class="menu-item" role="menuitem" @click="openPanel('sheet')">
+            <button v-if="!linked" type="button" class="menu-item" role="menuitem" @click="openPanel('sheet')">
               <PhTable :size="18" class="text-ink-soft"></PhTable>
               {{ t('menu.sheet.fromSheet') }}
             </button>
-            <button v-if="agent.kind === 'shop'" type="button" class="menu-item" role="menuitem" @click="openPanel('woo')">
+            <button v-if="agent.kind === 'shop' && !linked" type="button" class="menu-item" role="menuitem" @click="openPanel('woo')">
               <PhStorefront :size="18" class="text-ink-soft"></PhStorefront>
               {{ t('menu.woo.fromWoo') }}
             </button>
@@ -63,8 +63,13 @@
       </div>
     </div>
 
-    <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
+    <SheetBar v-if="sheet" :sheet="sheet" :kind="agent.kind" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
     <WooBar v-if="woo" :woo="woo" @synced="onSynced('woo', $event)" @unlinked="woo = null"></WooBar>
+
+    <p v-if="merged" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-success sm:px-8" role="status">
+      <PhCheckCircle :size="16" class="shrink-0"></PhCheckCircle>
+      {{ merged }}
+    </p>
 
     <p v-if="saveError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
       <PhWarningCircle :size="16" class="shrink-0"></PhWarningCircle>
@@ -117,7 +122,7 @@
         :editing="editingCode === item.code"
         :categories="allCategories"
         :kind="agent.kind"
-        :locked="linked"
+        :locked="locked"
         @toggle="toggle(item)"
         @edit="editingCode = item.code"
         @cancel="editingCode = null"
@@ -146,7 +151,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable } from '@phosphor-icons/vue';
+import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable, PhCheckCircle } from '@phosphor-icons/vue';
 
 import ItemRow from '../../components/menu/ItemRow.vue';
 import ImportPanel from '../../components/menu/ImportPanel.vue';
@@ -189,8 +194,12 @@ const sheet = ref(null); // the linked Google Sheet, { url, synced_at, problem }
 const woo = ref(null); // a shop's linked WooCommerce store, { url, products, synced_at, problem }, or null
 const limit = ref(PAGE_SIZE);
 
-// The list comes from a sheet or a store: it's changed there, so the rows are locked.
+// The list comes from a sheet or a store. It's changed there, so the rows are locked,
+// except a shop's: its sheet or store only adds and updates its own products (backend D120).
 const linked = computed(() => !!sheet.value || !!woo.value);
+const locked = computed(() => linked.value && agent.kind !== 'shop');
+// "3 added, 5 updated": what a shop's last import did.
+const merged = ref(null);
 const label = computed(() => itemsLabel(agent.kind));
 const noun = computed(() => itemNoun(agent.kind));
 const allCategories = computed(() => [...new Set(items.value.map((item) => item.category))]);
@@ -319,7 +328,11 @@ async function onWooLinked(linkedStore) {
   await onImported();
 }
 
-async function onImported() {
+async function onImported(saved) {
+  merged.value =
+    saved?.added != null
+      ? t('menu.import.merged', { added: formatNumber(saved.added), updated: formatNumber(saved.count - saved.added) })
+      : null;
   importOpen.value = null;
   category.value = null;
   await load();
