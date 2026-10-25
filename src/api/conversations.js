@@ -32,3 +32,14 @@ export function markHandled(conversationId) {
 export function assignConversation(conversationId, userId) {
   return request(`/conversations/${conversationId}/assignee`, { method: 'PUT', body: { user_id: userId } });
 }
+
+// Block or unblock a visitor, or turn the AI off or on for them (backend I2): { blocked } or
+// { ai_off }. Owners and moderators. Returns the visitor as it is now.
+export function changeVisitor(visitorId, change) {
+  return request(`/visitors/${visitorId}`, { method: 'PATCH', body: change });
+}
+
+// Who is blocked now, with their latest chat, newest block first (backend I2).
+export function fetchBlocked() {
+  return request('/visitors/blocked');
+}

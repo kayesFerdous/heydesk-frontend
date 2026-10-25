@@ -494,6 +494,22 @@ export default {
   },
 
   conversations: {
+    them: {
+      block: 'Block',
+      blockHint: 'The agent stops answering them, and their messages cost nothing. They are told once.',
+      unblock: 'Unblock',
+      aiOff: 'Turn AI off',
+      aiOn: 'Turn AI on',
+      aiOffHint: 'Your team answers them by hand. Their messages still come to you, and cost nothing.',
+      aiIsOff: 'AI off',
+      blockedList: 'Blocked',
+      byTeam: 'Blocked by {email}',
+      until: '{why}, until {until}',
+      why: { flooding: 'Blocked for sending too many messages', off_topic: 'Blocked for chatting off topic' },
+      someone: 'A visitor',
+      noneBlocked: 'Nobody is blocked',
+      noneBlockedText: 'Someone you block, or who floods the chat, shows up here.',
+    },
     assign: {
       filter: 'Who has it',
       mine: 'Mine',

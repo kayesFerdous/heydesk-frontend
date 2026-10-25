@@ -20,6 +20,10 @@
             <button type="button" class="tab" :class="{ 'tab-active': filter === 'unassigned' }" :aria-pressed="filter === 'unassigned'" @click="setFilter('unassigned')">
               {{ t('conversations.assign.unassigned') }}
             </button>
+            <!-- Who is blocked (backend I2) -->
+            <button type="button" class="tab" :class="{ 'tab-active': filter === 'blocked' }" :aria-pressed="filter === 'blocked'" @click="setFilter('blocked')">
+              {{ t('conversations.them.blockedList') }}
+            </button>
           </template>
         </div>
       </template>
@@ -57,7 +61,9 @@
           </button>
         </nav>
 
-        <SkeletonRows v-if="!loaded"></SkeletonRows>
+        <BlockedList v-if="filter === 'blocked'" @open="select"></BlockedList>
+
+        <SkeletonRows v-else-if="!loaded"></SkeletonRows>
 
         <EmptyState
           v-else-if="!rows.length && (filter === 'mine' || filter === 'unassigned')"
@@ -111,6 +117,7 @@
           @handled="handled"
         >
           <template v-if="!auth.isViewing" #actions>
+            <VisitorControl :visitor="detail.visitor" :busy="isChanging" :error="changeError" @change="changeThem"></VisitorControl>
             <AssignControl
               :conversation="detail"
               :members="members"
@@ -151,12 +158,14 @@ import ConversationRow from '../../components/conversations/ConversationRow.vue'
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
 import ConversationSide from '../../components/conversations/ConversationSide.vue';
 import AssignControl from '../../components/conversations/AssignControl.vue';
+import VisitorControl from '../../components/conversations/VisitorControl.vue';
+import BlockedList from '../../components/conversations/BlockedList.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
-import { fetchConversations, fetchConversation, markHandled, assignConversation } from '../../api/conversations.js';
+import { fetchConversations, fetchConversation, markHandled, assignConversation, changeVisitor } from '../../api/conversations.js';
 import { fetchMembers } from '../../api/team.js';
 import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
@@ -187,8 +196,10 @@ const handleError = ref(null);
 const members = ref([]); // the team, for the owner's "Assign to" (backend I1)
 const isAssigning = ref(false);
 const assignError = ref(null);
+const isChanging = ref(false); // blocking, or turning the AI off (backend I2)
+const changeError = ref(null);
 
-const FILTERS = ['needs_human', 'mine', 'unassigned'];
+const FILTERS = ['needs_human', 'mine', 'unassigned', 'blocked'];
 const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : 'all'));
 const selectedId = computed(() => route.query.open || null);
 const channel = computed(() => (CHANNEL_IDS.includes(route.query.channel) ? route.query.channel : null));
@@ -264,6 +275,7 @@ function loadPreviews(conversations) {
 }
 
 async function load() {
+  if (filter.value === 'blocked') return; // the Blocked list loads its own rows
   error.value = null;
   loaded.value = false;
   moreError.value = null;
@@ -290,7 +302,7 @@ async function load() {
 // New work came in (the counts went up): the first page again, quietly, the
 // old rows staying until it arrives. Rows that moved on load their preview again.
 async function refresh() {
-  if (!loaded.value) return;
+  if (!loaded.value || filter.value === 'blocked') return;
   const asked = listKey.value;
   try {
     const [page, records] = await Promise.all([fetchPage(), fetchRecords()]);
@@ -358,6 +370,20 @@ async function assign(userId) {
   isAssigning.value = false;
 }
 
+// Block or unblock this chat's visitor, or turn the AI off or on for them (backend I2).
+async function changeThem(change) {
+  const id = selectedId.value;
+  isChanging.value = true;
+  changeError.value = null;
+  try {
+    const visitor = await changeVisitor(details.value[id].visitor.id, change);
+    details.value[id] = { ...details.value[id], visitor };
+  } catch (err) {
+    changeError.value = err.message;
+  }
+  isChanging.value = false;
+}
+
 // The next page: conversations quieter than the oldest one on screen.
 async function showMore() {
   const asked = listKey.value;
@@ -387,6 +413,7 @@ watch(
     detailError.value = null;
     handleError.value = null;
     assignError.value = null;
+    changeError.value = null;
     if (id && !details.value[id]) loadDetail(id);
   },
   { immediate: true },
