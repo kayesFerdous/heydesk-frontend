@@ -117,7 +117,7 @@ sizes[], colours[], stock (null: not counted; 0: sold out), variants[], photos[]
 Products page shows `was_price` crossed out when it's above `price`. `photos` (D57): up to 3 URLs
 from `POST /products/photos` (`/media/...`, served by the backend; the dev server forwards
 `/media`); the first is the one the agent shows. A URL that isn't one of the business's product
-photos is a 422. A CSV import keeps each product's photos when its row has none.
+photos is a 422; only photos new to the list are checked, so one saved before never blocks a save (D122). A CSV import keeps each product's photos when its row has none.
 
 A product's public page is `<backend>/p/<public_key>/<code>?from=web|messenger|telegram|whatsapp`
 (D121): server-rendered HTML with its photos, name, price, the sizes and colours in stock and
