@@ -51,26 +51,30 @@
           <div v-else class="text-[0.9375rem] leading-relaxed whitespace-pre-wrap text-ink">
             <span v-if="message.text"><template v-for="(part, i) in linkParts(message.text)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="font-medium break-all text-brand underline">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></span>
 
-            <!-- Products the agent showed (D57): swipe along a row of them; a tap opens the product's page (D121). -->
+            <!-- Products the agent showed (D57): swipe along a row of them; a tap opens the product's
+                 page (D121). Order this says "Order [code]", as the button on Messenger does (D123). -->
             <div v-if="message.photos?.length" class="-mr-4 mt-3 flex snap-x gap-3 overflow-x-auto pr-4 pb-1 sm:mr-0 sm:pr-0">
-              <a
-                v-for="product in message.photos"
-                :key="product.url"
-                :href="productPage(product)"
-                target="_blank"
-                rel="noopener"
-                class="block w-40 shrink-0 snap-start"
-              ><figure>
-                <img
-                  :src="product.url"
-                  :alt="product.name"
-                  class="aspect-square w-full rounded-[var(--radius-thumb)] bg-wash object-cover ring-1 ring-hairline"
-                />
-                <figcaption class="mt-2 text-[0.8125rem] leading-snug whitespace-normal">
-                  <span class="line-clamp-2 font-medium">{{ product.name }}</span>
-                  <span class="text-ink-soft">{{ product.price }}</span>
-                </figcaption>
-              </figure></a>
+              <div v-for="product in message.photos" :key="product.url" class="flex w-40 shrink-0 snap-start flex-col">
+                <a :href="productPage(product)" target="_blank" rel="noopener" class="block"><figure>
+                  <img
+                    :src="product.url"
+                    :alt="product.name"
+                    class="aspect-square w-full rounded-[var(--radius-thumb)] bg-wash object-cover ring-1 ring-hairline"
+                  />
+                  <figcaption class="mt-2 text-[0.8125rem] leading-snug whitespace-normal">
+                    <span class="line-clamp-2 font-medium">{{ product.name }}</span>
+                    <span class="text-ink-soft">{{ product.price }}</span>
+                  </figcaption>
+                </figure></a>
+                <div class="mt-2 flex gap-1.5 whitespace-normal">
+                  <button type="button" class="btn btn-primary btn-sm flex-1" :disabled="sending" @click="ask(`Order [${product.code}]`)">
+                    {{ t('chat.card.order') }}
+                  </button>
+                  <a :href="productPage(product)" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                    {{ t('chat.card.details') }}
+                  </a>
+                </div>
+              </div>
             </div>
 
             <!-- What a tool showed: a bill to say yes to, a receipt, where an order is, doctors (D110). -->

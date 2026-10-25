@@ -254,6 +254,8 @@ export default {
     card: {
       total: 'মোট',
       pay: 'এখনই পেমেন্ট করুন',
+      order: 'অর্ডার করুন',
+      details: 'বিস্তারিত',
       fee: 'ফি {money}',
       book: 'বুক করুন',
       done: 'হয়ে গেছে',

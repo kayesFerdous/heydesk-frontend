@@ -256,6 +256,8 @@ export default {
     card: {
       total: 'Total',
       pay: 'Pay now',
+      order: 'Order this',
+      details: 'Details',
       fee: 'Fee {money}',
       book: 'Book',
       done: 'done',
