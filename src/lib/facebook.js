@@ -25,10 +25,14 @@ function loadSdk(appId) {
   return loading;
 }
 
-// Opens Facebook's login window. The user token, or null if the owner closed it.
-export async function facebookLogin(appId, scope) {
+// Opens Facebook's login window. `configId` is our Facebook Login for Business
+// configuration, which holds the permissions (backend D119). The user token, or
+// null if the owner closed it.
+export async function facebookLogin(appId, configId) {
   const FB = await loadSdk(appId);
   return new Promise((resolve) => {
-    FB.login((response) => resolve(response.authResponse?.accessToken || null), { scope });
+    FB.login((response) => resolve(response.authResponse?.accessToken || null), {
+      config_id: configId,
+    });
   });
 }

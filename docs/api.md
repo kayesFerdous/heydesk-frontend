@@ -201,7 +201,7 @@ and never returned. Alerts for the owner stay on Telegram.
 | `GET /agent/messenger` | `{page_id, link}` (`https://m.me/<page_id>`). 404 while no Page is connected |
 | `PUT /agent/messenger` `{token, page_id}` | Subscribes the Page's `messages` (Facebook accepts that only for the right token and Page, backend D61); connecting again replaces it. 422 `invalid_config` with `fields.token` for a token Facebook refuses for that Page, or `fields.page_id` for a Page another business has; 400 if the server has no `META_APP_SECRET` |
 | `DELETE /agent/messenger` | 204. The Page stops being answered |
-| `GET /agent/messenger/login` | `{app_id, scope}` for Facebook's JS SDK login, Connect with Facebook (backend D118). 400 if the server has no `META_APP_ID` |
+| `GET /agent/messenger/login` | `{app_id, config_id}` for Facebook's JS SDK login, Connect with Facebook (backend D118): `FB.login` takes the Facebook Login for Business configuration, not a scope (D119). 400 if the server has no `META_APP_ID` or `META_LOGIN_CONFIG_ID` |
 | `POST /agent/messenger/pages` `{user_token}` | `[{id, name}]`: the Pages that Facebook login manages, never their tokens. 422 `fields.user_token` if Facebook refuses the login. Owner only |
 | `POST /agent/messenger/facebook` `{user_token, page_id}` | Connects that Page with its token from the login, like `PUT`; answers `{page_id, link}`. 422 `fields.page_id` if the login doesn't manage it. Owner only |
 

@@ -19,7 +19,7 @@ export function connectMessenger(pageId, pageToken) {
   return request('/agent/messenger', { method: 'PUT', body: { page_id: pageId, token: pageToken } });
 }
 
-// Connect with Facebook (backend D118): `{app_id, scope}` for Facebook's login.
+// Connect with Facebook (backend D118): `{app_id, config_id}` for Facebook's login (D119).
 export function fetchFacebookLogin() {
   return request('/agent/messenger/login');
 }

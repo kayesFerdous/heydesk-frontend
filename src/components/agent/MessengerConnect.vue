@@ -179,7 +179,7 @@ async function withFacebook() {
     const login = await fetchFacebookLogin();
     let token = null;
     try {
-      token = await facebookLogin(login.app_id, login.scope);
+      token = await facebookLogin(login.app_id, login.config_id);
     } catch {
       error.value = t('messenger.sdkBlocked');
     }
