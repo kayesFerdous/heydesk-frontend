@@ -841,6 +841,11 @@ export default {
     numberId: 'Number ID {id}',
     connectedText: 'Customers message your WhatsApp number and your agent answers. Alerts for you still come to Telegram.',
     disconnectWarning: 'Customers will stop getting replies on WhatsApp.',
+    withWhatsApp: 'Connect with WhatsApp',
+    withWhatsAppText: "Log in with Facebook, then add and verify your number in Meta's window. HeyDesk connects it for you.",
+    waiting: 'Waiting for Meta...',
+    notFinished: "The signup didn't finish, so no number was connected. Try again.",
+    byHand: 'Enter the IDs and a token instead',
   },
 
   sslcommerz: {

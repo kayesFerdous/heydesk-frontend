@@ -35,10 +35,17 @@
       <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
     </div>
 
-    <!-- Not connected, steps closed. What it is sits in the row's tip. -->
+    <!-- Not connected: Connect with WhatsApp. What it is sits in the row's tip. -->
     <div v-else-if="!open">
-      <p class="text-sm text-ink-soft">{{ t('common.notConnected') }}</p>
-      <button type="button" class="btn btn-secondary mt-3" @click="open = true">{{ t('whatsapp.setUp') }}</button>
+      <p class="text-sm text-ink-soft">{{ t('whatsapp.withWhatsAppText') }}</p>
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <button type="button" class="btn btn-primary" :disabled="busy" @click="withWhatsApp">
+          <PhWhatsappLogo :size="16" weight="fill"></PhWhatsappLogo>
+          {{ busy ? t('whatsapp.waiting') : t('whatsapp.withWhatsApp') }}
+        </button>
+        <button type="button" class="text-sm font-semibold text-ink-soft hover:underline" @click="open = true">{{ t('whatsapp.byHand') }}</button>
+      </div>
+      <p v-if="error" class="mt-3 text-sm text-danger" role="alert">{{ error }}</p>
     </div>
 
     <!-- Not connected: the two ids side by side, then the token. -->
@@ -71,11 +78,12 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCheckCircle } from '@phosphor-icons/vue';
+import { PhCheckCircle, PhWhatsappLogo } from '@phosphor-icons/vue';
 
 import FieldLabel from '../ui/FieldLabel.vue';
 import InfoTip from '../ui/InfoTip.vue';
-import { connectWhatsApp, disconnectWhatsApp, fetchWhatsApp } from '../../api/whatsapp.js';
+import { connectWhatsApp, connectWhatsAppSignup, disconnectWhatsApp, fetchWhatsApp, fetchWhatsAppLogin } from '../../api/whatsapp.js';
+import { whatsappSignup } from '../../lib/facebook.js';
 
 const { t } = useI18n();
 
@@ -121,6 +129,26 @@ async function connect() {
     close();
   } catch (err) {
     error.value = err.fields?.token || err.fields?.phone_id || err.fields?.account_id || err.message;
+  }
+  busy.value = false;
+}
+
+// Meta's Embedded Signup window (backend D155): the owner adds their number there.
+async function withWhatsApp() {
+  busy.value = true;
+  error.value = null;
+  try {
+    const login = await fetchWhatsAppLogin();
+    let signup = null;
+    try {
+      signup = await whatsappSignup(login.app_id, login.config_id);
+      if (!signup) error.value = t('whatsapp.notFinished');
+    } catch {
+      error.value = t('messenger.sdkBlocked');
+    }
+    if (signup) number.value = await connectWhatsAppSignup(signup.code, signup.accountId, signup.phoneId);
+  } catch (err) {
+    error.value = err.fields?.code || err.fields?.phone_id || err.message;
   }
   busy.value = false;
 }

@@ -36,3 +36,47 @@ export async function facebookLogin(appId, configId) {
     });
   });
 }
+
+// Opens Meta's Embedded Signup window (backend D155), where the owner adds and
+// verifies their WhatsApp number. The code comes to FB.login's callback; the
+// account's and number's ids come in a message from Facebook's window, usually
+// first. `{code, accountId, phoneId}`, or null if the owner closed it before the end.
+export async function whatsappSignup(appId, configId) {
+  const FB = await loadSdk(appId);
+  return new Promise((resolve) => {
+    let ids = null;
+    let code = null;
+    let timer = 0;
+    const done = (result) => {
+      window.removeEventListener('message', onMessage);
+      window.clearTimeout(timer);
+      resolve(result);
+    };
+    const onMessage = (event) => {
+      if (!event.origin.endsWith('facebook.com') || typeof event.data !== 'string') return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type !== 'WA_EMBEDDED_SIGNUP' || data.event !== 'FINISH') return;
+        ids = { accountId: data.data.waba_id, phoneId: data.data.phone_number_id };
+        if (code) done({ code, ...ids });
+      } catch {
+        // another of Facebook's messages, not JSON
+      }
+    };
+    window.addEventListener('message', onMessage);
+    FB.login(
+      (response) => {
+        code = response.authResponse?.code || null;
+        if (!code) return done(null); // closed the window
+        if (ids) return done({ code, ...ids });
+        timer = window.setTimeout(() => done(null), 5000); // the ids never came
+      },
+      {
+        config_id: configId,
+        response_type: 'code',
+        override_default_response_type: true,
+        extras: { version: 'v4', sessionInfoVersion: '3', setup: {} },
+      },
+    );
+  });
+}

@@ -225,6 +225,8 @@ owner knows their number). Alerts for the owner stay on Telegram.
 | `GET /agent/whatsapp` | `{phone_id}`. 404 while no number is connected |
 | `PUT /agent/whatsapp` `{token, account_id, phone_id}` | `token` 20 to 500 chars (a system user's), both ids digits only. Subscribes our Meta app to the account; connecting again replaces the number. 422 `invalid_config` with `fields.token` when Meta refuses the token for that account and number, or `fields.phone_id` for a number another business has; 400 if the server has no `META_APP_SECRET`; 404 if the business has no agent yet |
 | `DELETE /agent/whatsapp` | 204. The number stops being answered |
+| `GET /agent/whatsapp/login` | `{app_id, config_id}` for Meta's Embedded Signup window, Connect with WhatsApp (backend D155): `FB.login` with that configuration and `response_type: 'code'`. 400 if the server has no `META_APP_ID` or `META_WA_CONFIG_ID` |
+| `POST /agent/whatsapp/signup` `{code, account_id, phone_id}` | The window's code, and the `waba_id` and `phone_number_id` from its `WA_EMBEDDED_SIGNUP` `FINISH` message. The server swaps the code for the token, registers the number and connects it like `PUT`; answers `{phone_id}`. 422 `fields.code` for a code Meta refuses (it works once), `fields.phone_id` for a number another business has. Owner only |
 
 Conversations from WhatsApp have `channel: "whatsapp"`.
 

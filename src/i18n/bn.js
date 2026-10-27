@@ -835,6 +835,11 @@ export default {
     numberId: 'নম্বর আইডি {id}',
     connectedText: 'কাস্টমার আপনার WhatsApp নম্বরে মেসেজ দেন আর আপনার এজেন্ট উত্তর দেয়। আপনার অ্যালার্ট আগের মতোই Telegram-এ আসবে।',
     disconnectWarning: 'কাস্টমাররা WhatsApp-এ আর উত্তর পাবেন না।',
+    withWhatsApp: 'WhatsApp দিয়ে যুক্ত করুন',
+    withWhatsAppText: 'Facebook দিয়ে লগ ইন করুন, তারপর Meta-র উইন্ডোতে আপনার নম্বর যোগ করে যাচাই করুন। HeyDesk নিজেই সেটি যুক্ত করে দেবে।',
+    waiting: 'Meta-র জন্য অপেক্ষা করা হচ্ছে...',
+    notFinished: 'সাইন আপ শেষ হয়নি, তাই কোনো নম্বর যুক্ত হয়নি। আবার চেষ্টা করুন।',
+    byHand: 'এর বদলে আইডি আর টোকেন দিন',
   },
 
   sslcommerz: {

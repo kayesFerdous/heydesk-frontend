@@ -22,3 +22,13 @@ export function connectWhatsApp(accountId, phoneId, token) {
 export function disconnectWhatsApp() {
   return request('/agent/whatsapp', { method: 'DELETE' });
 }
+
+// Connect with WhatsApp (backend D155): `{app_id, config_id}` for Meta's Embedded Signup window.
+export function fetchWhatsAppLogin() {
+  return request('/agent/whatsapp/login');
+}
+
+// Connects the number the owner added in that window; the server swaps the code for its token.
+export function connectWhatsAppSignup(code, accountId, phoneId) {
+  return request('/agent/whatsapp/signup', { method: 'POST', body: { code, account_id: accountId, phone_id: phoneId } });
+}
