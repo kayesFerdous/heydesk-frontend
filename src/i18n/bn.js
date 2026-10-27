@@ -499,6 +499,8 @@ export default {
       inAnHour: 'এক ঘণ্টার জন্য',
       tomorrow: 'কাল সকাল ৯টা পর্যন্ত',
       nextWeek: 'এক সপ্তাহের জন্য',
+      pickTime: 'সময় বেছে নিন',
+      pickTimeLabel: 'কখন পর্যন্ত',
       wake: 'এখনই ফিরিয়ে আনুন',
       snoozedUntil: '{when} পর্যন্ত পরে দেখার জন্য রাখা',
       noMatch: 'কিছু মেলেনি',

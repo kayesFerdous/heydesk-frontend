@@ -504,6 +504,8 @@ export default {
       inAnHour: 'For an hour',
       tomorrow: 'Until tomorrow, 9:00',
       nextWeek: 'For a week',
+      pickTime: 'Pick a time',
+      pickTimeLabel: 'Snooze until',
       wake: 'Back now',
       snoozedUntil: 'Snoozed until {when}',
       noMatch: 'Nothing matches',

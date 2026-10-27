@@ -43,6 +43,26 @@
         <PhAlarm :size="16" class="text-ink-soft"></PhAlarm>
         {{ t(`conversations.later.${choice}`) }}
       </button>
+      <form v-if="picking" class="flex flex-col gap-2 px-3 py-1.5" @submit.prevent="snoozeAt">
+        <label class="text-xs text-ink-soft" for="snooze-at">{{ t('conversations.later.pickTimeLabel') }}</label>
+        <input
+          id="snooze-at"
+          v-model="picked"
+          type="datetime-local"
+          class="field"
+          required
+          :min="pickable(0)"
+          :max="pickable(MAX_SNOOZE_DAYS)"
+        />
+        <button type="submit" class="btn btn-secondary btn-sm" :disabled="!picked">
+          <PhAlarm :size="16"></PhAlarm>
+          {{ t('conversations.later.snooze') }}
+        </button>
+      </form>
+      <button v-else type="button" class="menu-item" role="menuitem" @click="picking = true">
+        <PhCalendarDots :size="16" class="text-ink-soft"></PhCalendarDots>
+        {{ t('conversations.later.pickTime') }}
+      </button>
       <button v-if="snoozedText" type="button" class="menu-item" role="menuitem" @click="snooze('wake')">
         <PhArrowUUpLeft :size="16" class="text-ink-soft"></PhArrowUUpLeft>
         {{ t('conversations.later.wake') }}
@@ -72,9 +92,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhAlarm, PhArrowUUpLeft, PhCheck, PhDotsThree, PhProhibit, PhRobot } from '@phosphor-icons/vue';
+import { PhAlarm, PhArrowUUpLeft, PhCalendarDots, PhCheck, PhDotsThree, PhProhibit, PhRobot } from '@phosphor-icons/vue';
 
 import { usePopover } from '../../composables/usePopover.js';
 import { blockedLine } from '../../lib/blocked.js';
@@ -90,6 +110,10 @@ const { t } = useI18n();
 const { open, root } = usePopover();
 
 const SNOOZES = ['inAnHour', 'tomorrow', 'nextWeek'];
+const MAX_SNOOZE_DAYS = 30; // the backend's limit (I3)
+const picking = ref(false); // "Pick a time" shows a date-and-time field
+const picked = ref('');
+watch(open, () => (picking.value = false)); // the menu opens on its choices again
 
 const visitor = computed(() => props.conversation.visitor); // null: a chat from before visitors were known
 const snoozedText = computed(() => {
@@ -113,6 +137,20 @@ function untilFor(choice) {
 function snooze(choice) {
   open.value = false;
   emit('snooze', choice === 'wake' ? null : untilFor(choice));
+}
+
+// The browser's clock `days` from now, in the field's shape ("2026-10-28T15:30"): its min and max.
+function pickable(days) {
+  const at = new Date();
+  at.setDate(at.getDate() + days);
+  at.setMinutes(at.getMinutes() - at.getTimezoneOffset());
+  return at.toISOString().slice(0, 16);
+}
+
+// The field's time is the browser's, as the other choices are.
+function snoozeAt() {
+  open.value = false;
+  emit('snooze', new Date(picked.value).toISOString());
 }
 
 function change(what) {
