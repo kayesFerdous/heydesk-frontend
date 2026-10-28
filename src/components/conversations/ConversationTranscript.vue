@@ -1,6 +1,7 @@
 <template>
   <!-- What was said, word for word, under a header saying who and where.
-       A hand-off shows at the top with the way to pick it up. -->
+       A hand-off shows at the top with the way to pick it up. It opens at the
+       newest line; scrolling up loads the older ones (backend D157). -->
   <div class="flex flex-col">
     <header class="flex flex-wrap items-center gap-3 border-b border-hairline p-4 sm:px-6">
       <button type="button" class="btn btn-secondary btn-icon btn-sm lg:hidden" :aria-label="t('conversations.back')" @click="$emit('back')">
@@ -20,7 +21,7 @@
       </div>
     </header>
 
-    <div class="px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
+    <div ref="scroller" class="flex flex-col px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto" @scroll="scrolled">
       <div
         v-if="conversation.status === 'needs_human'"
         class="mx-auto mb-6 flex max-w-2xl flex-wrap items-center gap-3 rounded-[var(--radius-card)] bg-attention-tint p-4 text-sm"
@@ -62,49 +63,77 @@
         <p v-if="error" class="w-full text-sm text-danger" role="alert">{{ error }}</p>
       </div>
 
-      <div class="mx-auto flex max-w-2xl flex-col gap-3">
-        <div
-          v-for="(line, index) in conversation.messages"
-          :key="index"
-          class="flex"
-          :class="line.role === 'user' ? 'justify-start' : 'justify-end'"
-        >
-          <div class="max-w-[85%]">
-            <p class="mb-1 px-1 text-xs text-ink-soft" :class="{ 'text-right': line.role !== 'user' }">
-              {{ line.role === 'user' ? name : t('conversations.yourAgent') }}
-            </p>
-            <div
-              class="rounded-[var(--radius-card)] px-4 py-2.5 text-[0.9375rem] leading-relaxed whitespace-pre-wrap"
-              :class="line.role === 'user' ? 'rounded-tl-md bg-hover text-ink' : 'rounded-tr-md bg-brand-tint text-ink'"
-            >
-              <!-- The photo the visitor sent, and the products the agent showed (D57). -->
-              <a v-if="line.photo" :href="line.photo" target="_blank" rel="noopener">
-                <img :src="line.photo" :alt="t('conversations.theirPhoto', { name })" class="mb-1.5 max-h-60 rounded-[0.875rem]" />
-              </a>
-              <div v-if="line.photos?.length" class="flex flex-wrap gap-2">
-                <figure v-for="product in line.photos" :key="product.url" class="w-28">
-                  <img :src="product.url" :alt="product.name" class="aspect-square w-full rounded-[0.875rem] object-cover" />
-                  <figcaption class="mt-1 text-xs leading-snug">
-                    <span class="block font-semibold">{{ product.name }}</span>
-                    <span class="text-ink-soft">{{ product.price }}</span>
-                  </figcaption>
-                </figure>
+      <!-- The newest lines sit at the bottom, as in a messaging app. -->
+      <div class="mx-auto mt-auto flex w-full max-w-2xl flex-col gap-3">
+        <div v-if="more" ref="top" class="flex flex-col items-center gap-1">
+          <button type="button" class="btn btn-secondary btn-sm" :disabled="loading" @click="showEarlier">
+            {{ t('conversations.showEarlier') }}
+          </button>
+          <p v-if="earlier.failed" class="text-xs text-danger" role="alert">{{ t('conversations.earlierFailed') }}</p>
+        </div>
+        <template v-for="(line, index) in lines" :key="line.index ?? index">
+          <!-- Where the agent's memory starts: before it, the chat went quiet (backend D157). -->
+          <div
+            v-if="index === freshAt"
+            role="separator"
+            class="flex items-center gap-3 py-1 text-xs font-semibold text-ink-soft"
+            :title="t('conversations.remembersFromHereHint')"
+          >
+            <span class="h-px flex-1 bg-hairline" aria-hidden="true"></span>
+            {{ t('conversations.remembersFromHere') }}
+            <span class="h-px flex-1 bg-hairline" aria-hidden="true"></span>
+          </div>
+          <div class="flex" :class="line.role === 'user' ? 'justify-start' : 'justify-end'">
+            <div class="max-w-[85%]">
+              <p class="mb-1 px-1 text-xs text-ink-soft" :class="{ 'text-right': line.role !== 'user' }">
+                {{ line.role === 'user' ? name : t('conversations.yourAgent') }}
+              </p>
+              <div
+                class="rounded-[var(--radius-card)] px-4 py-2.5 text-[0.9375rem] leading-relaxed whitespace-pre-wrap"
+                :class="line.role === 'user' ? 'rounded-tl-md bg-hover text-ink' : 'rounded-tr-md bg-brand-tint text-ink'"
+              >
+                <!-- The photo the visitor sent, and the products the agent showed (D57). -->
+                <a v-if="line.photo" :href="line.photo" target="_blank" rel="noopener">
+                  <img :src="line.photo" :alt="t('conversations.theirPhoto', { name })" class="mb-1.5 max-h-60 rounded-[0.875rem]" />
+                </a>
+                <div v-if="line.photos?.length" class="flex flex-wrap gap-2">
+                  <figure v-for="product in line.photos" :key="product.url" class="w-28">
+                    <img :src="product.url" :alt="product.name" class="aspect-square w-full rounded-[0.875rem] object-cover" />
+                    <figcaption class="mt-1 text-xs leading-snug">
+                      <span class="block font-semibold">{{ product.name }}</span>
+                      <span class="text-ink-soft">{{ product.price }}</span>
+                    </figcaption>
+                  </figure>
+                </div>
+                <span v-if="line.text">{{ line.text }}</span>
               </div>
-              <span v-if="line.text">{{ line.text }}</span>
             </div>
           </div>
+        </template>
+        <div
+          v-if="from > 0 && freshAt === -1"
+          role="separator"
+          class="flex items-center gap-3 py-1 text-xs font-semibold text-ink-soft"
+          :title="t('conversations.remembersFromHereHint')"
+        >
+          <span class="h-px flex-1 bg-hairline" aria-hidden="true"></span>
+          {{ t('conversations.remembersFromHere') }}
+          <span class="h-px flex-1 bg-hairline" aria-hidden="true"></span>
         </div>
-        <p v-if="!conversation.messages.length" class="text-sm text-ink-soft">{{ t('conversations.nothingSaid') }}</p>
+        <p v-if="!lines.length" class="text-sm text-ink-soft">{{ t('conversations.nothingSaid') }}</p>
+        <!-- Clear of the phone's bottom bar, like the page's own padding. -->
+        <div ref="end" class="scroll-mb-28 md:scroll-mb-0" aria-hidden="true"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { PhArrowLeft, PhCheck, PhHandGrabbing, PhPhone, PhUserSound } from '@phosphor-icons/vue';
 
+import { fetchConversation } from '../../api/conversations.js';
 import { channelOf } from '../../lib/channels.js';
 import { formatTime, formatDay } from '../../lib/format.js';
 import { avatarTint, initials } from '../../lib/group.js';
@@ -127,4 +156,91 @@ const phone = computed(() => props.conversation.records.find((r) => r.customer_p
 const when = computed(
   () => `${formatDay(props.conversation.created_at)}, ${formatTime(props.conversation.created_at)}`,
 );
+
+// Older pages, loaded as the team scrolls up; the newest page is `conversation`
+// itself, kept fresh by the page. Another chat opened starts over.
+const earlier = ref({ id: props.conversation.id, lines: [], more: false, failed: false });
+const loading = ref(false);
+watch(
+  () => props.conversation.id,
+  (id) => {
+    earlier.value = { id, lines: [], more: false, failed: false };
+    atBottom = true;
+  },
+  { flush: 'sync' },
+);
+
+// Older pages and the newest one, once each and in order. A line with no index
+// (a backend without pages) only ever comes in the one page.
+const lines = computed(() => {
+  const newest = props.conversation.messages;
+  const seen = new Set(newest.map((line) => line.index));
+  return [...earlier.value.lines.filter((line) => line.index === undefined || !seen.has(line.index)), ...newest];
+});
+const more = computed(() => (earlier.value.lines.length ? earlier.value.more : Boolean(props.conversation.more)));
+// The agent starts afresh after a quiet spell (D157): the line it remembers from.
+const from = computed(() => props.conversation.history_from ?? 0);
+const freshAt = computed(() => (from.value > 0 ? lines.value.findIndex((line) => (line.index ?? 0) >= from.value) : -1));
+
+const scroller = ref(null);
+const top = ref(null);
+const end = ref(null);
+let atBottom = true;
+
+// What scrolls the transcript: its own box on a wide screen, else the nearest
+// box above it that scrolls, else the page.
+function scrollBox() {
+  for (let el = scroller.value; el; el = el.parentElement) {
+    if (/(auto|scroll)/.test(getComputedStyle(el).overflowY)) return el;
+  }
+  return document.scrollingElement;
+}
+
+async function showEarlier() {
+  const first = lines.value[0]?.index;
+  if (loading.value || !more.value || first === undefined) return;
+  const id = props.conversation.id;
+  loading.value = true;
+  try {
+    const page = await fetchConversation(id, first);
+    if (earlier.value.id !== id) return;
+    // Older lines in: the same line stays in front of the reader.
+    const box = scrollBox();
+    const fromBottom = box.scrollHeight - box.scrollTop;
+    earlier.value = { id, lines: [...page.messages, ...earlier.value.lines], more: Boolean(page.more), failed: false };
+    await nextTick();
+    box.scrollTop = box.scrollHeight - fromBottom;
+  } catch (err) {
+    if (earlier.value.id === id) earlier.value = { ...earlier.value, failed: true };
+  } finally {
+    loading.value = false;
+  }
+}
+
+// A chat opens at its newest line, and a new line keeps it there unless the
+// team scrolled up to read.
+const last = computed(() => {
+  const lastLine = lines.value[lines.value.length - 1];
+  return `${props.conversation.id}:${lastLine?.index ?? lines.value.length}`;
+});
+function toBottom() {
+  if (atBottom) end.value?.scrollIntoView({ block: 'end' });
+}
+onMounted(toBottom);
+watch(last, toBottom, { flush: 'post' });
+
+function scrolled() {
+  const box = scrollBox();
+  atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+}
+
+// Reaching the top loads the page before it.
+let observer = null;
+watch(top, (el) => {
+  observer?.disconnect();
+  if (!el) return;
+  observer = new IntersectionObserver(([entry]) => entry.isIntersecting && showEarlier());
+  observer.observe(el);
+});
+onBeforeUnmount(() => observer?.disconnect());
 </script>

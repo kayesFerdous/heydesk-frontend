@@ -27,8 +27,14 @@ export function fetchCounts() {
 
 // The transcript only. The orders, appointments or messages that came out of
 // it come from the page's own records list (`byConversation` in records.js).
-export function fetchConversation(conversationId) {
-  return request(`/conversations/${conversationId}`);
+// The newest TRANSCRIPT_PAGE lines, or those before the line `before` (its
+// `index`) as the team scrolls up (backend D157).
+export const TRANSCRIPT_PAGE = 30;
+
+export function fetchConversation(conversationId, before) {
+  const params = new URLSearchParams({ limit: TRANSCRIPT_PAGE });
+  if (before !== undefined) params.set('before', before);
+  return request(`/conversations/${conversationId}?${params}`);
 }
 
 // A person dealt with the hand-off: the agent answers this chat again (backend D83).

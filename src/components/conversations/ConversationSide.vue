@@ -48,7 +48,7 @@
       </div>
       <div class="flex justify-between gap-3">
         <dt class="text-ink-soft">{{ t('conversations.messages') }}</dt>
-        <dd class="font-semibold">{{ formatNumber(conversation.messages.length) }}</dd>
+        <dd class="font-semibold">{{ formatNumber(conversation.count ?? conversation.messages.length) }}</dd>
       </div>
     </dl>
   </div>
