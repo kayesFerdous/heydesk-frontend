@@ -20,6 +20,8 @@
         <slot name="actions"></slot>
       </div>
     </header>
+    <!-- The AI's summary of the chat, from the page (backend D137). -->
+    <slot name="top"></slot>
 
     <div ref="scroller" class="flex flex-col px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto" @scroll="scrolled">
       <div
@@ -125,6 +127,8 @@
         <div ref="end" class="scroll-mb-28 md:scroll-mb-0" aria-hidden="true"></div>
       </div>
     </div>
+    <!-- The team's reply box, from the page (backend D136). -->
+    <slot name="bottom"></slot>
   </div>
 </template>
 

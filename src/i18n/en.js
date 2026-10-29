@@ -494,6 +494,28 @@ export default {
   },
 
   conversations: {
+    // The chat in two lines, pinned above the transcript (backend D137).
+    summary: {
+      title: 'Summary',
+      ask: 'Summarise this chat',
+      reading: 'Reading the chat',
+      behind: 'New messages came in since this summary.',
+      refresh: 'Refresh',
+    },
+    // The AI's help for the team on a chat (backend D137): nothing is sent by it.
+    assist: {
+      ask: 'Ask about this chat',
+      draft: 'Draft a reply',
+      thinking: 'Thinking…',
+      askPlaceholder: 'Did they say when they need it?',
+      askSend: 'Ask',
+    },
+    // The team answers from the chat (backend D136).
+    reply: {
+      placeholder: 'Write to them…',
+      send: 'Send',
+      note: 'Sending takes the chat over: the agent stays quiet until you give it back, or 30 minutes after your last reply.',
+    },
     later: {
       search: 'Search names, phones, order codes, words',
       done: 'Done',

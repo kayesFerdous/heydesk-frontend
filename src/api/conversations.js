@@ -70,3 +70,17 @@ export function markDone(conversationId, done) {
 export function snoozeConversation(conversationId, until) {
   return request(`/conversations/${conversationId}/snooze`, { method: 'PUT', body: { until } });
 }
+
+// The team answers the visitor from the inbox (backend D136): the words reach their chat, and the
+// chat is taken over so the agent stays quiet (D135). On Messenger and WhatsApp only within 24
+// hours of the visitor's last message. Returns the conversation as it is now.
+export function sendReply(conversationId, text) {
+  return request(`/conversations/${conversationId}/reply`, { method: 'POST', body: { text } });
+}
+
+// The AI's help for the team on a chat (backend D137): kind is "summary", "ask" (with a question
+// about the chat) or "draft" (the next reply, for the team to check and send). Nothing is added
+// to the chat or sent. `{ text }`; a 503 when the model didn't answer.
+export function assist(conversationId, kind, question = '') {
+  return request(`/conversations/${conversationId}/assist`, { method: 'POST', body: { kind, question } });
+}

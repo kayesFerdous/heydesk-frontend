@@ -182,6 +182,13 @@
               @change="changeThem"
             ></ConversationActions>
           </template>
+          <template v-if="!auth.isViewing" #top>
+            <ConversationSummary :conversation="detail"></ConversationSummary>
+          </template>
+          <!-- A call can't be answered in writing. -->
+          <template v-if="!auth.isViewing && detail.channel !== 'voice'" #bottom>
+            <ReplyBox :conversation-id="detail.id" :busy="isReplying" :error="replyError" @send="reply"></ReplyBox>
+          </template>
         </ConversationTranscript>
         <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>
       </div>
@@ -213,6 +220,8 @@ import ConversationTranscript from '../../components/conversations/ConversationT
 import ConversationSide from '../../components/conversations/ConversationSide.vue';
 import AssignControl from '../../components/conversations/AssignControl.vue';
 import ConversationActions from '../../components/conversations/ConversationActions.vue';
+import ConversationSummary from '../../components/conversations/ConversationSummary.vue';
+import ReplyBox from '../../components/conversations/ReplyBox.vue';
 import BlockedList from '../../components/conversations/BlockedList.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
@@ -227,6 +236,7 @@ import {
   changeVisitor,
   markDone,
   snoozeConversation,
+  sendReply,
 } from '../../api/conversations.js';
 import { fetchMembers } from '../../api/team.js';
 import { fetchRecords, byConversation } from '../../api/records.js';
@@ -262,6 +272,8 @@ const isChanging = ref(false); // blocking, or turning the AI off (backend I2)
 const changeError = ref(null);
 const isLater = ref(false); // Done or Snooze (backend I3)
 const laterError = ref(null);
+const isReplying = ref(false); // the team's reply from the inbox (backend D136)
+const replyError = ref(null);
 const searchText = ref(''); // what's typed; `query` follows it after a pause
 const query = ref('');
 let searchTimer = null;
@@ -484,6 +496,23 @@ async function changeThem(change) {
   isChanging.value = false;
 }
 
+// The team's own words to the visitor (backend D136). The chat is taken over, and its
+// transcript is fetched again to show the line.
+async function reply(text, sent) {
+  const id = selectedId.value;
+  isReplying.value = true;
+  replyError.value = null;
+  try {
+    const updated = await sendReply(id, text);
+    sent();
+    list.value = list.value.map((c) => (c.id === id ? { ...c, ...updated } : c));
+    await loadDetail(id);
+  } catch (err) {
+    replyError.value = err.message; // e.g. Messenger's 24 hours have passed
+  }
+  isReplying.value = false;
+}
+
 // The next page: conversations quieter than the oldest one on screen.
 async function showMore() {
   const asked = listKey.value;
@@ -523,6 +552,7 @@ watch(
     assignError.value = null;
     changeError.value = null;
     laterError.value = null;
+    replyError.value = null;
     if (id && !details.value[id]) loadDetail(id);
   },
   { immediate: true },
