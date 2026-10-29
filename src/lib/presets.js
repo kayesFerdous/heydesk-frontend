@@ -42,8 +42,18 @@ export function itemsLabel(presetId) {
 // one, so a link copied on localhost still opens on a customer's phone; else on
 // this page's own address.
 export function chatLink(publicKey) {
+  return `${publicBase()}/chat/${publicKey}`;
+}
+
+function publicBase() {
   const base = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
-  return `${base.replace(/\/$/, '')}/chat/${publicKey}`;
+  return base.replace(/\/$/, '');
+}
+
+// A product's public page, on the backend (D121) and forwarded to it from here, so the
+// link the team copies is on this app's address: /p/<key>/<code>, nothing after it (D162).
+export function productLink(publicKey, code) {
+  return `${publicBase()}/p/${publicKey}/${encodeURIComponent(code)}`;
 }
 
 // The navigation link to a desk's own list: a restaurant's menu, a clinic's

@@ -501,6 +501,8 @@ export default {
       reading: 'Reading the chat',
       behind: 'New messages came in since this summary.',
       refresh: 'Refresh',
+      hide: 'Hide the summary',
+      show: 'Show the summary',
     },
     // The AI's help for the team on a chat (backend D137): nothing is sent by it.
     assist: {
@@ -509,6 +511,9 @@ export default {
       thinking: 'Thinking…',
       askPlaceholder: 'Did they say when they need it?',
       askSend: 'Ask',
+      askShort: 'Ask',
+      draftShort: 'Draft',
+      dismiss: 'Dismiss',
     },
     // The team answers from the chat (backend D136).
     reply: {
@@ -952,6 +957,17 @@ export default {
     emptyTitle: 'No {nouns} yet',
     emptyText: 'Add them one at a time, or bring a whole spreadsheet in with Import.',
     noMatches: 'No {nouns} match that.',
+    editor: {
+      newTitle: 'New {noun}',
+      editTitle: 'Edit {noun}',
+      details: 'Details',
+      stock: 'Sizes and stock',
+      more: 'More',
+      mainPhoto: 'Main',
+      showsOff: 'Shows as {n}% off',
+      discardThis: 'Discard your changes?',
+      keepEditing: 'Keep editing',
+    },
     row: {
       photosOf: 'Photos of {name}',
       editName: 'Edit {name}',
@@ -981,6 +997,11 @@ export default {
       wasPrice: 'Price before the sale',
       wasPriceHint: 'Empty: not on sale.',
       photos: 'Photos',
+      openPage: 'Open its page',
+      openPageOf: 'Open the page of {name}',
+      copyLink: 'Copy its link, to send in a reply',
+      copyLinkOf: 'Copy the link to {name}',
+      linkCopied: 'Link copied',
       photoOf: 'Photo {n} of {name}',
       addPhoto: 'Add photo',
       addingPhoto: 'Adding…',

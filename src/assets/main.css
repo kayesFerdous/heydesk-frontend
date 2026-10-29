@@ -384,6 +384,53 @@
   .skeleton {
     animation: none;
   }
+
+  .overlay,
+  .overlay * {
+    animation: none !important;
+  }
+}
+
+/* A sheet over the page (the product editor): the backdrop fades, the panel slides in
+   from the right, and with `.is-leaving` (usePresence) both play out. */
+.overlay {
+  animation: fade-in 0.22s var(--ease-settle) both;
+}
+
+.overlay.is-leaving {
+  animation: fade-out 0.22s var(--ease-settle) both;
+}
+
+.overlay .slide-from-right {
+  animation: from-right 0.25s var(--ease-settle) both;
+}
+
+.overlay.is-leaving .slide-from-right {
+  animation: to-right 0.25s var(--ease-settle) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes from-right {
+  from {
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes to-right {
+  to {
+    transform: translateX(2rem);
+  }
 }
 
 /* v-reveal (src/directives/reveal.js): an element below the fold settles 16px

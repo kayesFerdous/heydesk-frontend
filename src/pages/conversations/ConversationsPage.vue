@@ -187,7 +187,7 @@
           </template>
           <!-- A call can't be answered in writing. -->
           <template v-if="!auth.isViewing && detail.channel !== 'voice'" #bottom>
-            <ReplyBox :conversation-id="detail.id" :busy="isReplying" :error="replyError" @send="reply"></ReplyBox>
+            <ReplyBox :conversation="detail" :busy="isReplying" :error="replyError" @send="reply"></ReplyBox>
           </template>
         </ConversationTranscript>
         <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>

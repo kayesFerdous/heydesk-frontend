@@ -259,9 +259,9 @@ const props = defineProps({
 const emit = defineEmits(['reply']);
 const { t } = useI18n();
 
-// A product's public page, on the backend (D121): `from=web`, as closing it goes back here.
+// A product's public page, on the backend (D121). Closing it comes back here, so no `from` (D162).
 function productPage(product) {
-  return `/p/${props.publicKey}/${encodeURIComponent(product.code)}?from=web`;
+  return `/p/${props.publicKey}/${encodeURIComponent(product.code)}`;
 }
 
 const messages = ref([]);

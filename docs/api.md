@@ -119,10 +119,11 @@ from `POST /products/photos` (`/media/...`, served by the backend; the dev serve
 `/media`); the first is the one the agent shows. A URL that isn't one of the business's product
 photos is a 422; only photos new to the list are checked, so one saved before never blocks a save (D122). A CSV import keeps each product's photos when its row has none.
 
-A product's public page is `<backend>/p/<public_key>/<code>?from=web|messenger|telegram|whatsapp`
-(D121): server-rendered HTML with its photos, name, price, the sizes and colours in stock and
-the description, and on Messenger and Telegram a button back to the chat. Anything else is a
-404 page. The chat's product cards (`AgentChat`) open it in a new tab; the dev server and
+A product's public page is `<backend>/p/<public_key>/<code>` (D121, D162): server-rendered HTML
+with its photos, name, price, the sizes and colours in stock and the description, and *Buy now*.
+`?from=messenger|telegram` adds a button back to that chat. Anything else is a 404 page. The
+chat's product cards (`AgentChat`) open it in a new tab; the Products page opens and copies it
+(`productLink`, on this app's address) for the team to paste in a reply. The dev server and
 Vercel forward `/p/` to the backend.
 
 `Variant` (D56): `{size, colour, stock}`, stock per size and colour. An empty size or colour means

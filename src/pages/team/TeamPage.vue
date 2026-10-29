@@ -123,8 +123,9 @@
 
       <SettingsGroup :title="t('team.activityTitle')" :tip="t('team.activityTip')">
         <p v-if="!activity.length" class="text-sm text-ink-soft">{{ t('team.nothingYet') }}</p>
+        <div class="max-h-[28rem] overflow-y-auto overscroll-contain pr-2" tabindex="0" role="region" :aria-label="t('team.activityTitle')">
         <div v-for="group in activityGroups" :key="group.label">
-          <h3 class="border-b border-hairline py-1.5 text-xs font-semibold text-ink-soft">{{ group.label }}</h3>
+          <h3 class="sticky top-0 z-10 border-b border-hairline bg-surface py-1.5 text-xs font-semibold text-ink-soft">{{ group.label }}</h3>
           <div
             v-for="event in group.items"
             :key="event.at + event.action"
@@ -139,6 +140,7 @@
           </div>
         </div>
         <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="more"></ShowMore>
+        </div>
       </SettingsGroup>
     </div>
   </section>

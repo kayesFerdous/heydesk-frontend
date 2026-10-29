@@ -71,7 +71,7 @@
       {{ merged }}
     </p>
 
-    <p v-if="saveError" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
+    <p v-if="saveError && !editor.mounted.value" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-danger sm:px-8" role="alert">
       <PhWarningCircle :size="16" class="shrink-0"></PhWarningCircle>
       {{ saveError }}
     </p>
@@ -97,7 +97,11 @@
         @imported="onImported"
       ></ImportPanel>
 
-      <div v-if="items.length || adding" class="ledger-head sticky top-0 z-[1] grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem] gap-x-4 bg-surface px-5 pt-2 sm:px-8">
+      <div
+        v-if="items.length || adding"
+        class="ledger-head sticky top-0 z-[1] gap-x-4 bg-surface px-5 pt-2 sm:px-8"
+        :class="agent.kind === 'shop' ? 'grid-cols-[minmax(0,1fr)_7rem_7.5rem_7rem]' : 'grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem]'"
+      >
         <span>{{ capitalize(noun) }}</span>
         <span class="text-right">{{ agent.kind === 'clinic' ? t('menu.fee') : t('menu.price') }}</span>
         <span>{{ t('menu.available') }}</span>
@@ -105,29 +109,15 @@
       </div>
 
       <ItemRow
-        v-if="adding"
-        :item="blank"
-        :editing="true"
-        :is-new="true"
-        :categories="allCategories"
-        :kind="agent.kind"
-        @save="saveNew"
-        @cancel="adding = false"
-      ></ItemRow>
-
-      <ItemRow
         v-for="item in shown"
         :key="item.code"
         :item="item"
         :editing="editingCode === item.code"
-        :categories="allCategories"
         :kind="agent.kind"
+        :public-key="agent.publicKey"
         :locked="locked"
         @toggle="toggle(item)"
-        @edit="editingCode = item.code"
-        @cancel="editingCode = null"
-        @save="saveEdit(item.code, $event)"
-        @remove="remove(item.code)"
+        @edit="startEdit(item.code)"
       ></ItemRow>
 
       <ShowMore v-if="filtered.length > shown.length" @more="limit += PAGE_SIZE"></ShowMore>
@@ -144,6 +134,22 @@
       </p>
     </div>
     </div>
+
+    <ItemEditor
+      v-if="editor.mounted.value && editing"
+      :key="shownKey"
+      :item="editing"
+      :is-new="shownKey === NEW"
+      :categories="allCategories"
+      :kind="agent.kind"
+      :locked="locked"
+      :saving="saving"
+      :failed="saveError"
+      :leaving="editor.leaving.value"
+      @cancel="closeEditor"
+      @save="saveItem"
+      @remove="remove"
+    ></ItemEditor>
   </section>
 </template>
 
@@ -153,6 +159,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable, PhCheckCircle } from '@phosphor-icons/vue';
 
+import ItemEditor from '../../components/menu/ItemEditor.vue';
 import ItemRow from '../../components/menu/ItemRow.vue';
 import ImportPanel from '../../components/menu/ImportPanel.vue';
 import SheetBar from '../../components/menu/SheetBar.vue';
@@ -170,6 +177,7 @@ import { itemNoun, itemsLabel } from '../../lib/presets.js';
 import { useAgentStore } from '../../stores/agent.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { usePopover } from '../../composables/usePopover.js';
+import { usePresence } from '../../composables/usePresence.js';
 
 // The whole list comes in one request (the backend stores and saves it as one
 // list, at most 2000 from a CSV), so search is instant in the browser. Drawing
@@ -189,6 +197,8 @@ const category = ref(null); // null: every category
 const query = ref('');
 const editingCode = ref(null);
 const adding = ref(false);
+const saving = ref(false);
+const NEW = '\u0000new'; // the editor's key while adding: no product's code
 const importOpen = ref(null); // 'file', 'sheet' or 'woo' while that panel is open
 const sheet = ref(null); // the linked Google Sheet, { url, synced_at, problem }, or null
 const woo = ref(null); // a shop's linked WooCommerce store, { url, products, synced_at, problem }, or null
@@ -235,6 +245,26 @@ const blank = computed(() => ({
   goes_with: [],
 }));
 
+// The editor sheet: which entry it shows, kept while it slides out after closing.
+const editKey = computed(() => (adding.value ? NEW : editingCode.value));
+const shownKey = ref(editKey.value);
+watch(editKey, (key) => {
+  if (key !== null) shownKey.value = key;
+});
+const editor = usePresence(() => editKey.value !== null, 250);
+const editing = computed(() => (shownKey.value === NEW ? blank.value : items.value.find((item) => item.code === shownKey.value)));
+
+function startEdit(code) {
+  adding.value = false;
+  editingCode.value = code;
+}
+
+function closeEditor() {
+  adding.value = false;
+  editingCode.value = null;
+  saveError.value = null;
+}
+
 // A new search or category starts from the top again.
 watch([query, category], () => (limit.value = PAGE_SIZE));
 
@@ -276,6 +306,7 @@ async function persist(next) {
   const previous = items.value;
   items.value = next;
   saveError.value = null;
+  saving.value = true;
   try {
     await replaceItems(next);
     // `missing` on the Your agent page depends on there being items.
@@ -285,6 +316,8 @@ async function persist(next) {
     items.value = previous;
     saveError.value = error.message;
     return false;
+  } finally {
+    saving.value = false;
   }
 }
 
@@ -304,17 +337,17 @@ function toggle(item) {
   persist(items.value.map((i) => (i.code === item.code ? { ...i, available: !i.available } : i)));
 }
 
-async function saveEdit(code, updated) {
-  if (await persist(items.value.map((i) => (i.code === code ? updated : i)))) editingCode.value = null;
+async function saveItem(updated) {
+  const code = shownKey.value;
+  const next =
+    code === NEW
+      ? [...items.value, { ...updated, code: makeCode(updated.name, items.value.map((i) => i.code)) }]
+      : items.value.map((i) => (i.code === code ? updated : i));
+  if (await persist(next)) closeEditor();
 }
 
-async function saveNew(draft) {
-  const code = makeCode(draft.name, items.value.map((i) => i.code));
-  if (await persist([...items.value, { ...draft, code }])) adding.value = false;
-}
-
-async function remove(code) {
-  if (await persist(items.value.filter((i) => i.code !== code))) editingCode.value = null;
+async function remove() {
+  if (await persist(items.value.filter((i) => i.code !== shownKey.value))) closeEditor();
 }
 
 // The sheet read or the store synced now: the list may have changed with it.

@@ -214,7 +214,10 @@ list, then one item with a way back.
 - **Menu** (Doctors, Products): one island. On top a grey search pill and the
   categories as pills with counts ("All 42", "Biryani 6"), then any import
   panel or linked-sheet bar, then the list as ruled rows (photo, name, tags,
-  facts, price, the availability switch, edit).
+  facts, price, the availability switch, edit; a shop's also open and copy its
+  page). Edit and Add open the form in a sheet from the right (`ItemEditor`), the
+  row marked meanwhile: photos first, then sections, Save always at the bottom;
+  closing with changes asks first. Full screen on a phone.
 
 ## The front door (signed out)
 
