@@ -32,18 +32,12 @@ export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler;
 }
 
-export async function request(path, { method = 'GET', body } = {}) {
-  const token = authToken;
+// The headers every call sends: the token, the business an admin looks at, the
+// language, and the ngrok one.
+function baseHeaders() {
   const headers = {};
-
-  // A file upload is a FormData: the browser sets its own Content-Type (with
-  // the multipart boundary), so only JSON bodies get the header and stringify.
-  const isForm = body instanceof FormData;
-  if (body && !isForm) {
-    headers['Content-Type'] = 'application/json';
-  }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
   }
   if (viewedBusiness) {
     headers['X-Business'] = viewedBusiness;
@@ -53,6 +47,19 @@ export async function request(path, { method = 'GET', body } = {}) {
   // On Vercel the backend sits behind a free ngrok tunnel, which answers
   // browsers with a warning page unless this header is present.
   headers['ngrok-skip-browser-warning'] = '1';
+  return headers;
+}
+
+export async function request(path, { method = 'GET', body } = {}) {
+  const token = authToken;
+  const headers = baseHeaders();
+
+  // A file upload is a FormData: the browser sets its own Content-Type (with
+  // the multipart boundary), so only JSON bodies get the header and stringify.
+  const isForm = body instanceof FormData;
+  if (body && !isForm) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   let response;
   try {
@@ -87,4 +94,35 @@ export async function request(path, { method = 'GET', body } = {}) {
   }
 
   return responseData;
+}
+
+// A stream the server holds open (text/event-stream). An EventSource can't send
+// the Bearer token, and the token must not go in the URL, so this is a fetch the
+// caller reads with `response.body` and ends with `signal`. A failure to open
+// throws like `request` does.
+export async function openStream(path, signal) {
+  const token = authToken;
+  let response;
+  try {
+    response = await fetch(BASE_URL + path, {
+      headers: { ...baseHeaders(), Accept: 'text/event-stream' },
+      signal,
+    });
+  } catch (networkError) {
+    if (signal.aborted) throw networkError;
+    throw new Error(t('errors.network'));
+  }
+  if (!response.ok || !response.body) {
+    const responseData = await response.json().catch(() => null);
+    const detail = responseData && responseData.error;
+    const error = new Error(
+      (detail && detail.message) || t('errors.requestFailed', { status: response.status })
+    );
+    error.status = response.status;
+    if (response.status === 401 && token) {
+      onUnauthorized();
+    }
+    throw error;
+  }
+  return response;
 }

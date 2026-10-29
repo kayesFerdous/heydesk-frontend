@@ -16,6 +16,11 @@ export const useInboxStore = defineStore('inbox', () => {
   // Goes up by one each time a load finds more waiting than the one before:
   // the shell chimes, and an open Inbox or Conversations fetches its list again.
   const arrivals = ref(0);
+  // The server said a conversation changed (backend D158): `changedId` is its
+  // id, or null when everything may have (the stream came back after a gap).
+  // An open Conversations page fetches its list again.
+  const changes = ref(0);
+  const changedId = ref(null);
 
   const waitingTotal = computed(() => jobs.value.reduce((sum, job) => sum + job.waiting, 0));
 
@@ -43,6 +48,12 @@ export const useInboxStore = defineStore('inbox', () => {
     return loading;
   }
 
+  function changed(id) {
+    changedId.value = id;
+    changes.value++;
+    load().catch(() => {});
+  }
+
   function clear() {
     jobs.value = [];
     needsHuman.value = 0;
@@ -51,5 +62,5 @@ export const useInboxStore = defineStore('inbox', () => {
     loaded.value = false;
   }
 
-  return { jobs, needsHuman, mineWaiting, unassignedWaiting, loaded, arrivals, waitingTotal, load, clear };
+  return { jobs, needsHuman, mineWaiting, unassignedWaiting, loaded, arrivals, changes, changedId, waitingTotal, load, changed, clear };
 });

@@ -514,6 +514,7 @@ function loadMembers() {
 }
 loadMembers();
 watch(() => inbox.arrivals, refresh);
+watch(() => inbox.changes, refresh); // the server said a conversation changed (backend D158)
 watch(
   selectedId,
   (id) => {

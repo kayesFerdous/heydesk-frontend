@@ -65,6 +65,7 @@ import AppTabBar from './components/layout/AppTabBar.vue';
 import TestChatSheet from './components/chat/TestChatSheet.vue';
 import { formatNumber } from './lib/format.js';
 import { chime } from './lib/chime.js';
+import { useLiveInbox } from './composables/useLiveInbox.js';
 import { useAuthStore } from './stores/auth.js';
 import { useAgentStore } from './stores/agent.js';
 import { useInboxStore } from './stores/inbox.js';
@@ -98,10 +99,12 @@ watch(
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
 
 // New work shows without a reload: while a business's console is on screen the
-// sidebar counts are asked again every 25 seconds, skipped while the tab is
-// hidden and asked at once when it comes back. Counts only (docs/performance.md).
-const POLL_MS = 25000;
+// server tells it when a conversation changes (backend D158). The counts are
+// still asked every two minutes while the tab is visible, and at once when it
+// comes back: an order paid by a webhook changes no conversation.
+const POLL_MS = 120000;
 const watching = computed(() => !isBare.value && auth.seesBusiness && agent.hasAgent);
+useLiveInbox(watching);
 
 function poll() {
   if (watching.value && document.visibilityState === 'visible') inbox.load().catch(() => {});

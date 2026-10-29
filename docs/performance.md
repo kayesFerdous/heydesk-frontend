@@ -181,16 +181,20 @@ changes), and warned in the console that this is wasted work for a
 component that never changes. `markRaw(...)` tells Vue to leave them alone.
 The warning is gone.
 
-## 10. The live inbox polls counts only (`App.vue`, `stores/inbox.js`)
+## 10. The live inbox is pushed, with a slow poll behind it (`useLiveInbox.js`, `App.vue`, `stores/inbox.js`)
 
-New orders and hand-offs show without a reload: every 25 seconds the shell
-asks `inbox/load` again. That is the badge requests only, J + 1 of them
-(the waiting records per kind, the conversations needing a person), never
-one per row. It skips while the tab is hidden and asks at once when the tab
-comes back, and it waits until the business has an agent. Only when a count
-goes up does an open Inbox or Conversations fetch its first page again.
+New orders and hand-offs show without a reload: the console holds one
+stream to `GET /conversations/live` (backend D158), and the server sends an
+event for each conversation that changed. Each event asks `inbox/load` again
+(the badge requests only, J + 1 of them, never one per row) and makes an
+open Conversations page fetch its first page. Nothing is requested while
+nothing happens. The shell also asks `inbox/load` every two minutes while the
+tab is visible, and at once when it comes back, for what changes no
+conversation (an order paid by a webhook). It waits until the business has an
+agent. When a count goes up, an open Inbox fetches its first page again.
 
-**Cost.** About 7 requests a minute per open console for a restaurant.
+**Cost.** One open connection per console, and about 0.5 requests a minute
+when nothing happens.
 
 ## What was checked and left alone
 
