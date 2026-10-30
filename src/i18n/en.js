@@ -197,6 +197,7 @@ export default {
     business: 'Your business',
     team: 'Team',
     billing: 'Billing',
+    coupons: 'Coupons',
   },
 
   account: {
@@ -1201,6 +1202,31 @@ export default {
   },
 
   // The business's team (backend D97).
+  // A shop's coupon codes (backend D133).
+  coupons: {
+    title: 'Coupons',
+    subtitle: 'Codes your buyers say in the chat. Your agent checks them and takes the discount off the bill.',
+    code: 'Code',
+    kind: 'Kind',
+    kinds: { percent: 'Percent off', amount: 'Taka off', free_delivery: 'Free delivery' },
+    percent: 'Percent',
+    amount: 'Taka',
+    endsOn: 'Ends on',
+    maxUses: 'Most orders',
+    noLimit: 'No limit',
+    add: 'Add coupon',
+    percentOff: '{n}% off',
+    amountOff: '{money} off',
+    freeDelivery: 'Free delivery',
+    used: 'used {n} times',
+    usedOf: 'used {n} of {max}',
+    ends: 'ends {day}',
+    noEnd: 'no end date',
+    delete: 'Delete {code}',
+    emptyTitle: 'No coupons yet',
+    emptyText: 'Add a code like EID10 for 10% off. A buyer says it in the chat, and the discount goes on the bill.',
+  },
+
   team: {
     title: 'Team',
     subtitle: 'Add moderators to answer customers and handle the inbox. They can\'t change your agent\'s settings, channels or team.',

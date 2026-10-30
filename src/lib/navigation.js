@@ -9,6 +9,7 @@ import {
   PhPhoneCall,
   PhUsersThree,
   PhCreditCard,
+  PhTicket,
 } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
@@ -65,6 +66,8 @@ export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, nee
             items: [
               { to: '/team', match: '/team', label: t('nav.team'), icon: PhUsersThree },
               { to: '/billing', match: '/billing', label: t('nav.billing'), icon: PhCreditCard },
+              // A shop's coupon codes (backend D133).
+              ...(preset === 'shop' ? [{ to: '/coupons', match: '/coupons', label: t('nav.coupons'), icon: PhTicket }] : []),
             ],
           },
         ]
