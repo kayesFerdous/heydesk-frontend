@@ -158,7 +158,7 @@ them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
 | `DELETE /shop/coupons/{code}` | The code stops working; orders placed with it keep their discount |
 
 `Coupon`: `{code, kind: percent/amount/free_delivery, value, ends_at (UTC; null: no end), max_uses (null: no limit), used}`.
-`POST /shop/offers` (an offer sent to every chat from the last 24 hours, D140) has no screen yet.
+`POST /shop/offers` `{text, kind, value, ends_at, within_hours}` (D140, D163): the owner's words sent at once to every chat that wrote in the last `within_hours` (24 by default, 1 to 168; the page offers 24 hours, 2, 3 or 7 days) (Messenger and WhatsApp only inside their 24-hour window), saved as a coupon only those chats may use until `ends_at` (`OFFER1`, `OFFER2`... in the list above), and taken off by the agent without a code. → `{code, sent_to}`; 422 when `ends_at` is past. The Coupons page sends it after one more click.
 
 ### Calls to confirm a shop's orders (`calls.js`, page `pages/calls`, D88, D89)
 Off for now (D108): the shop takes no voice, so no order is queued and `POST /calls` is a 409

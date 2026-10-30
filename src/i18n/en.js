@@ -1225,6 +1225,20 @@ export default {
     delete: 'Delete {code}',
     emptyTitle: 'No coupons yet',
     emptyText: 'Add a code like EID10 for 10% off. A buyer says it in the chat, and the discount goes on the bill.',
+    // An offer to everyone who wrote today (backend D140).
+    offer: {
+      title: 'Send an offer to everyone who wrote to you',
+      text: 'Message',
+      placeholder: 'Free delivery on every order till 10 pm tonight!',
+      ends: 'Ends at',
+      send: 'Send offer',
+      sending: 'Sending...',
+      sure: 'Send this now to everyone who wrote in that time?',
+      within: 'To who wrote in',
+      withinHours: { h24: 'The last 24 hours', h48: 'The last 2 days', h72: 'The last 3 days', h168: 'The last 7 days' },
+      windowHint: 'Messenger and WhatsApp only let it reach people who wrote in the last 24 hours.',
+      sent: 'Sent to {n} chats. Only they can use it, as {code}.',
+    },
   },
 
   team: {

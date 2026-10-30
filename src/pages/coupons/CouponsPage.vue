@@ -39,6 +39,58 @@
       </div>
     </form>
 
+    <!-- An offer to everyone who wrote today (backend D140): it goes out at once, so the
+         button asks once more. It then shows in the list below as OFFER1, OFFER2... -->
+    <form class="island grid grid-cols-2 gap-3 p-5 sm:grid-cols-4" @submit.prevent="confirmingOffer = true">
+      <h2 class="col-span-full text-sm font-semibold">{{ t('coupons.offer.title') }}</h2>
+      <label class="col-span-full block">
+        <span class="label">{{ t('coupons.offer.text') }}</span>
+        <textarea v-model="offer.text" class="field" rows="2" required maxlength="500" :placeholder="t('coupons.offer.placeholder')"></textarea>
+      </label>
+      <label class="block">
+        <span class="label">{{ t('coupons.kind') }}</span>
+        <select v-model="offer.kind" class="field">
+          <option v-for="kind in KINDS" :key="kind" :value="kind">{{ t(`coupons.kinds.${kind}`) }}</option>
+        </select>
+      </label>
+      <label v-if="offer.kind !== 'free_delivery'" class="block">
+        <span class="label">{{ offer.kind === 'percent' ? t('coupons.percent') : t('coupons.amount') }}</span>
+        <input v-model="offer.value" class="field" type="number" required min="1" :max="offer.kind === 'percent' ? 100 : undefined" />
+      </label>
+      <label class="block">
+        <span class="label">{{ t('coupons.offer.ends') }}</span>
+        <input v-model="offer.ends" class="field" type="datetime-local" required />
+      </label>
+      <label class="block">
+        <span class="label">{{ t('coupons.offer.within') }}</span>
+        <select v-model="offer.within" class="field">
+          <option v-for="hours in WITHIN_HOURS" :key="hours" :value="hours">{{ t(`coupons.offer.withinHours.h${hours}`) }}</option>
+        </select>
+      </label>
+      <p v-if="offer.within > 24" class="hint col-span-full">{{ t('coupons.offer.windowHint') }}</p>
+      <div class="col-span-full flex flex-wrap items-center gap-3">
+        <template v-if="confirmingOffer">
+          <span class="text-sm">{{ t('coupons.offer.sure') }}</span>
+          <button type="button" class="btn btn-primary btn-sm" :disabled="sending" @click="send">
+            {{ sending ? t('coupons.offer.sending') : t('coupons.offer.send') }}
+          </button>
+          <button type="button" class="btn btn-quiet btn-sm" @click="confirmingOffer = false">{{ t('common.cancel') }}</button>
+        </template>
+        <button v-else type="submit" class="btn btn-primary">
+          <PhMegaphone :size="16"></PhMegaphone>
+          {{ t('coupons.offer.send') }}
+        </button>
+        <p v-if="offerError" class="flex items-start gap-2 text-sm text-danger" role="alert">
+          <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
+          {{ offerError }}
+        </p>
+        <p v-if="offerSent" class="flex items-start gap-2 text-sm text-success" role="status">
+          <PhCheckCircle :size="18" weight="fill" class="mt-px shrink-0"></PhCheckCircle>
+          {{ offerSent }}
+        </p>
+      </div>
+    </form>
+
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
     <SkeletonRows v-else-if="!loaded" class="island overflow-hidden"></SkeletonRows>
     <EmptyState v-else-if="!coupons.length" class="island" :icon="PhTicket" :title="t('coupons.emptyTitle')" :text="t('coupons.emptyText')"></EmptyState>
@@ -76,13 +128,13 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhPlus, PhTicket, PhTrash, PhWarningCircle } from '@phosphor-icons/vue';
+import { PhCheckCircle, PhMegaphone, PhPlus, PhTicket, PhTrash, PhWarningCircle } from '@phosphor-icons/vue';
 
 import PageHeader from '../../components/ui/PageHeader.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
-import { addCoupon, deleteCoupon, fetchCoupons } from '../../api/coupons.js';
+import { addCoupon, deleteCoupon, fetchCoupons, sendOffer } from '../../api/coupons.js';
 import { formatDay, formatMoney, formatNumber } from '../../lib/format.js';
 import { useAgentStore } from '../../stores/agent.js';
 
@@ -101,6 +153,19 @@ const adding = ref(false);
 const addError = ref(null);
 const deleting = ref(null);
 const rowError = ref(null);
+// How far back an offer reaches (backend D163). Messenger and WhatsApp only take one within 24 hours.
+const WITHIN_HOURS = [24, 48, 72, 168];
+const blankOffer = () => ({ text: '', kind: 'percent', value: '', ends: '', within: 24 });
+const offer = ref(blankOffer());
+const confirmingOffer = ref(false);
+const sending = ref(false);
+const offerError = ref(null);
+const offerSent = ref('');
+
+// An amount is typed in taka and kept in paisa; free delivery has none.
+function minorValue(kind, value) {
+  return kind === 'free_delivery' ? 0 : Math.round(Number(value) * (kind === 'amount' ? 100 : 1));
+}
 
 async function load() {
   loadError.value = null;
@@ -126,8 +191,7 @@ async function add() {
     const coupon = await addCoupon({
       code,
       kind,
-      // An amount is typed in taka and kept in paisa; free delivery has none.
-      value: kind === 'free_delivery' ? 0 : Math.round(Number(value) * (kind === 'amount' ? 100 : 1)),
+      value: minorValue(kind, value),
       // The end of that day in the browser's time is near enough: the backend keeps UTC.
       ends_at: ends ? new Date(`${ends}T23:59:59`).toISOString() : null,
       max_uses: maxUses ? Number(maxUses) : null,
@@ -138,6 +202,24 @@ async function add() {
     addError.value = error.message; // the backend's own words: a code already taken, a percent over 100
   }
   adding.value = false;
+}
+
+async function send() {
+  const { text, kind, value, ends, within } = offer.value;
+  sending.value = true;
+  offerError.value = null;
+  offerSent.value = '';
+  try {
+    // The browser reads `ends` in its own time; the backend keeps UTC.
+    const sent = await sendOffer({ text, kind, value: minorValue(kind, value), ends_at: new Date(ends).toISOString(), within_hours: within });
+    offerSent.value = t('coupons.offer.sent', { n: formatNumber(sent.sent_to), code: sent.code });
+    offer.value = blankOffer();
+    load(); // the offer's code is in the list now
+  } catch (error) {
+    offerError.value = error.message; // the backend's own words: an end already past
+  }
+  confirmingOffer.value = false;
+  sending.value = false;
 }
 
 async function remove(coupon) {

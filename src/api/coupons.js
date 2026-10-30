@@ -16,3 +16,10 @@ export function addCoupon(coupon) {
 export function deleteCoupon(code) {
   return request(`/shop/coupons/${encodeURIComponent(code)}`, { method: 'DELETE' });
 }
+
+// An offer (backend D140): `{text, kind, value, ends_at}` sent to every chat that wrote in
+// the last 24 hours, and saved as a coupon only they may use until it ends (`OFFER1`, ...).
+// → `{code, sent_to}`: its code and how many chats got it.
+export function sendOffer(offer) {
+  return request('/shop/offers', { method: 'POST', body: offer });
+}
