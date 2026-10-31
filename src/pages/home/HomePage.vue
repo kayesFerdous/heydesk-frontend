@@ -26,8 +26,8 @@
       </router-link>
     </div>
 
-    <div v-else-if="!ready" class="grid gap-3 xl:grid-cols-12" aria-hidden="true">
-      <div class="grid content-start gap-3 xl:col-span-8">
+    <div v-else-if="!ready" class="grid gap-2 xl:grid-cols-12" aria-hidden="true">
+      <div class="grid content-start gap-2 xl:col-span-8">
         <div class="island p-6">
           <div class="skeleton h-6 w-32"></div>
           <div v-for="n in 3" :key="n" class="skeleton mt-4 h-16 w-full !rounded-[var(--radius-card)]"></div>
@@ -37,7 +37,7 @@
       <div class="skeleton h-72 !rounded-[var(--radius-panel)] xl:col-span-4"></div>
     </div>
 
-    <div v-else class="grid gap-3 xl:grid-cols-12">
+    <div v-else class="grid gap-2 xl:grid-cols-12">
       <!-- The setup guide: the shortest road to a first real customer. It
            goes away once every step is done. -->
       <div v-if="!setupDone && auth.canManage" class="island overflow-hidden xl:col-span-12">

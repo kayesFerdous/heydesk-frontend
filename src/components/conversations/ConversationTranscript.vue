@@ -1,70 +1,62 @@
 <template>
-  <!-- What was said, word for word, under a header saying who and where.
-       A hand-off shows at the top with the way to pick it up. It opens at the
+  <!-- What was said, word for word, under a header saying who and where and what
+       to do with it. A hand-off shows at the top with the way to pick it up. It opens at the
        newest line; scrolling up loads the older ones (backend D157). -->
   <div class="flex flex-col">
-    <header class="flex flex-wrap items-center gap-3 border-b border-hairline p-4 sm:px-6">
+    <!-- The name keeps its own room; the buttons go to the next line before they squeeze it. -->
+    <header class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline px-4 py-2.5 sm:px-5">
       <button type="button" class="btn btn-secondary btn-icon btn-sm lg:hidden" :aria-label="t('conversations.back')" @click="$emit('back')">
         <PhArrowLeft :size="18"></PhArrowLeft>
       </button>
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold" :class="tint" aria-hidden="true">
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold" :class="tint" aria-hidden="true">
         <template v-if="named">{{ initials(name) }}</template>
-        <component :is="channel.icon" v-else :size="22" :weight="channel.weight"></component>
+        <component :is="channel.icon" v-else :size="18" :weight="channel.weight"></component>
       </span>
-      <div class="min-w-0 flex-1">
-        <h2 class="truncate text-lg font-bold">{{ name }}</h2>
-        <p class="truncate text-sm text-ink-soft">{{ channel.long }}, {{ when }}</p>
+      <div class="min-w-[11rem] flex-1">
+        <h2 class="truncate text-base leading-tight font-bold">{{ name }}</h2>
+        <p class="truncate text-xs text-ink-soft">{{ channel.long }}, {{ when }}</p>
       </div>
-      <!-- Who has it (backend I1), Done and the rest, from the page. -->
-      <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
+      <!-- Done, Take it and the More menu, from the page; none for an admin reading. -->
+      <div v-if="$slots.actions" class="ml-auto flex shrink-0 items-center gap-1.5">
+        <a v-if="phone" :href="`tel:${phone}`" class="btn btn-quiet btn-sm" :aria-label="t('records.call', { name })" :title="phone">
+          <PhPhone :size="16" weight="fill"></PhPhone>
+          {{ t('conversations.callButton') }}
+        </a>
         <slot name="actions"></slot>
       </div>
     </header>
+    <!-- What is on now: who has it, a snooze, a block. -->
+    <slot name="chips"></slot>
+    <p v-if="error" class="border-b border-hairline px-4 py-2 text-sm text-danger sm:px-5" role="alert">{{ error }}</p>
+
+    <!-- A hand-off stays in sight above the transcript, with the way to pick it up. -->
+    <div
+      v-if="conversation.status === 'needs_human'"
+      class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline bg-attention-tint px-4 py-2 text-sm sm:px-5"
+      role="status"
+    >
+      <PhUserSound :size="18" weight="bold" class="shrink-0 text-attention" aria-hidden="true"></PhUserSound>
+      <p class="min-w-[12rem] flex-1 text-ink">
+        <span class="font-semibold">{{ t('conversations.askedForPersonLine', { name }) }}</span>
+        {{ phone ? t('conversations.callToPickUp', { phone }) : t('conversations.readThenReach') }}
+        <span v-if="canTake" class="text-ink-soft">{{ t('conversations.assign.nobodyHasIt') }}</span>
+      </p>
+      <div v-if="$slots.actions" class="flex flex-wrap gap-1.5">
+        <!-- Nobody has it yet (backend I1): taking it is the first step. -->
+        <button v-if="canTake" type="button" class="btn btn-secondary btn-sm" :disabled="busy" @click="$emit('take')">
+          <PhHandGrabbing :size="16"></PhHandGrabbing>
+          {{ t('conversations.assign.take') }}
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" :title="t('conversations.handledHint')" :disabled="busy" @click="$emit('handled')">
+          <PhCheck :size="16" weight="bold"></PhCheck>
+          {{ t('conversations.markHandled') }}
+        </button>
+      </div>
+    </div>
     <!-- The AI's summary of the chat, from the page (backend D137). -->
     <slot name="top"></slot>
 
-    <div ref="scroller" class="flex flex-col px-4 py-5 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto" @scroll="scrolled">
-      <div
-        v-if="conversation.status === 'needs_human'"
-        class="mx-auto mb-6 flex max-w-2xl flex-wrap items-center gap-3 rounded-[var(--radius-card)] bg-attention-tint p-4 text-sm"
-        role="status"
-      >
-        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface text-attention" aria-hidden="true">
-          <PhUserSound :size="20" weight="bold"></PhUserSound>
-        </span>
-        <div class="min-w-[12rem] flex-1">
-          <p class="font-bold text-ink">{{ t('conversations.askedForPerson', { name }) }}</p>
-          <p class="mt-0.5 text-ink">
-            <template v-if="phone">{{ t('conversations.callToPickUp', { phone }) }}</template>
-            <template v-else>{{ t('conversations.readThenReach') }}</template>
-          </p>
-          <p v-if="canTake" class="mt-0.5 text-ink-soft">{{ t('conversations.assign.nobodyHasIt') }}</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <!-- Nobody has it yet (backend I1): taking it is the first step. -->
-          <button v-if="canTake" type="button" class="btn btn-secondary" :disabled="busy" @click="$emit('take')">
-            <PhHandGrabbing :size="16"></PhHandGrabbing>
-            {{ t('conversations.assign.take') }}
-          </button>
-          <a v-if="phone" :href="`tel:${phone}`" class="btn btn-primary">
-            <PhPhone :size="16" weight="fill"></PhPhone>
-            {{ t('conversations.callBack') }}
-          </a>
-          <button
-            type="button"
-            class="btn"
-            :class="phone ? 'btn-secondary' : 'btn-primary'"
-            :title="t('conversations.handledHint')"
-            :disabled="busy"
-            @click="$emit('handled')"
-          >
-            <PhCheck :size="16" weight="bold"></PhCheck>
-            {{ t('conversations.markHandled') }}
-          </button>
-        </div>
-        <p v-if="error" class="w-full text-sm text-danger" role="alert">{{ error }}</p>
-      </div>
-
+    <div ref="scroller" class="flex flex-col px-4 py-4 sm:px-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto" @scroll="scrolled">
       <!-- The newest lines sit at the bottom, as in a messaging app. -->
       <div class="mx-auto mt-auto flex w-full max-w-2xl flex-col gap-3">
         <div v-if="more" ref="top" class="flex flex-col items-center gap-1">

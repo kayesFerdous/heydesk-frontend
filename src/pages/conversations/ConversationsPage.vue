@@ -1,32 +1,14 @@
 <template>
-  <!-- Three columns on the canvas: the list, the transcript, and who it was
+  <!-- One island, its columns ruled apart: the list, the transcript, and who it was
        with. A phone shows the list, then one conversation with a way back. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
-    <PageHeader :class="{ 'max-lg:hidden': selectedId }" :title="t('conversations.title')" :subtitle="t('conversations.subtitle')">
-      <!-- Who has it (backend I1): one choice, with how many there wait for a person. -->
-      <template v-if="!auth.isViewing" #actions>
-        <div class="tabs rounded-[0.875rem] bg-surface p-1" role="group" :aria-label="t('conversations.assign.filter')">
-          <button
-            v-for="option in whoOptions"
-            :key="option.id"
-            type="button"
-            class="tab"
-            :class="{ 'tab-active': who === option.id }"
-            :aria-pressed="who === option.id"
-            @click="setWho(option.id)"
-          >
-            {{ option.label }}
-            <span v-if="option.waiting" class="count count-attention" :title="t('status.needs_human')">{{ formatNumber(option.waiting) }}</span>
-          </button>
-        </div>
-      </template>
-    </PageHeader>
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full lg:pt-0">
+    <!-- Wide screens give the whole height to the work: the title is for screen readers only. -->
+    <h1 class="sr-only max-lg:hidden">{{ t('conversations.title') }}</h1>
+    <PageHeader :class="selectedId ? 'lg:hidden max-lg:hidden' : 'lg:hidden'" :title="t('conversations.title')" :tip="t('conversations.subtitle')"></PageHeader>
 
-    <LoadError v-if="error" class="island" :message="error" @retry="load"></LoadError>
-
-    <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[22rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[24rem_minmax(0,1fr)_20rem]">
+    <div class="island grid grid-cols-[minmax(0,1fr)] lg:min-h-0 lg:flex-1 lg:grid-cols-[21rem_minmax(0,1fr)] lg:overflow-hidden xl:grid-cols-[20rem_minmax(0,1fr)_17rem] 2xl:grid-cols-[23rem_minmax(0,1fr)_20rem]">
       <!-- The list -->
-      <div class="island flex flex-col overflow-hidden lg:min-h-0" :class="{ 'max-lg:hidden': selectedId }">
+      <div class="flex flex-col lg:min-h-0 lg:border-r lg:border-hairline" :class="{ 'max-lg:hidden': selectedId }">
         <!-- Who is blocked (backend I2): a list of its own, a step away from the chats. -->
         <div v-if="filter === 'blocked'" class="flex shrink-0 items-center gap-2 border-b border-hairline p-3">
           <button type="button" class="btn btn-quiet btn-icon btn-sm" :aria-label="t('conversations.them.backToChats')" @click="setFilter(null)">
@@ -35,61 +17,103 @@
           <h2 class="text-sm font-bold">{{ t('conversations.them.blockedLink') }}</h2>
         </div>
 
-        <template v-else>
-          <!-- A name, a phone, an order code or any words (backend I3) -->
-          <div class="shrink-0 px-3 pt-3">
-            <input
-              v-model="searchText"
-              class="field"
-              type="search"
-              :placeholder="t('conversations.later.search')"
-              :aria-label="t('conversations.later.search')"
-            />
+        <div v-else class="flex shrink-0 flex-col gap-2 border-b border-hairline p-3">
+          <div class="flex items-center gap-2">
+            <SidebarToggle class="max-lg:!hidden"></SidebarToggle>
+            <!-- A name, a phone, an order code or any words (backend I3) -->
+            <label class="relative block min-w-0 flex-1">
+              <span class="sr-only">{{ t('conversations.later.search') }}</span>
+              <PhMagnifyingGlass :size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft"></PhMagnifyingGlass>
+              <input v-model="searchText" class="field !h-9 !border-transparent !bg-wash pl-9 text-sm" type="search" :placeholder="t('conversations.later.search')" />
+            </label>
+            <!-- Narrow it down past the tabs: one channel, or the blocked visitors. -->
+            <div ref="filterRoot" class="relative">
+              <button
+                type="button"
+                class="btn btn-sm btn-icon relative"
+                :class="channel ? 'btn-secondary !border-ink' : 'btn-quiet'"
+                :aria-label="t('conversations.filter')"
+                :title="t('conversations.filter')"
+                :aria-expanded="filterOpen"
+                aria-haspopup="menu"
+                @click="filterOpen = !filterOpen"
+              >
+                <PhFunnelSimple :size="18"></PhFunnelSimple>
+              </button>
+              <div v-if="filterOpen" class="popover right-0 w-60" role="menu">
+                <p class="px-3 pt-1.5 pb-1 text-xs font-semibold text-ink-soft">{{ t('conversations.byChannel') }}</p>
+                <button type="button" class="menu-item" role="menuitemradio" :aria-checked="!channel" @click="pick(() => setChannel(null))">
+                  <span class="min-w-0 flex-1">{{ t('conversations.allChannels') }}</span>
+                  <PhCheck v-if="!channel" :size="16" weight="bold"></PhCheck>
+                </button>
+                <button
+                  v-for="option in channelOptions"
+                  :key="option.id"
+                  type="button"
+                  class="menu-item"
+                  role="menuitemradio"
+                  :aria-checked="channel === option.id"
+                  @click="pick(() => setChannel(option.id))"
+                >
+                  <component :is="option.icon" :size="18" :weight="option.weight" :class="option.color"></component>
+                  <span class="min-w-0 flex-1">{{ option.label }}</span>
+                  <PhCheck v-if="channel === option.id" :size="16" weight="bold"></PhCheck>
+                </button>
+                <button
+                  v-if="!auth.isViewing"
+                  type="button"
+                  class="menu-item mt-1 border-t border-hairline !rounded-none text-ink-soft"
+                  role="menuitem"
+                  @click="pick(() => setFilter('blocked'))"
+                >
+                  <PhProhibit :size="16"></PhProhibit>
+                  {{ t('conversations.them.blockedLink') }}
+                </button>
+              </div>
+            </div>
           </div>
-          <!-- Narrow it down: waiting for a person or done, then one channel (its logo, and its
-               name once chosen). Each one pressed again lets go. -->
-          <nav class="flex shrink-0 flex-col gap-2 border-b border-hairline p-3" :aria-label="t('conversations.filter')">
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
-                :class="filter === 'needs_human' ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
-                :aria-pressed="filter === 'needs_human'"
-                @click="setFilter('needs_human')"
-              >
-                {{ t('status.needs_human') }}
-                <span v-if="waitingHere" class="count count-attention">{{ formatNumber(waitingHere) }}</span>
-              </button>
-              <button
-                type="button"
-                class="chip h-9 px-3.5 text-sm font-semibold transition-colors"
-                :class="filter === 'done' ? 'bg-lime text-ink' : 'bg-hover text-ink-soft hover:text-ink'"
-                :aria-pressed="filter === 'done'"
-                @click="setFilter('done')"
-              >
-                {{ t('conversations.later.doneList') }}
-              </button>
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="option in channelOptions"
-                :key="option.id"
-                type="button"
-                class="chip h-9 gap-1.5 text-sm font-semibold transition-colors"
-                :class="channel === option.id ? 'bg-lime px-3.5 text-ink' : 'w-9 justify-center bg-hover px-0 text-ink-soft hover:text-ink'"
-                :aria-pressed="channel === option.id"
-                :aria-label="option.label"
-                :title="option.label"
-                @click="setChannel(option.id)"
-              >
-                <component :is="option.icon" :size="18" :weight="option.weight" :class="option.color"></component>
-                <span v-if="channel === option.id">{{ option.label }}</span>
-              </button>
-            </div>
+
+          <!-- Who has it (backend I1): one choice, with how many there wait for a person. -->
+          <div v-if="!auth.isViewing" class="segmented flex w-full" role="group" :aria-label="t('conversations.assign.filter')">
+            <button
+              v-for="id in WHO"
+              :key="id"
+              type="button"
+              class="segment !h-7 flex-1 justify-center !px-2"
+              :class="{ 'segment-active': who === id }"
+              :aria-pressed="who === id"
+              @click="setWho(id)"
+            >
+              {{ t(`conversations.assign.${id}`) }}
+              <span v-if="id !== 'all' && waitingIn[id] > 0" class="count count-attention" :title="t('status.needs_human')">{{ formatNumber(waitingIn[id]) }}</span>
+            </button>
+          </div>
+
+          <!-- Which of them: every chat, the ones waiting for a person, or the done ones. -->
+          <nav class="flex flex-wrap items-center gap-1" :aria-label="t('conversations.filter')">
+            <button
+              v-for="id in FILTER_TABS"
+              :key="id ?? 'all'"
+              type="button"
+              class="tab !h-7 !px-2.5 !text-[0.8125rem]"
+              :class="{ 'tab-active': filter === id }"
+              :aria-pressed="filter === id"
+              @click="setFilter(id)"
+            >
+              {{ id === null ? t('conversations.all') : id === 'done' ? t('conversations.later.doneList') : t('status.needs_human') }}
+              <span v-if="id === 'needs_human' && waitingIn[who] > 0" class="count count-attention">{{ formatNumber(waitingIn[who]) }}</span>
+            </button>
+            <button v-if="channel" type="button" class="chip ml-auto h-7 bg-lime px-2.5 text-ink" :title="t('conversations.allChannels')" @click="setChannel(null)">
+              <component :is="channelOf(channel).icon" :size="14" :weight="channelOf(channel).weight"></component>
+              {{ channelOf(channel).label }}
+              <PhX :size="12" weight="bold"></PhX>
+            </button>
           </nav>
-        </template>
+        </div>
 
         <BlockedList v-if="filter === 'blocked'" @open="select"></BlockedList>
+
+        <LoadError v-else-if="error" :message="error" @retry="load"></LoadError>
 
         <SkeletonRows v-else-if="!loaded"></SkeletonRows>
 
@@ -122,10 +146,10 @@
           </button>
         </EmptyState>
 
-        <div v-else class="px-2 pb-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+        <div v-else class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           <div v-for="group in groups" :key="group.label">
-            <h2 class="day-head !border-hairline !px-2.5 !pt-3">{{ group.label }}</h2>
-            <div class="flex flex-col gap-1 pt-1.5">
+            <h2 class="day-head !border-hairline !px-3 !pt-2.5 !pb-1.5 !text-xs !text-ink-soft">{{ group.label }}</h2>
+            <div class="flex flex-col">
               <ConversationRow
                 v-for="row in group.items"
                 :key="row.id"
@@ -138,67 +162,58 @@
           </div>
           <ShowMore v-if="hasMore" :loading="loadingMore" :error="moreError" @more="showMore"></ShowMore>
         </div>
-
-        <button
-          v-if="filter !== 'blocked' && !auth.isViewing"
-          type="button"
-          class="mt-auto flex shrink-0 items-center gap-2 border-t border-hairline px-4 py-3 text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
-          @click="setFilter('blocked')"
-        >
-          <PhProhibit :size="16"></PhProhibit>
-          {{ t('conversations.them.blockedLink') }}
-        </button>
       </div>
 
-      <!-- The conversation: the transcript, then who it was with. Wide
-           screens give each its own column; narrower ones stack them. -->
-      <div v-if="detail" class="flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto xl:contents">
-        <ConversationTranscript
-          :conversation="detail"
-          :busy="isHandling"
-          :error="handleError"
-          :can-take="!auth.isViewing && !detail.assigned_to"
-          class="island xl:min-h-0"
-          @back="select(null)"
-          @handled="handled"
-          @take="assign(auth.me?.id)"
-        >
-          <template v-if="!auth.isViewing" #actions>
-            <AssignControl
-              :conversation="detail"
-              :members="members"
-              :me-id="auth.me?.id || ''"
-              :can-assign-anyone="auth.canManage"
-              :busy="isAssigning"
-              :error="assignError"
-              @assign="assign"
-            ></AssignControl>
-            <ConversationActions
-              :conversation="detail"
-              :busy="isLater || isChanging"
-              :error="laterError || changeError"
-              @done="done"
-              @snooze="snooze"
-              @change="changeThem"
-            ></ConversationActions>
-          </template>
-          <template v-if="!auth.isViewing" #top>
-            <ConversationSummary :conversation="detail"></ConversationSummary>
-          </template>
-          <!-- A call can't be answered in writing. -->
-          <template v-if="!auth.isViewing && detail.channel !== 'voice'" #bottom>
-            <ReplyBox :conversation="detail" :busy="isReplying" :error="replyError" @send="reply"></ReplyBox>
-          </template>
-        </ConversationTranscript>
-        <ConversationSide :conversation="detail" class="island xl:min-h-0 xl:overflow-y-auto"></ConversationSide>
+      <!-- The transcript, then who it was with. Wide screens give each its own
+           column, ruled apart; narrower ones stack them. -->
+      <div v-if="detail" class="flex flex-col lg:min-h-0 lg:overflow-y-auto xl:contents">
+        <div class="xl:flex xl:min-h-0 xl:flex-col">
+          <ConversationTranscript
+            :conversation="detail"
+            :busy="isHandling || isAssigning"
+            :error="handleError || assignError || laterError || changeError"
+            :can-take="!auth.isViewing && !detail.assigned_to"
+            class="xl:min-h-0 xl:flex-1"
+            @back="select(null)"
+            @handled="handled"
+            @take="assign(auth.me?.id)"
+          >
+            <template v-if="!auth.isViewing" #actions>
+              <ConversationActions
+                :conversation="detail"
+                :members="members"
+                :me-id="auth.me?.id || ''"
+                :can-assign-anyone="auth.canManage"
+                :busy="isAssigning || isLater || isChanging"
+                @assign="assign"
+                @done="done"
+                @snooze="snooze"
+                @change="changeThem"
+              ></ConversationActions>
+            </template>
+            <template #chips>
+              <ConversationChips :conversation="detail" :me-id="auth.me?.id || ''"></ConversationChips>
+            </template>
+            <template v-if="!auth.isViewing" #top>
+              <ConversationSummary :conversation="detail"></ConversationSummary>
+            </template>
+            <!-- A call can't be answered in writing. -->
+            <template v-if="!auth.isViewing && detail.channel !== 'voice'" #bottom>
+              <ReplyBox :conversation="detail" :busy="isReplying" :error="replyError" @send="reply"></ReplyBox>
+            </template>
+          </ConversationTranscript>
+        </div>
+        <div class="border-t border-hairline xl:min-h-0 xl:overflow-y-auto xl:border-t-0 xl:border-l">
+          <ConversationSide :conversation="detail" :me-id="auth.me?.id || ''"></ConversationSide>
+        </div>
       </div>
-      <LoadError v-else-if="detailError" class="island" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
-      <div v-else-if="selectedId" class="island p-8" aria-hidden="true">
+      <LoadError v-else-if="detailError" :message="detailError" @retry="loadDetail(selectedId)"></LoadError>
+      <div v-else-if="selectedId" class="p-8" aria-hidden="true">
         <div class="skeleton h-5 w-40"></div>
         <div class="skeleton mt-8 h-12 w-2/3 !rounded-[var(--radius-card)]"></div>
         <div class="skeleton mt-3 ml-auto h-12 w-1/2 !rounded-[var(--radius-card)]"></div>
       </div>
-      <div v-else class="island hidden flex-col items-center justify-center p-8 text-center lg:flex xl:col-span-2">
+      <div v-else class="hidden flex-col items-center justify-center p-8 text-center lg:flex xl:col-span-2">
         <span class="grid h-14 w-14 place-items-center rounded-full bg-brand-tint" aria-hidden="true">
           <PhChatsCircle :size="26"></PhChatsCircle>
         </span>
@@ -213,13 +228,13 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhArrowLeft, PhChatsCircle, PhCheckCircle, PhMagnifyingGlass, PhProhibit } from '@phosphor-icons/vue';
+import { PhArrowLeft, PhChatsCircle, PhCheck, PhCheckCircle, PhFunnelSimple, PhMagnifyingGlass, PhProhibit, PhX } from '@phosphor-icons/vue';
 
 import ConversationRow from '../../components/conversations/ConversationRow.vue';
 import ConversationTranscript from '../../components/conversations/ConversationTranscript.vue';
 import ConversationSide from '../../components/conversations/ConversationSide.vue';
-import AssignControl from '../../components/conversations/AssignControl.vue';
 import ConversationActions from '../../components/conversations/ConversationActions.vue';
+import ConversationChips from '../../components/conversations/ConversationChips.vue';
 import ConversationSummary from '../../components/conversations/ConversationSummary.vue';
 import ReplyBox from '../../components/conversations/ReplyBox.vue';
 import BlockedList from '../../components/conversations/BlockedList.vue';
@@ -228,6 +243,7 @@ import ShowMore from '../../components/ui/ShowMore.vue';
 import PageHeader from '../../components/ui/PageHeader.vue';
 import EmptyState from '../../components/ui/EmptyState.vue';
 import LoadError from '../../components/ui/LoadError.vue';
+import SidebarToggle from '../../components/layout/SidebarToggle.vue';
 import {
   fetchConversations,
   fetchConversation,
@@ -243,6 +259,7 @@ import { fetchRecords, byConversation } from '../../api/records.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber } from '../../lib/format.js';
 import { channelOf, CHANNEL_IDS } from '../../lib/channels.js';
+import { usePopover } from '../../composables/usePopover.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { useInboxStore } from '../../stores/inbox.js';
 import { useUiStore } from '../../stores/ui.js';
@@ -253,6 +270,7 @@ const { t } = useI18n();
 const auth = useAuthStore();
 const inbox = useInboxStore();
 const ui = useUiStore();
+const { open: filterOpen, root: filterRoot } = usePopover(); // the funnel's menu: a channel, or the blocked visitors
 
 const list = ref([]); // the pages loaded so far, newest activity first
 const recordsOf = ref({}); // conversation id -> the records it made (for the name)
@@ -280,19 +298,13 @@ let searchTimer = null;
 
 // Two choices, both in the URL so a link can open them: whose chats (`who`, backend I1), and
 // which of them (`filter`): waiting for a person, done (I3), or the blocked visitors (I2).
-const WHO = ['mine', 'unassigned'];
+const WHO = ['mine', 'unassigned', 'all'];
 const FILTERS = ['needs_human', 'done', 'blocked'];
+const FILTER_TABS = [null, 'needs_human', 'done']; // every chat, waiting for a person, done
 const who = computed(() => (!auth.isViewing && WHO.includes(route.query.who) ? route.query.who : 'all'));
 const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : null));
-const whoOptions = computed(() => [
-  { id: 'mine', label: t('conversations.assign.mine'), waiting: inbox.mineWaiting },
-  { id: 'unassigned', label: t('conversations.assign.unassigned'), waiting: inbox.unassignedWaiting },
-  { id: 'all', label: t('conversations.assign.all'), waiting: 0 },
-]);
-// How many of the chats in this tab wait for a person, on the "Needs a person" chip.
-const waitingHere = computed(
-  () => ({ mine: inbox.mineWaiting, unassigned: inbox.unassignedWaiting, all: inbox.needsHuman })[who.value],
-);
+// How many chats wait for a person, in each tab and on the "Needs a person" tab.
+const waitingIn = computed(() => ({ mine: inbox.mineWaiting, unassigned: inbox.unassignedWaiting, all: inbox.needsHuman }));
 const selectedId = computed(() => route.query.open || null);
 const channel = computed(() => (CHANNEL_IDS.includes(route.query.channel) ? route.query.channel : null));
 const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelOf(id) })));
@@ -310,6 +322,7 @@ const rows = computed(() =>
       name: known || t('conversations.visitor'),
       named: Boolean(known),
       preview: messages.length ? messages[messages.length - 1].text : '',
+      record: (recordsOf.value[c.id] || [])[0], // the newest order or request it made
     };
   }),
 );
@@ -330,6 +343,11 @@ const setWho = (next) => go({ who: next === 'all' ? null : next, open: null });
 const setFilter = (next) => go({ filter: next === filter.value ? null : next, open: null });
 const setChannel = (next) => go({ channel: next === channel.value ? null : next, open: null });
 const select = (id) => go({ open: id });
+// A choice in the funnel's menu closes it.
+function pick(choose) {
+  filterOpen.value = false;
+  choose();
+}
 
 // One page of the list, newest activity first, older than `before` if given.
 function fetchPage(before) {

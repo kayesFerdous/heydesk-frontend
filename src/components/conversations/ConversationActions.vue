@@ -1,21 +1,9 @@
 <template>
-  <!-- What the team does with this chat besides who has it: Done (backend I3) as a button, the
-       rest in one menu: Snooze (I3), and AI off or Block for the visitor (I2). What is on now
-       shows as a chip, so a snoozed or blocked chat says so without opening the menu. -->
-  <div ref="root" class="relative flex flex-wrap items-center gap-2">
-    <span v-if="snoozedText" class="chip bg-hover text-ink-soft">
-      <PhAlarm :size="14"></PhAlarm>
-      {{ snoozedText }}
-    </span>
-    <span v-if="visitor?.blocked" class="chip bg-danger-tint text-danger">
-      <PhProhibit :size="14" weight="bold"></PhProhibit>
-      {{ blockedLine(visitor, t) }}
-    </span>
-    <span v-else-if="visitor?.ai_off" class="chip bg-attention-tint text-attention">
-      <PhRobot :size="14"></PhRobot>
-      {{ t('conversations.them.aiIsOff') }}
-    </span>
-
+  <!-- What the team does with a chat, in its header: Done (backend I3) quiet, Take it
+       (I1) as the one black button while nobody has the chat, and the rest in one
+       More menu: who has it (I1), Snooze (I3), and AI off or Block for the visitor
+       (I2). What is on now shows in `ConversationChips`. -->
+  <div ref="root" class="relative flex items-center gap-1.5">
     <button v-if="conversation.done_at" type="button" class="btn btn-quiet btn-sm" :disabled="busy" @click="$emit('done', false)">
       {{ t('conversations.later.notDone') }}
     </button>
@@ -24,9 +12,14 @@
       {{ t('conversations.later.done') }}
     </button>
 
+    <button v-if="!conversation.assigned_to" type="button" class="btn btn-primary btn-sm" :disabled="busy" @click="$emit('assign', meId)">
+      <PhHandGrabbing :size="16"></PhHandGrabbing>
+      {{ t('conversations.assign.take') }}
+    </button>
+
     <button
       type="button"
-      class="btn btn-quiet btn-icon btn-sm"
+      class="btn btn-secondary btn-icon btn-sm"
       :aria-label="t('conversations.more')"
       :title="t('conversations.more')"
       :aria-expanded="open"
@@ -37,7 +30,12 @@
       <PhDotsThree :size="20" weight="bold"></PhDotsThree>
     </button>
 
-    <div v-if="open" class="popover right-0 w-64" role="menu">
+    <div v-if="open" class="popover right-0 w-72" role="menu">
+      <template v-if="assignable">
+        <AssignItems :conversation="conversation" :members="members" :me-id="meId" :can-assign-anyone="canAssignAnyone" @assign="assign"></AssignItems>
+        <div class="my-1.5 border-t border-hairline"></div>
+      </template>
+
       <p class="px-3 pt-1.5 pb-1 text-xs font-semibold text-ink-soft">{{ t('conversations.later.snooze') }}</p>
       <button v-for="choice in SNOOZES" :key="choice" type="button" class="menu-item" role="menuitem" @click="snooze(choice)">
         <PhAlarm :size="16" class="text-ink-soft"></PhAlarm>
@@ -63,7 +61,7 @@
         <PhCalendarDots :size="16" class="text-ink-soft"></PhCalendarDots>
         {{ t('conversations.later.pickTime') }}
       </button>
-      <button v-if="snoozedText" type="button" class="menu-item" role="menuitem" @click="snooze('wake')">
+      <button v-if="snoozed" type="button" class="menu-item" role="menuitem" @click="snooze('wake')">
         <PhArrowUUpLeft :size="16" class="text-ink-soft"></PhArrowUUpLeft>
         {{ t('conversations.later.wake') }}
       </button>
@@ -87,25 +85,25 @@
       </template>
     </div>
 
-    <p v-if="error" class="w-full text-right text-sm text-danger" role="alert">{{ error }}</p>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhAlarm, PhArrowUUpLeft, PhCalendarDots, PhCheck, PhDotsThree, PhProhibit, PhRobot } from '@phosphor-icons/vue';
+import { PhAlarm, PhArrowUUpLeft, PhCalendarDots, PhCheck, PhDotsThree, PhHandGrabbing, PhProhibit, PhRobot } from '@phosphor-icons/vue';
 
 import { usePopover } from '../../composables/usePopover.js';
-import { blockedLine } from '../../lib/blocked.js';
-import { formatDay, formatTime } from '../../lib/format.js';
+import AssignItems from './AssignItems.vue';
 
 const props = defineProps({
   conversation: { type: Object, required: true },
+  members: { type: Array, default: () => [] }, // the team with their open chats, for the owner's list
+  meId: { type: String, default: '' },
+  canAssignAnyone: { type: Boolean, default: false }, // the owner
   busy: { type: Boolean, default: false },
-  error: { type: String, default: null },
 });
-const emit = defineEmits(['done', 'snooze', 'change']);
+const emit = defineEmits(['assign', 'done', 'snooze', 'change']);
 const { t } = useI18n();
 const { open, root } = usePopover();
 
@@ -116,11 +114,12 @@ const picked = ref('');
 watch(open, () => (picking.value = false)); // the menu opens on its choices again
 
 const visitor = computed(() => props.conversation.visitor); // null: a chat from before visitors were known
-const snoozedText = computed(() => {
+const snoozed = computed(() => {
   const until = props.conversation.snoozed_until;
-  if (!until || new Date(until) <= new Date()) return '';
-  return t('conversations.later.snoozedUntil', { when: `${formatDay(until)}, ${formatTime(until)}` });
+  return Boolean(until) && new Date(until) > new Date();
 });
+// A moderator has nothing to choose on a colleague's chat.
+const assignable = computed(() => props.canAssignAnyone || !props.conversation.assigned_to || props.conversation.assigned_to === props.meId);
 
 // When each choice ends, from now: an hour, 9 in the morning tomorrow, or a week.
 function untilFor(choice) {
@@ -151,6 +150,11 @@ function pickable(days) {
 function snoozeAt() {
   open.value = false;
   emit('snooze', new Date(picked.value).toISOString());
+}
+
+function assign(userId) {
+  open.value = false;
+  if (userId !== (props.conversation.assigned_to || null)) emit('assign', userId);
 }
 
 function change(what) {

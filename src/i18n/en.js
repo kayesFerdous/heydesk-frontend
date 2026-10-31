@@ -473,6 +473,16 @@ export default {
     noMatchesText: 'Try a customer name, a phone number or a code like A-104.',
     emptyTitle: 'Nothing here yet',
     emptyText: 'When a customer orders, books or leaves a message, it shows up here. Share your chat link to get the first one.',
+    emptyStatusTitle: 'Nothing here',
+    emptyStatusText: 'Nothing has this status right now. All shows everything.',
+    seeAll: 'See all',
+    // The table's column names; the code and the total are named by records.name and records.total.
+    columns: {
+      customer: 'Customer',
+      status: 'Status',
+      time: 'Time',
+      what: { order: 'Items', appointment: 'Doctor and time', message: 'Message' },
+    },
   },
 
   records: {
@@ -599,6 +609,8 @@ export default {
       take: 'Take it',
       giveBack: 'Give back',
       nobodyHasIt: 'Nobody on your team has this chat yet.',
+      withYou: 'With you',
+      nobody: 'Nobody',
       noneMine: 'Nothing is yours',
       noneMineText: 'Take a chat, or the owner can give you one.',
       noneFree: 'Every chat has someone',
@@ -609,6 +621,8 @@ export default {
     theirPhoto: 'The photo {name} sent',
     filter: 'Filter',
     byChannel: 'Channel',
+    allChannels: 'All channels',
+    callButton: 'Call',
     noneFrom: 'No conversations on {channel} yet',
     noneFromText: 'When customers write to you there, their chats show up here.',
     all: 'All',
@@ -622,6 +636,7 @@ export default {
     pickText: 'See exactly what your agent said, and what it took.',
     back: 'Back to conversations',
     askedForPerson: '{name} asked for a person',
+    askedForPersonLine: '{name} asked for a person.',
     callToPickUp: 'Call {phone} to pick up where your agent left off.',
     readThenReach: 'Read the chat below, then reach out to them.',
     callBack: 'Call back',

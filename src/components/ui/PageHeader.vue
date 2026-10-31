@@ -1,34 +1,36 @@
 <template>
-  <!-- The top of every page, on the grey canvas above its islands: title and
-       one line of help on the left, the page's actions on the right, and tabs
-       (if any) underneath on a white track. The tabs stay at the top
-       while the page scrolls, so they sit outside the header (a sticky thing
-       only sticks inside its parent); the wrapper is display: contents so
-       the page around it is their parent. -->
-  <div class="contents">
-    <header class="shrink-0 px-1 md:px-3 md:pt-3" :class="$slots.tabs ? 'pb-2' : 'pb-5'">
-      <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div class="flex min-w-0 items-start gap-3">
-          <SidebarToggle class="mt-[0.3125rem]"></SidebarToggle>
-          <div class="min-w-0">
-            <h1 class="text-[1.75rem] leading-tight font-semibold tracking-[-0.025em] text-balance">
-              {{ title }}
-              <InfoTip v-if="tip" :text="tip" class="ml-0.5 -translate-y-0.5"></InfoTip>
-            </h1>
-            <p v-if="subtitle" class="mt-1 max-w-2xl text-sm text-ink-soft">{{ subtitle }}</p>
-            <slot name="subtitle"></slot>
-          </div>
-        </div>
-        <div v-if="$slots.actions" class="flex flex-wrap items-center gap-2">
-          <slot name="actions"></slot>
-        </div>
-      </div>
-    </header>
-    <!-- See-through around the pill, and clicks pass through it to what is underneath. -->
-    <div v-if="$slots.tabs" class="pointer-events-none sticky top-0 z-20 px-1 pt-2 pb-5 md:px-3 [&_.tabs]:pointer-events-auto [&_.tabs]:shadow-[var(--shadow-lift)] [&_.tabs]:inline-flex [&_.tabs]:max-w-full [&_.tabs]:rounded-[0.875rem] [&_.tabs]:bg-surface [&_.tabs]:p-1">
+  <!-- The top of every page, on the grey canvas above its islands: one line
+       with the title, its "i", a short status (if any), the tabs and the
+       page's actions on the right. What the page is for lives behind the "i",
+       so the screen's height goes to the work. A page with tabs keeps the whole
+       line at the top while it scrolls. On a phone the tabs move to a line of
+       their own. -->
+  <header
+    class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-1 pb-3 md:min-h-[3.25rem] md:px-3 md:pb-2"
+    :class="$slots.tabs ? 'sticky top-[var(--sticky-top,0px)] z-20 bg-canvas' : ''"
+  >
+    <!-- The status gives way before the title does: its own line on a phone, cut short beside the title from 640px. -->
+    <div class="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-0.5 sm:flex-nowrap">
+      <SidebarToggle></SidebarToggle>
+      <h1 class="min-w-0 truncate text-xl leading-tight font-semibold tracking-[-0.02em]">{{ title }}</h1>
+      <InfoTip v-if="tip" :text="tip" class="-ml-1"></InfoTip>
+      <p v-if="subtitle" class="min-w-0 basis-full truncate text-[0.8125rem] text-ink-soft sm:shrink-[8] sm:basis-auto">{{ subtitle }}</p>
+    </div>
+    <!-- The tabs on a white track, beside the title from 1024px. -->
+    <div
+      v-if="$slots.tabs"
+      class="order-last w-full min-w-0 lg:order-none lg:w-auto [&_.tabs]:inline-flex [&_.tabs]:max-w-full [&_.tabs]:rounded-[0.875rem] [&_.tabs]:bg-surface [&_.tabs]:p-1 [&_.tabs]:shadow-[var(--shadow-lift)]"
+    >
       <slot name="tabs"></slot>
     </div>
-  </div>
+    <!-- On a phone the actions take a full line of their own, so a search box is full width. -->
+    <div v-if="$slots.actions" class="ml-auto flex flex-wrap items-center justify-end gap-2 max-sm:basis-full">
+      <slot name="actions"></slot>
+    </div>
+    <div v-if="$slots.subtitle" class="order-last w-full min-w-0">
+      <slot name="subtitle"></slot>
+    </div>
+  </header>
 </template>
 
 <script setup>
@@ -37,6 +39,8 @@ import SidebarToggle from '../layout/SidebarToggle.vue';
 
 defineProps({
   title: { type: String, required: true },
+  // A few words of status beside the title ("3 of 20 documents"), never a
+  // sentence about the page: that is the tip.
   subtitle: { type: String, default: '' },
   // What the page is for, behind an "i" next to the title instead of a paragraph.
   tip: { type: String, default: '' },

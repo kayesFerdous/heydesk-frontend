@@ -14,7 +14,7 @@
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
     <SkeletonRows v-else-if="!billing" class="island overflow-hidden"></SkeletonRows>
 
-    <div v-else class="island px-5 pt-6 pb-4 sm:px-8">
+    <div v-else class="island px-4 pt-4 pb-3 sm:px-6">
       <SettingsGroup :title="t('billing.yourPlan')" :tip="t('billing.yourPlanTip')">
         <div class="flex flex-wrap items-center gap-3">
           <span class="text-lg font-semibold">{{ t(`billing.plans.${billing.plan}`) }}</span>

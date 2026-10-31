@@ -3,7 +3,7 @@
        lines instead of twenty (backend D137). It shows once there is one (it comes
        by itself for a chat waiting for a person, or from the reply box's Summary
        button), and folds away with Hide; the same button brings it back. -->
-  <section v-if="shown" class="flex items-start gap-2.5 border-b border-hairline bg-wash px-4 py-2.5 text-sm sm:px-6" aria-live="polite">
+  <section v-if="shown" class="flex items-start gap-2.5 border-b border-hairline bg-wash px-4 py-2.5 text-sm sm:px-5" aria-live="polite">
     <PhSparkle :size="16" class="mt-0.5 shrink-0 text-ink-soft" aria-hidden="true"></PhSparkle>
     <div class="min-w-0 flex-1">
       <h3 class="text-xs font-semibold text-ink-soft">{{ t('conversations.summary.title') }}</h3>

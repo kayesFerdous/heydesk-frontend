@@ -7,7 +7,7 @@
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
     <SkeletonRows v-else-if="!loaded" class="island overflow-hidden"></SkeletonRows>
 
-    <div v-else class="island px-5 pt-6 pb-4 sm:px-8">
+    <div v-else class="island px-4 pt-4 pb-3 sm:px-6">
       <SettingsGroup :title="t('team.people')" :tip="t('team.peopleTip')">
         <ul class="border-t border-hairline">
           <li v-for="member in members" :key="member.id" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hairline py-3">

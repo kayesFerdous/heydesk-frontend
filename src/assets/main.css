@@ -67,9 +67,9 @@
   --color-danger: #c22b2b;
   --color-danger-tint: #fde8e8;
 
-  /* Soft, concentric: islands 20px, things inside them 12px, controls 10px.
+  /* Soft, concentric: islands 16px, things inside them 12px, controls 10px.
      Only chips, counts and avatars are full pills. */
-  --radius-panel: 1.25rem;
+  --radius-panel: 1rem;
   --radius-card: 0.75rem;
   /* Small boxes inside a card: photos, tooltips, a ruled list in a panel. */
   --radius-thumb: 0.5rem;
@@ -137,17 +137,17 @@
 }
 
 @layer components {
-  /* One button vocabulary: 44px, 10px corners, sentence case, four intents. One
-     primary per screen. */
+  /* One button vocabulary: 36px with a mouse (44px on touch, at the end of
+     this file), 10px corners, sentence case, four intents. One primary per screen. */
   .btn {
-    @apply inline-flex h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] px-5
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[var(--radius-control)] px-4
       text-sm font-semibold whitespace-nowrap transition-[background-color,color,border-color,transform]
       duration-200 ease-[var(--ease-settle)] active:translate-y-px
       disabled:pointer-events-none disabled:opacity-40;
   }
 
   .btn-sm {
-    @apply h-9 px-3.5 text-[0.8125rem];
+    @apply h-8 px-3 text-[0.8125rem];
   }
 
   /* Black: the one thing to do here. */
@@ -174,29 +174,29 @@
 
   /* A round button holding only an icon. Always give it an aria-label. */
   .btn-icon {
-    @apply w-11 px-0;
+    @apply w-9 px-0;
   }
 
   .btn-sm.btn-icon {
-    @apply w-9;
+    @apply w-8;
   }
 
   /* One input shape, the buttons' corners. Labels sit above the field, never inside it. */
   .field {
-    @apply h-11 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-4
+    @apply h-9 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3
       text-sm text-ink transition-[border-color,box-shadow] duration-200
       placeholder:text-ink-soft hover:border-ink-faint focus:border-ink focus:outline-none
       focus:ring-4 focus:ring-lime/70 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   textarea.field {
-    @apply h-auto rounded-[var(--radius-card)] py-3 leading-relaxed;
+    @apply h-auto rounded-[var(--radius-card)] py-2.5 leading-relaxed;
   }
 
   /* A dropdown looks like the other fields: the browser's arrow gives way to
      Phosphor's CaretDown in ink-soft. */
   select.field {
-    @apply cursor-pointer appearance-none bg-[length:14px] bg-[right_1rem_center] bg-no-repeat pr-10;
+    @apply cursor-pointer appearance-none bg-[length:14px] bg-[right_0.75rem_center] bg-no-repeat pr-9;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%235C5C56'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E");
   }
 
@@ -240,7 +240,7 @@
   }
 
   .tab {
-    @apply inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] px-4 text-sm font-semibold
+    @apply inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] px-3 text-[0.8125rem] font-semibold
       whitespace-nowrap text-ink-soft transition-colors duration-200 hover:bg-hover hover:text-ink;
   }
 
@@ -255,7 +255,7 @@
   }
 
   .segment {
-    @apply inline-flex h-8 items-center gap-1.5 rounded-md px-3.5
+    @apply inline-flex h-7 items-center gap-1.5 rounded-md px-3
       text-[0.8125rem] font-semibold text-ink-soft transition-colors duration-200 hover:text-ink;
   }
 
@@ -343,7 +343,7 @@
   }
 
   .menu-item {
-    @apply flex h-10 w-full items-center gap-2.5 rounded-[var(--radius-thumb)] px-3 text-left text-sm
+    @apply flex h-9 w-full items-center gap-2.5 rounded-[var(--radius-thumb)] px-3 text-left text-sm
       font-medium text-ink transition-colors hover:bg-wash;
   }
 
@@ -360,7 +360,7 @@
 
   /* A section heading inside a page ("Needs you", "Opening hours"). */
   .section-title {
-    @apply text-lg font-semibold tracking-[-0.015em] text-ink;
+    @apply text-base font-semibold tracking-[-0.015em] text-ink;
   }
 
   .link {
@@ -374,9 +374,22 @@
   }
 }
 
+/* A finger needs the room a mouse does not: on touch screens every control
+   is back to 44px. Chosen by the device, never by a setting. */
 @media (pointer: coarse) {
-  .btn {
+  .btn,
+  .field:not(textarea),
+  .tab,
+  .menu-item {
     min-height: 2.75rem;
+  }
+
+  .btn-icon {
+    min-width: 2.75rem;
+  }
+
+  .segment {
+    min-height: 2.25rem;
   }
 }
 

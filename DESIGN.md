@@ -192,28 +192,45 @@ Then a bento:
 
 ## Inbox and Conversations
 
+**Conversations** (v8, denser): one ruled island, three panes edge to edge.
+The list (21rem, 20rem at xl, 23rem from 1536px) has search with a funnel
+icon (channel, blocked visitors), Mine / Unassigned / All as a segmented
+switch, All / Needs a person / Done as small tabs, then ruled rows under
+Today / Yesterday: avatar, name, channel icon, time (orange age while
+waiting), preview, then a status chip, the order code and who has it. The chat
+has a compact header (name, channel and time; Call, Done, Take it in black,
+and a "..." menu with assign, snooze, AI off, block), chips for what is on,
+the orange hand-off strip, the transcript and a compact reply box with
+Summary / Ask / Draft. The side (17rem, 20rem from 1536px) shows the buyer,
+orders taken here, then assigned to, channel, started, messages. The title is
+for screen readers on wide screens.
+
 The title and line on the canvas, the switch (jobs, or All / Needs a person) as tabs on a white track to the right.
 A waiting hand-off shows as a white strip with an orange icon above the
 Inbox. Then three islands:
 
-- **The Inbox's status tabs** sit in an island above its list and record, on
-  one line: the road a record usually takes (`pathOf` in `lib/flows.js`: New,
-  then each primary step in turn) with a small caret between steps; then All;
-  then **More** for the side roads (`sideStatusesOf`: waiting for payment,
-  returned, cancelled), a menu whose button turns lime and takes the
-  status's name while one is picked. Only New has a count. The Inbox opens on
-  New while something waits, else on All. The status shows on a row only
-  under All. A phone swipes the road.
+- **The Inbox** is one island from 1024px: the list on the left, the open
+  record ruled off on the right (20rem, 24rem from 1280px, 27rem from
+  1536px). Search sits in the page header. At the top of the list, the status
+  tabs on one line: the road a record usually takes (`pathOf` in
+  `lib/flows.js`: New, then each primary step in turn) with a small caret
+  between steps; then All; then **More** for the side roads (`sideStatusesOf`),
+  a menu whose button turns lime and takes the status's name while one is
+  picked. Only New has a count. The Inbox opens on New while something waits,
+  else on All.
+- **The Inbox table** (`RecordTable`): one 44px line per record, same columns
+  down the page (code, customer, items, status, time, total), under sticky day
+  headings on grey (orders show the day's total). It reads its own width: as
+  the record takes room the items go first, then the time; code, customer and
+  total stay. The status column exists only under All. The selected line is
+  pale lime with an ink edge. A phone keeps the rounded rows, then one record
+  with a way back.
 - **The Inbox record** (v7, calmer): who and when at the top, then one row of
   actions (the next step in black, call, the conversation, the rarer moves
   under a "..." menu), the proof in one green line, then sections of one
   shape (`RecordSection`: a small label, the content, a hairline above):
   order, delivery or pickup, courier, confirmation call, details. Facts sit
-  on one line with the value at the right. The Inbox is two islands, the list
-  and this record.
-- **The list** (20rem, 24rem from 1536px): search in a grey pill at the top,
-  rows as rounded cards grouped under Today / Yesterday (no hairlines between
-  them), the selected one pale lime.
+  on one line with the value at the right.
 - **The detail**: an Inbox record as a receipt (kind and serial, name, the
   green proof box, the lines with dotted leaders, a big total); a
   conversation as its transcript (customer bubbles grey on the left, the
