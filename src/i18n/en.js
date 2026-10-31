@@ -197,6 +197,7 @@ export default {
     business: 'Your business',
     team: 'Team',
     billing: 'Billing',
+    coupons: 'Coupons',
   },
 
   account: {
@@ -1201,6 +1202,45 @@ export default {
   },
 
   // The business's team (backend D97).
+  // A shop's coupon codes (backend D133).
+  coupons: {
+    title: 'Coupons',
+    subtitle: 'Codes your buyers say in the chat. Your agent checks them and takes the discount off the bill.',
+    code: 'Code',
+    kind: 'Kind',
+    kinds: { percent: 'Percent off', amount: 'Taka off', free_delivery: 'Free delivery' },
+    percent: 'Percent',
+    amount: 'Taka',
+    endsOn: 'Ends on',
+    maxUses: 'Most orders',
+    noLimit: 'No limit',
+    add: 'Add coupon',
+    percentOff: '{n}% off',
+    amountOff: '{money} off',
+    freeDelivery: 'Free delivery',
+    used: 'used {n} times',
+    usedOf: 'used {n} of {max}',
+    ends: 'ends {day}',
+    noEnd: 'no end date',
+    delete: 'Delete {code}',
+    emptyTitle: 'No coupons yet',
+    emptyText: 'Add a code like EID10 for 10% off. A buyer says it in the chat, and the discount goes on the bill.',
+    // An offer to everyone who wrote today (backend D140).
+    offer: {
+      title: 'Send an offer to everyone who wrote to you',
+      text: 'Message',
+      placeholder: 'Free delivery on every order till 10 pm tonight!',
+      ends: 'Ends at',
+      send: 'Send offer',
+      sending: 'Sending...',
+      sure: 'Send this now to everyone who wrote in that time?',
+      within: 'To who wrote in',
+      withinHours: { h24: 'The last 24 hours', h48: 'The last 2 days', h72: 'The last 3 days', h168: 'The last 7 days' },
+      windowHint: 'Messenger and WhatsApp only let it reach people who wrote in the last 24 hours.',
+      sent: 'Sent to {n} chats. Only they can use it, as {code}.',
+    },
+  },
+
   team: {
     title: 'Team',
     subtitle: 'Add moderators to answer customers and handle the inbox. They can\'t change your agent\'s settings, channels or team.',

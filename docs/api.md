@@ -150,6 +150,16 @@ them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
 `GET /jobs` and `config.jobs` are gone, and `GET /agent` returns the read-only
 `jobs` list. The Agent page shows it as plain rows.
 
+### Coupons (`coupons.js`, page `pages/coupons`, shops, owner only, D133)
+| Call | What it does |
+|---|---|
+| `GET /shop/coupons` | `[Coupon]`, with `used`: how many orders took each |
+| `POST /shop/coupons` `Coupon` | A new code, live from the next message. `code` is kept in capitals; `value` is a percent (1 to 100) or minor units, 0 for free delivery; 422 when it does not fit |
+| `DELETE /shop/coupons/{code}` | The code stops working; orders placed with it keep their discount |
+
+`Coupon`: `{code, kind: percent/amount/free_delivery, value, ends_at (UTC; null: no end), max_uses (null: no limit), used}`.
+`POST /shop/offers` `{text, kind, value, ends_at, within_hours}` (D140, D163): the owner's words sent at once to every chat that wrote in the last `within_hours` (24 by default, 1 to 168; the page offers 24 hours, 2, 3 or 7 days) (Messenger and WhatsApp only inside their 24-hour window), saved as a coupon only those chats may use until `ends_at` (`OFFER1`, `OFFER2`... in the list above), and taken off by the agent without a code. → `{code, sent_to}`; 422 when `ends_at` is past. The Coupons page sends it after one more click.
+
 ### Calls to confirm a shop's orders (`calls.js`, page `pages/calls`, D88, D89)
 Off for now (D108): the shop takes no voice, so no order is queued and `POST /calls` is a 409
 `conflict`. The routes stay; the Calls page has nothing to show.
@@ -353,10 +363,10 @@ also has `at`, ISO 8601 in UTC. Optional fields are left out, not null. Four kin
   (`PAGE_SIZE`) and `ShowMore` fetches the next. A link to a record older than
   the first page (`/inbox?job=&open=`) fetches that one record (`fetchRecord`).
 - `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /calls /agent/{profile,hours,answers,payments,bubble,calls}
-  /menu /knowledge /channels /team` (owner; `/calls` and its section for a shop; `/agent`, `/knowledge`, `/channels`, `/team` and `/setup` are `requiresManager`: a moderator is sent Home, D97), `/admin` (admin), `/setup`, `/sign-in`.
+  /menu /knowledge /channels /team /coupons` (owner; `/calls`, `/coupons` and its section for a shop; `/agent`, `/knowledge`, `/channels`, `/team` and `/setup` are `requiresManager`: a moderator is sent Home, D97), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
-- Pages: `pages/{landing,home,inbox,conversations,calls,agent,menu,knowledge,channels,team,setup,admin,auth,chat,account}`.
+- Pages: `pages/{landing,home,inbox,conversations,calls,coupons,agent,menu,knowledge,channels,team,setup,admin,auth,chat,account}`.
   Shared pieces in `components/{ui,layout,records,conversations,calls,menu,knowledge,agent,chat}`.
   Agent settings sections share `composables/useAgentSection.js`; each PATCHes
   only its own fields (the API leaves the rest).

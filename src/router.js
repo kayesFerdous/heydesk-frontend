@@ -28,6 +28,7 @@ const BusinessPage = () => import('./pages/admin/BusinessPage.vue');
 const AccountPage = () => import('./pages/account/AccountPage.vue');
 const TeamPage = () => import('./pages/team/TeamPage.vue');
 const BillingPage = () => import('./pages/billing/BillingPage.vue');
+const CouponsPage = () => import('./pages/coupons/CouponsPage.vue');
 const NotFound = () => import('./pages/NotFound.vue');
 
 // Every owner page needs a signed-in owner, or an admin who opened a business.
@@ -90,6 +91,8 @@ const router = createRouter({
     { path: '/team', component: TeamPage, meta: manager },
     // The plan and paying for it (backend D106); the owner's, like the team.
     { path: '/billing', component: BillingPage, meta: manager },
+    // A shop's coupon codes (backend D133).
+    { path: '/coupons', component: CouponsPage, meta: manager },
 
     // The person's own settings (language, sign-in), reached from the account
     // menu. Owners and admins both have one.
