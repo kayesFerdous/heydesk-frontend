@@ -38,6 +38,32 @@ export const FLOWS = {
   },
 };
 
+// Every status of a flow, New first, then the flow's own order.
+export function statusesOf(flow) {
+  const all = Object.keys(FLOWS[flow] || {});
+  return all.includes('new') ? ['new', ...all.filter((status) => status !== 'new')] : all;
+}
+
+// The road a record usually takes: from New, each primary step in turn, until
+// one has none (Delivered) or the road comes back (a message reopened).
+export function pathOf(flow) {
+  const moves = FLOWS[flow] || {};
+  const path = [];
+  let status = 'new';
+  while (status && moves[status] && !path.includes(status)) {
+    path.push(status);
+    status = moves[status].primary?.to;
+  }
+  return path;
+}
+
+// The side roads (waiting for payment, on hold, returned, cancelled): every
+// other status. The Inbox puts them under More.
+export function sideStatusesOf(flow) {
+  const path = pathOf(flow);
+  return statusesOf(flow).filter((status) => !path.includes(status));
+}
+
 // "New", "Shipped", "Needs a person": an unknown status shows as it came.
 export function statusLabel(status) {
   const key = `status.${status}`;

@@ -11,10 +11,6 @@
     <!-- Connected. No link to share: the owner already knows their number (D103). -->
     <div v-else-if="number" class="flex flex-col gap-3">
       <p class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="chip bg-success-tint text-success">
-          <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
-          {{ t('connect.connected') }}
-        </span>
         <span class="text-ink-soft">{{ t('whatsapp.numberId', { id: number.phone_id }) }}</span>
         <InfoTip :text="t('whatsapp.connectedText')"></InfoTip>
       </p>
@@ -35,7 +31,7 @@
       <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
     </div>
 
-    <!-- Not connected: Connect with WhatsApp. What it is sits in the row's tip. -->
+    <!-- Not connected: Connect with WhatsApp. What it is sits on its row. -->
     <div v-else-if="!open">
       <p class="text-sm text-ink-soft">{{ t('whatsapp.withWhatsAppText') }}</p>
       <div class="mt-3 flex flex-wrap items-center gap-3">
@@ -76,15 +72,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCheckCircle, PhWhatsappLogo } from '@phosphor-icons/vue';
+import { PhWhatsappLogo } from '@phosphor-icons/vue';
 
 import FieldLabel from '../ui/FieldLabel.vue';
 import InfoTip from '../ui/InfoTip.vue';
 import { connectWhatsApp, connectWhatsAppSignup, disconnectWhatsApp, fetchWhatsApp, fetchWhatsAppLogin } from '../../api/whatsapp.js';
 import { whatsappSignup } from '../../lib/facebook.js';
 
+// `change` tells the page the connected number (or null), for the row's status.
+const emit = defineEmits(['change']);
 const { t } = useI18n();
 
 const number = ref(null);
@@ -165,6 +163,8 @@ async function disconnect() {
   }
   busy.value = false;
 }
+
+watch(() => (loading.value ? undefined : number.value), (value) => emit('change', value), { immediate: true });
 
 load();
 </script>

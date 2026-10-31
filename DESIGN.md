@@ -144,15 +144,22 @@ get `--shadow-float`.
 - `App.vue`: the canvas, 12px around and between. The sidebar (288px, folds
   to 76px icons) is black with 20px corners. Each page lays out its own
   white islands on the canvas under `PageHeader` (title on the canvas, tabs
-  on a white track). Settings-like pages (Channels, Team, Account,
-  Knowledge, Calls, Admin) are one island.
+  on a white track). Settings-like pages (Team, Account,
+  Knowledge, Calls, Admin) are one island; Channels has its own layout (below).
 - The sidebar: the mark on a lime tile, the business name and live status,
   an orange "Needs a person" strip while someone waits (hidden when folded,
   where the count sits on the Conversations icon), the grouped nav (the open
   item a quiet fill with its filled icon in lime; counts in dark pills,
   orange when someone waits),
   "Try your agent" as a dark pill with a lime icon, the account row.
-- Under 768px: a floating black pill tab bar (Home, Inbox, Chats, Agent,
+  The nav has three labelled groups from `navGroups`: Your desk, Your
+  business (the lists, a shop's Coupons) and Setup, one Settings row that
+  folds open to Agent, Knowledge, Channels, Team and Billing on a guide line
+  (words only; the open page white with a 2px lime mark on the line). It
+  opens by itself on one of its pages and stays as the owner leaves it
+  (`aria-expanded`). Folded to icons, Settings opens Agent. A moderator has
+  no Setup.
+- Under 768px: a floating black pill tab bar (the "Your desk" group, then
   More, the open one lime); More opens the sidebar as a drawer.
 
 ### Where settings live
@@ -169,15 +176,19 @@ Then a bento:
 - The setup guide across the top while anything is left (rounded grey steps,
   the next one's number on lime, its button the primary).
 - Left, two thirds wide: **Needs you** (hand-offs first, with a black call
-  button when the customer left a phone; then new records with code, line,
-  chip, time and amount), and under it **today's figures** in one island,
-  ruled apart by hairlines: conversations, then the lead (the money taken
-  today, or the first job's count), then the other jobs. A figure above zero
-  shows its hours underneath (`HourBars`); a quiet day shows only numbers.
-  On a phone the figures sit two to a row.
-- Right: **Your agent**, a white island (a lime live dot and the word,
-  channels as grey chips, "Ask your agent something" opening the test chat,
-  copy the chat link, edit settings).
+  button when the customer left a phone; then new records with code and
+  line). No status chip, everything in it is new: with a mouse each row's
+  next step shows on hover or focus and the amount (or time) closes the row
+  after it; a finger sees the step always. Under it **today** in one island:
+  one figure leads (the money taken today, else the first job's count) in
+  40px at 500 with its hours (`HourBars`) under it, beside the small figures
+  two to a row (conversations, the other jobs); one with nothing yet says
+  "None yet" in soft ink instead of a bold 0.
+- Right: **the agent as a card of its own** (its initials on a black tile in
+  lime, "Live on 2 channels", the ask box as a pill opening the test chat,
+  channels as pills, copy the chat link and edit settings as quiet links),
+  and under it **Today so far** ruling what the agent answered and what went
+  to the team.
 
 ## Inbox and Conversations
 
@@ -185,6 +196,21 @@ The title and line on the canvas, the switch (jobs, or All / Needs a person) as 
 A waiting hand-off shows as a white strip with an orange icon above the
 Inbox. Then three islands:
 
+- **The Inbox's status tabs** sit in an island above its list and record, on
+  one line: the road a record usually takes (`pathOf` in `lib/flows.js`: New,
+  then each primary step in turn) with a small caret between steps; then All;
+  then **More** for the side roads (`sideStatusesOf`: waiting for payment,
+  returned, cancelled), a menu whose button turns lime and takes the
+  status's name while one is picked. Only New has a count. The Inbox opens on
+  New while something waits, else on All. The status shows on a row only
+  under All. A phone swipes the road.
+- **The Inbox record** (v7, calmer): who and when at the top, then one row of
+  actions (the next step in black, call, the conversation, the rarer moves
+  under a "..." menu), the proof in one green line, then sections of one
+  shape (`RecordSection`: a small label, the content, a hairline above):
+  order, delivery or pickup, courier, confirmation call, details. Facts sit
+  on one line with the value at the right. The Inbox is two islands, the list
+  and this record.
 - **The list** (20rem, 24rem from 1536px): search in a grey pill at the top,
   rows as rounded cards grouped under Today / Yesterday (no hairlines between
   them), the selected one pale lime.
@@ -200,6 +226,32 @@ Inbox. Then three islands:
 
 Under 1280px the side drops under the detail; under 1024px a phone shows the
 list, then one item with a way back.
+
+## Channels
+
+**Channels is one calm list.** The `PageHeader` status says how many are
+connected ("2 of 4 connected"). One island holds a 3xl column of four ruled
+rows (`ConnectionRow`, `components/ui/`), no box round any of them: a 40px
+logo tile in the channel's colour (the website chat black), the name over one
+quiet line (what it is, or once connected its link, bot or number), then
+"Connected" in green with a filled check, or a secondary "Set up" while it
+isn't, and a caret. The whole row opens what connects or shares it, indented
+under the name; one row is open at a time (the website chat when the page
+opens), so the black primary inside it is the screen's only one. Telegram's
+steps show as soon as its row opens; "Not now" closes the row.
+
+**Delivery and payments uses the same rows.** SSLCommerz and bKash under
+Online payments, and a shop's courier, are `ConnectionRow`s on grey tiles with
+the brand's name, one line (what it is, or the store, the account or the
+courier once connected, "test mode" after it), Connected, Needs a look (a
+courier that refused a booking) or Set up. A row opens straight to its form;
+Cancel closes it. A shop's delivery areas are ruled rows with no box: name,
+charge and days, the districts as chips under them (their label for screen
+readers only), and the "paid online first" switch only once a payment account
+is connected, with one line saying so until then.
+
+**The chat preview shows only on the bubble section** of Agent settings; the
+other sections use the full width.
 
 ## Settings and Menu
 

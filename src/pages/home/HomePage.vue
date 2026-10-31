@@ -109,7 +109,7 @@
           </p>
 
           <ul v-else class="mt-4 flex flex-col gap-2">
-            <li v-for="item in attention" :key="item.id" class="flex items-center gap-2 rounded-[var(--radius-card)] bg-wash p-2 pr-2.5 transition-colors hover:bg-hover">
+            <li v-for="item in attention" :key="item.id" class="group flex items-center gap-2 rounded-[var(--radius-card)] bg-wash p-2 pr-2.5 transition-colors hover:bg-hover">
               <router-link :to="item.to" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-card)] p-1">
                 <span
                   class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold"
@@ -125,10 +125,24 @@
                     <span v-if="item.code" class="serial">{{ item.code }}</span><template v-if="item.code">, </template>{{ item.text }}
                   </span>
                 </span>
-                <span class="hidden shrink-0 flex-col items-end gap-1 sm:flex">
-                  <StatusChip :status="item.status"></StatusChip>
-                  <span class="text-xs text-ink-soft">{{ item.when }}<template v-if="item.amount">, {{ item.amount }}</template></span>
-                </span>
+                <!-- Wider, the amount sits at the row's end, out of this link: a screen reader still hears it here. -->
+                <span v-if="item.amount || item.when" class="sr-only">, {{ item.amount || item.when }}</span>
+              </router-link>
+              <!-- A new record: its one next step, shown on hover or focus with a
+                   mouse (always on touch), so the list is not a wall of buttons. -->
+              <button
+                v-if="item.record && nextSteps(item.record).primary"
+                type="button"
+                class="btn btn-secondary btn-sm shrink-0 transition-opacity pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100"
+                :disabled="moving === item.id"
+                @click="advance(item.record)"
+              >
+                {{ moving === item.id ? t('common.saving') : nextSteps(item.record).primary.label }}
+              </button>
+              <!-- The amount (or the time) closes the row, after its step. -->
+              <router-link :to="item.to" tabindex="-1" aria-hidden="true" class="hidden w-20 shrink-0 text-right text-[0.8125rem] sm:block">
+                <span v-if="item.amount" class="font-semibold">{{ item.amount }}</span>
+                <span v-else class="text-ink-soft">{{ item.when }}</span>
               </router-link>
               <!-- A customer waiting for a person: call them from here. -->
               <a
@@ -148,77 +162,94 @@
           </i18n-t>
         </div>
 
-        <!-- Today in figures, ruled apart like a statement. A figure's hours
-             show under it once something happened; a quiet day stays quiet. -->
-        <div class="island overflow-hidden">
-          <ul
-            class="grid grid-cols-2 gap-px bg-hairline max-sm:[&>li:last-child:nth-child(odd)]:col-span-2 sm:grid-cols-[repeat(var(--cells),minmax(0,1fr))]"
-            :style="{ '--cells': figures.length }"
-          >
-            <li v-for="cell in figures" :key="cell.id" class="flex min-w-0 flex-col bg-surface p-5">
-              <h2 class="truncate text-sm font-medium text-ink-soft">{{ cell.label }}</h2>
-              <p class="mt-1.5 truncate text-[1.75rem] leading-none font-semibold tracking-[-0.025em]">{{ cell.value }}</p>
-              <HourBars v-if="cell.hours.some((n) => n > 0)" class="mt-4 h-8" :values="cell.hours" :label="cell.label"></HourBars>
+        <!-- Today: one figure leads, large, with its hours under it; the small
+             ones sit beside it, ruled apart. One with nothing yet says so
+             quietly instead of a bold 0. -->
+        <div class="island grid overflow-hidden lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div v-if="lead.label" class="flex min-w-0 flex-col border-b border-hairline px-5 py-4 lg:border-r lg:border-b-0">
+            <h2 class="text-[0.8125rem] font-medium text-ink-soft">{{ lead.label }}</h2>
+            <p class="mt-1 text-[2.5rem] leading-none font-medium tracking-[-0.035em]">{{ lead.value }}</p>
+            <HourBars class="mt-auto h-12 pt-4" :values="lead.hours" :label="lead.label"></HourBars>
+          </div>
+          <ul class="grid grid-cols-2 gap-px bg-hairline [&>li:last-child:nth-child(odd)]:col-span-2">
+            <li v-for="cell in figures" :key="cell.id" class="flex min-w-0 flex-col bg-surface px-4 py-3.5">
+              <h2 class="truncate text-[0.8125rem] font-medium text-ink-soft">{{ cell.label }}</h2>
+              <p v-if="cell.zero" class="mt-1.5 truncate text-base text-ink-soft">{{ t('home.figures.none') }}</p>
+              <p v-else class="mt-1 truncate text-2xl leading-none font-medium tracking-[-0.025em]">{{ cell.value }}</p>
             </li>
           </ul>
         </div>
       </div>
 
-      <!-- The agent: is it on, where customers reach it, and one tap to try it. -->
-      <div class="island min-w-0 self-start p-5 sm:p-6 xl:col-span-4">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="section-title">{{ t('nav.yourAgent') }}</h2>
-          <span class="flex items-center gap-1.5 text-sm font-semibold">
-            <span
-              class="h-2.5 w-2.5 rounded-full"
-              :class="auth.isSuspended ? 'bg-attention' : 'bg-lime ring-1 ring-ink/25'"
-              aria-hidden="true"
-            ></span>
-            {{ auth.isSuspended ? t('common.pausedByHeyDesk') : t('common.live') }}
+      <!-- The agent, as its own card: who it is and whether it answers, one
+           tap to try it, where customers reach it, then the quiet links. -->
+      <div class="flex min-w-0 flex-col gap-3 self-start xl:col-span-4">
+      <div class="island min-w-0 p-5 sm:p-6">
+        <div class="flex items-center gap-3">
+          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-thumb)] bg-ink text-sm font-bold text-lime" aria-hidden="true">
+            {{ initials(agent.config.name) }}
           </span>
+          <div class="min-w-0 flex-1">
+            <h2 class="truncate text-sm font-semibold">{{ agent.config.name || t('nav.yourAgent') }}</h2>
+            <p class="flex items-center gap-1.5 text-[0.8125rem] text-ink-soft">
+              <span class="h-2 w-2 shrink-0 rounded-full" :class="auth.isSuspended ? 'bg-attention' : 'bg-lime ring-1 ring-ink/25'" aria-hidden="true"></span>
+              {{ auth.isSuspended ? t('common.pausedByHeyDesk') : t('home.liveOn', { n: formatNumber(channelCount) }, channelCount) }}
+            </p>
+          </div>
         </div>
-        <p class="mt-0.5 truncate text-sm text-ink-soft">{{ agent.config.name }}</p>
 
-        <ul class="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
-          <li class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-wash px-3.5">
-            <PhGlobe :size="18"></PhGlobe>{{ t('channelsPage.websiteChat') }}
+        <button
+          type="button"
+          class="mt-4 flex h-11 w-full items-center gap-3 rounded-full border border-line-strong bg-surface pr-1 pl-4 text-left text-sm text-ink-soft transition-colors hover:border-ink"
+          @click="ui.testSheetOpen = true"
+        >
+          <span class="min-w-0 flex-1 truncate">{{ t('home.askAgent') }}</span>
+          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-white" aria-hidden="true">
+            <PhPaperPlaneTilt :size="16" weight="fill"></PhPaperPlaneTilt>
+          </span>
+        </button>
+
+        <ul class="mt-3 flex flex-wrap gap-1.5 text-[0.8125rem] font-medium">
+          <li class="flex h-7 items-center gap-1.5 rounded-full bg-wash px-2.5">
+            <PhGlobe :size="15"></PhGlobe>{{ t('channelsPage.websiteChat') }}
           </li>
-          <li v-if="telegram" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-wash px-3.5">
-            <PhTelegramLogo :size="18"></PhTelegramLogo>@{{ telegram.username }}
+          <li v-if="telegram" class="flex h-7 items-center gap-1.5 rounded-full bg-wash px-2.5">
+            <PhTelegramLogo :size="15"></PhTelegramLogo>@{{ telegram.username }}
           </li>
           <li v-else-if="auth.canManage">
-            <router-link to="/channels" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] border border-dashed border-line-strong px-3.5 hover:border-ink">
-              <PhTelegramLogo :size="18"></PhTelegramLogo>{{ t('home.connectTelegram') }}
+            <router-link to="/channels" class="flex h-7 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-2.5 hover:border-ink">
+              <PhTelegramLogo :size="15"></PhTelegramLogo>{{ t('home.connectTelegram') }}
             </router-link>
           </li>
           <li v-if="auth.canManage">
-            <router-link to="/knowledge" class="flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-wash px-3.5 hover:bg-hover">
-              <PhBooks :size="18"></PhBooks>{{ t('home.documents', { n: formatNumber(documentCount) }, documentCount) }}
+            <router-link to="/knowledge" class="flex h-7 items-center gap-1.5 rounded-full bg-wash px-2.5 hover:bg-hover">
+              <PhBooks :size="15"></PhBooks>{{ t('home.documents', { n: formatNumber(documentCount) }, documentCount) }}
             </router-link>
           </li>
         </ul>
 
-        <button
-          type="button"
-          class="mt-4 flex h-14 w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface pr-1.5 pl-5 text-left text-sm text-ink-soft transition-colors hover:border-ink"
-          @click="ui.testSheetOpen = true"
-        >
-          <span class="min-w-0 flex-1 truncate">{{ t('home.askAgent') }}</span>
-          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-control)] bg-ink text-white" aria-hidden="true">
-            <PhPaperPlaneTilt :size="18" weight="fill"></PhPaperPlaneTilt>
-          </span>
-        </button>
-
-        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 px-1 text-sm font-semibold">
-          <button type="button" class="inline-flex items-center gap-1.5 hover:underline" @click="copyLink">
-            <component :is="copied ? PhCheck : PhLink" :size="16" weight="bold"></component>
+        <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-hairline pt-3 text-[0.8125rem] font-medium text-ink-soft">
+          <button type="button" class="inline-flex items-center gap-1.5 hover:text-ink" @click="copyLink">
+            <component :is="copied ? PhCheck : PhLink" :size="15" weight="bold"></component>
             {{ copied ? t('common.copied') : t('home.copyChatLink') }}
           </button>
-          <router-link v-if="auth.canManage" to="/agent" class="inline-flex items-center gap-1.5 hover:underline">
-            <PhSlidersHorizontal :size="16" weight="bold"></PhSlidersHorizontal>
+          <router-link v-if="auth.canManage" to="/agent" class="inline-flex items-center gap-1.5 hover:text-ink">
+            <PhSlidersHorizontal :size="15" weight="bold"></PhSlidersHorizontal>
             {{ t('home.editSettings') }}
           </router-link>
         </div>
+      </div>
+
+      <!-- How the day went so far, in words, ruled like a receipt. -->
+      <div class="island min-w-0 px-5 py-3 sm:px-6">
+        <h2 class="section-title">{{ t('home.todaySoFar') }}</h2>
+        <dl class="mt-1 text-sm">
+          <div v-for="line in soFar" :key="line.id" class="flex items-baseline gap-3 border-b border-hairline py-2 last:border-b-0">
+            <dt class="min-w-0 flex-1 truncate text-ink-soft">{{ line.label }}</dt>
+            <dd :class="line.value ? 'font-semibold' : 'text-ink-soft'">{{ line.value || t('home.figures.none') }}</dd>
+          </div>
+        </dl>
+      </div>
       </div>
     </div>
   </section>
@@ -243,10 +274,9 @@ import {
 
 import LoadError from '../../components/ui/LoadError.vue';
 import BrandMark from '../../components/ui/BrandMark.vue';
-import StatusChip from '../../components/ui/StatusChip.vue';
 import HourBars from '../../components/home/HourBars.vue';
 import SidebarToggle from '../../components/layout/SidebarToggle.vue';
-import { fetchRecords, byConversation } from '../../api/records.js';
+import { fetchRecords, setRecordStatus, byConversation } from '../../api/records.js';
 import { fetchConversations } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';
 import { fetchDocuments } from '../../api/agent.js';
@@ -254,6 +284,7 @@ import { formatMoney, formatNumber, formatAgo, formatToday, greeting } from '../
 import { isToday, avatarTint, initials, todayByHour } from '../../lib/group.js';
 import { chatLink, itemsLabel } from '../../lib/presets.js';
 import { channelOf } from '../../lib/channels.js';
+import { nextSteps } from '../../lib/flows.js';
 import { summarize } from '../../lib/records.js';
 import { setupSteps, markShared, wasShared } from '../../lib/setup.js';
 import { useAuthStore } from '../../stores/auth.js';
@@ -299,6 +330,7 @@ const jobFigures = computed(() =>
     id: job,
     label: t(`home.figures.${job}`),
     value: formatNumber(todayRecords.value.filter((r) => r.job === job).length),
+    zero: !todayRecords.value.some((r) => r.job === job),
     hours: todayByHour(todayRecords.value.filter((r) => r.job === job), timezone.value),
   })),
 );
@@ -313,12 +345,27 @@ const lead = computed(() => {
   };
 });
 const others = computed(() => jobFigures.value.filter((cell) => cell.id !== lead.value.id));
-const conversationHours = computed(() => todayByHour(conversations.value, timezone.value));
 const figures = computed(() => [
-  { id: 'conversations', label: t('home.figures.conversations'), value: formatNumber(conversationsToday.value), hours: conversationHours.value },
-  ...(lead.value.label ? [lead.value] : []),
+  { id: 'conversations', label: t('home.figures.conversations'), value: formatNumber(conversationsToday.value), zero: !conversationsToday.value },
   ...others.value,
 ]);
+
+// How the day went, in words: what the agent answered alone, and what it handed on.
+const handedToday = computed(
+  () => conversations.value.filter((c) => c.status === 'needs_human' && isToday(c.created_at, timezone.value)).length,
+);
+const soFar = computed(() => [
+  {
+    id: 'ai',
+    label: t('home.figures.ai'),
+    value: conversationsToday.value
+      ? t('home.figures.ofTotal', { n: formatNumber(conversationsToday.value - handedToday.value), total: formatNumber(conversationsToday.value) })
+      : '',
+  },
+  { id: 'handed', label: t('home.figures.handed'), value: handedToday.value ? formatNumber(handedToday.value) : '' },
+]);
+// The website chat always, Telegram once linked.
+const channelCount = computed(() => 1 + (telegram.value ? 1 : 0));
 
 const steps = computed(() =>
   setupSteps({
@@ -349,7 +396,6 @@ const attention = computed(() => {
       title: t('conversations.askedForPerson', { name }),
       text: t('home.handoffText', { channel: channelOf(c.channel).long }),
       when: formatAgo(c.updated_at, timezone.value),
-      status: 'needs_human',
       to: `/conversations?open=${c.id}`,
     };
   });
@@ -360,7 +406,7 @@ const attention = computed(() => {
     text: summarize(r),
     when: formatAgo(r.created_at, timezone.value),
     amount: r.kind === 'order' ? formatMoney(r.total) : '',
-    status: r.status,
+    record: r,
     initials: initials(r.customer_name),
     tint: avatarTint(r.customer_name),
     to: `/inbox?job=${r.job}&open=${r.id}`,
@@ -368,6 +414,21 @@ const attention = computed(() => {
   return [...people, ...taken].slice(0, ATTENTION_LIMIT);
 });
 const moreWaiting = computed(() => Math.max(0, handoffs.value.length + waiting.value.length - ATTENTION_LIMIT));
+
+// The row's next step, without opening it: the server judges, the list updates.
+const moving = ref(null);
+async function advance(record) {
+  const step = nextSteps(record).primary;
+  moving.value = record.id;
+  try {
+    const updated = await setRecordStatus(record.id, step.to);
+    records.value = records.value.map((r) => (r.id === updated.id ? updated : r));
+    inbox.load().catch(() => {});
+  } catch (err) {
+    error.value = err.message;
+  }
+  moving.value = null;
+}
 
 async function refreshConversations() {
   try {

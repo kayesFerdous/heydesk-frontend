@@ -1,5 +1,5 @@
 <template>
-  <!-- The Telegram row's fields; the row's name and tip come from the page. -->
+  <!-- The Telegram row's fields; the row's name and status come from the page. -->
   <div class="min-w-0">
       <div v-if="loading" class="skeleton h-4 w-64" aria-hidden="true"></div>
 
@@ -11,10 +11,6 @@
       <!-- Connected: share the link -->
       <div v-else-if="bot" class="flex flex-col gap-5">
         <p class="flex flex-wrap items-center gap-2 text-sm">
-          <span class="chip bg-success-tint text-success">
-            <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
-            {{ t('connect.connected') }}
-          </span>
           <span class="font-semibold">@{{ bot.username }}</span>
           <InfoTip :text="t('telegram.connectedText', { bot: '@' + bot.username })"></InfoTip>
         </p>
@@ -76,13 +72,8 @@
         </div>
       </div>
 
-      <!-- Not connected, steps closed. What it is sits in the row's tip. -->
-      <div v-else-if="!open">
-        <p class="text-sm text-ink-soft">{{ t('common.notConnected') }}</p>
-        <button type="button" class="btn btn-secondary mt-3" @click="open = true">{{ t('telegram.setUp') }}</button>
-      </div>
 
-      <!-- Not connected: two steps -->
+      <!-- Not connected: two steps, shown as soon as the row opens. -->
       <ol v-else class="flex flex-col gap-6">
         <li>
           <p class="text-sm font-semibold">{{ t('telegram.step1') }}</p>
@@ -128,14 +119,14 @@
         </li>
 
         <li>
-          <button type="button" class="text-sm font-semibold text-ink-soft hover:underline" @click="close">{{ t('common.notNow') }}</button>
+          <button type="button" class="text-sm font-semibold text-ink-soft hover:underline" @click="close(); $emit('close')">{{ t('common.notNow') }}</button>
         </li>
       </ol>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { PhArrowSquareOut, PhBell, PhCheck, PhCheckCircle, PhCopy } from '@phosphor-icons/vue';
 
@@ -152,13 +143,13 @@ import {
 const props = defineProps({
   businessName: { type: String, default: '' },
 });
-defineEmits(['copied']);
+// `change` tells the page the bot (or null), `close` that "Not now" was pressed.
+const emit = defineEmits(['copied', 'change', 'close']);
 const { t } = useI18n();
 
 const bot = ref(null);
 const loading = ref(true);
 const loadError = ref(null);
-const open = ref(false);
 const pasted = ref('');
 const busy = ref(false);
 const error = ref(null);
@@ -190,7 +181,6 @@ async function load() {
 }
 
 function close() {
-  open.value = false;
   pasted.value = '';
   error.value = null;
 }
@@ -233,6 +223,8 @@ async function copy(value) {
     // Clipboard blocked: the words are on screen to type.
   }
 }
+
+watch(() => (loading.value ? undefined : bot.value), (value) => emit('change', value), { immediate: true });
 
 load();
 onBeforeUnmount(() => clearTimeout(timer));

@@ -39,10 +39,38 @@
     <nav class="mt-4 min-h-0 flex-1 overflow-y-auto px-3" :aria-label="t('shell.mainNav')">
       <div v-for="(group, index) in groups" :key="index" :class="{ 'mt-5': index > 0 }">
         <p v-if="group.label && !collapsed" class="mb-1 px-3 text-xs font-medium text-night-soft">{{ group.label }}</p>
-        <hr v-else-if="group.label" class="mx-3 mb-3 border-night-tile" />
+        <hr v-else-if="group.label && index > 0" class="mx-3 mb-3 border-night-tile" />
         <ul class="flex flex-col gap-0.5">
           <li v-for="item in group.items" :key="item.to">
+            <template v-if="item.children && !collapsed">
+              <button
+                type="button"
+                class="nav-item w-full"
+                :class="{ 'nav-item-active': active(item) && !isOpen(item) }"
+                :aria-expanded="isOpen(item)"
+                :aria-controls="'nav-' + item.match.slice(1)"
+                @click="toggle(item)"
+              >
+                <component :is="item.icon" :size="20" :weight="active(item) ? 'fill' : 'regular'" class="nav-icon"></component>
+                <span class="flex-1 truncate text-left">{{ item.label }}</span>
+                <PhCaretDown :size="14" weight="bold" class="nav-caret" :class="{ 'nav-caret-shut': !isOpen(item) }" aria-hidden="true"></PhCaretDown>
+              </button>
+              <ul v-if="isOpen(item)" :id="'nav-' + item.match.slice(1)" class="nav-children">
+                <li v-for="child in item.children" :key="child.to">
+                  <router-link
+                    :to="child.to"
+                    class="nav-child"
+                    :class="{ 'nav-child-active': active(child) }"
+                    :aria-current="active(child) ? 'page' : undefined"
+                    @click="$emit('navigate')"
+                  >
+                    {{ child.label }}
+                  </router-link>
+                </li>
+              </ul>
+            </template>
             <router-link
+              v-else
               :to="item.to"
               class="nav-item"
               :class="{ 'nav-item-active': active(item), 'nav-item-folded': collapsed }"
@@ -131,7 +159,7 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { computed, reactive, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
@@ -140,6 +168,7 @@ import {
   PhCaretUpDown,
   PhUserCircle,
   PhUserSound,
+  PhCaretDown,
 } from '@phosphor-icons/vue';
 
 import BrandMark from '../ui/BrandMark.vue';
@@ -209,6 +238,14 @@ watch(
 
 function active(item) {
   return isActive(item, route.path);
+}
+
+// A row that folds open (Settings) is open while one of its pages is, until
+// the owner folds it; the caret says which way it goes.
+const folded = reactive({});
+const isOpen = (item) => !(folded[item.to] ?? !active(item));
+function toggle(item) {
+  folded[item.to] = isOpen(item);
 }
 
 function openTestChat() {
@@ -284,6 +321,67 @@ function signOut() {
 
 .nav-item-active .nav-icon {
   color: var(--color-lime);
+}
+
+/* Settings folds open: pages hang from a guide line under its icon, words only. */
+.nav-caret {
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-settle);
+}
+
+.nav-caret-shut {
+  transform: rotate(-90deg);
+}
+
+.nav-children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0.125rem 0 0.25rem 1.6875rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--color-night-tile);
+}
+
+.nav-child {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-control);
+  font-size: 0.9375rem;
+  color: var(--color-night-soft);
+  transition: background-color 0.15s var(--ease-settle), color 0.15s var(--ease-settle);
+}
+
+.nav-child:hover {
+  color: #fff;
+  background-color: color-mix(in srgb, var(--color-night-tile) 60%, var(--color-night));
+}
+
+.nav-child-active,
+.nav-child-active:hover {
+  color: #fff;
+  font-weight: 600;
+  background-color: var(--color-night-tile);
+}
+
+/* The one lime mark on the guide line: you are here. */
+.nav-child-active::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: calc(-0.5rem - 1px);
+  width: 2px;
+  border-radius: 999px;
+  background-color: var(--color-lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-caret {
+    transition: none;
+  }
 }
 
 .nav-count {

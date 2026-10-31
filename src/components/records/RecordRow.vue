@@ -1,6 +1,6 @@
 <template>
   <!-- One entry in the Inbox list: who, what, its code, the amount (orders)
-       or the time, and its status. The selected one sits on pale lime. -->
+       or the time, and its status when the list mixes them. The selected one sits on pale lime. -->
   <button
     type="button"
     class="flex w-full items-center gap-3 rounded-[var(--radius-card)] p-2.5 text-left transition-colors"
@@ -20,7 +20,7 @@
     <span class="flex shrink-0 flex-col items-end gap-1">
       <span v-if="money" class="text-sm font-bold">{{ formatMoney(record.total) }}</span>
       <span v-else class="text-xs text-ink-soft">{{ formatTime(record.created_at) }}</span>
-      <StatusChip :status="record.status"></StatusChip>
+      <StatusChip v-if="showStatus" :status="record.status"></StatusChip>
     </span>
   </button>
 </template>
@@ -37,6 +37,8 @@ import { summarize } from '../../lib/records.js';
 const props = defineProps({
   record: { type: Object, required: true },
   selected: { type: Boolean, default: false },
+  // Only the All tab mixes statuses; one status picked, every row would say it.
+  showStatus: { type: Boolean, default: true },
 });
 // Orders carry money, so their rows show the amount instead of the time.
 const money = computed(() => props.record.kind === 'order');

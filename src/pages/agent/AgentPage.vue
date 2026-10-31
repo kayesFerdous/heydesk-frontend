@@ -1,8 +1,8 @@
 <template>
   <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <!-- The frame around the settings sections: title, section tabs, what is
-         still missing, and beside the form a preview of what a customer sees,
-         drawn from the form as it is edited. Each section (a child route) has
+         still missing, and on the bubble section a preview of what a customer
+         sees, drawn from the form as it is edited. Each section (a child route) has
          its own form and Save.
          This comment stays inside <section>: one placed before it makes a
          second root node, and the page <transition> in App.vue can never
@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <div v-else class="grid grid-cols-[minmax(0,1fr)] items-start gap-3 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div v-else class="grid grid-cols-[minmax(0,1fr)] items-start gap-3" :class="{ 'xl:grid-cols-[minmax(0,1fr)_22rem]': showPreview }">
       <div class="island min-w-0 self-stretch px-5 pt-6 sm:px-8">
         <!-- What the backend says is still missing, each a link to its field. -->
         <div v-if="agent.missing.length" class="notice mb-4" role="status">
@@ -61,7 +61,7 @@
       </div>
 
       <!-- What a customer sees, following the form before it is saved. -->
-      <aside class="island sticky top-3 hidden p-4 xl:block">
+      <aside v-if="showPreview" class="island sticky top-3 hidden p-4 xl:block">
         <div class="px-2 pt-1 pb-3">
           <h2 class="text-lg font-bold">{{ t('bubble.preview') }}</h2>
           <p class="text-sm text-ink-soft">{{ t('agent.previewText') }}</p>
@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, computed, reactive, provide } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { PhListChecks } from '@phosphor-icons/vue';
 
@@ -86,11 +86,15 @@ import { whereToFix } from '../../lib/setup.js';
 import { formatNumber } from '../../lib/format.js';
 import { useAgentStore } from '../../stores/agent.js';
 
+const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const agent = useAgentStore();
 
 const loadError = ref(null);
+
+// Only the bubble section changes what the chat looks like, so only it shows the preview.
+const showPreview = computed(() => route.path === '/agent/bubble');
 
 // The open section's unsaved edits that the preview shows (useAgentSection's
 // previewFrom); anything not being edited comes from the saved config.
