@@ -35,7 +35,7 @@ order's call line in the Inbox).
 |---|---|---|
 | `src/pages/<area>/` | One file per route, named `<Thing>Page.vue`. A page loads its data, shows loading / error / empty states, and lays out components. Sub-sections of one page (child routes) sit beside it, named `<Thing>Section.vue`. | Reusable rows or panels (those are components). |
 | `src/components/<area>/` | Pieces used by one area's pages: a row, a detail pane, an editor, an import panel. Folder named after the area (`records`, `menu`, `knowledge`, `agent`, `chat`, `conversations`, `calls`). | Anything with its own route. |
-| `src/components/ui/` | Pieces with no business knowledge, used across areas: `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `FormProblems`, `StatusChip`, `LiveStatus`, `CopyField`, `ToggleSwitch`, `SkeletonRows`, `ShowMore`, `BrandMark`, `LanguageSwitch`, `InfoTip`, `FieldLabel`, `SettingsGroup`, `CodeInput` (the six cells of an emailed code). | Anything that knows about orders, doctors or the API. |
+| `src/components/ui/` | Pieces with no business knowledge, used across areas: `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `FormProblems`, `StatusChip`, `LiveStatus`, `CopyField`, `ToggleSwitch`, `SkeletonRows`, `ShowMore`, `BrandMark`, `LanguageSwitch`, `InfoTip`, `FieldLabel`, `SettingsGroup`, `ConnectionRow` (a ruled row for something the business connects: logo tile, name over one line, Connected or Set up, and a caret that opens its body; used by Channels and Delivery and payments), `CodeInput` (the six cells of an emailed code). | Anything that knows about orders, doctors or the API. |
 | `src/components/layout/` | The shell: `AppSidebar` (black panel, nav counts, the needs-a-person strip), `AppTabBar`. | Page content. |
 | `src/components/home/` | Home's pieces: `HourBars` (today hour by hour). | Anything another page needs. |
 | `src/components/landing/` | The landing page's examples, all made-up data: `LandingDemo` (a customer's chat landing in the inbox, four kinds of business), `InboxRow` (one of its rows, also on sign-in), `CapabilityTour` (what else the agent does, one row each, with `CapabilityScene` drawing each small example beat by beat), `SetupLive` (the five setup steps played beside the agent they build), `PriceStamp` ("How it decides": the reply's blanks filled with numbers that fly in from a sum worked out from the menu; the flight is the Web Animations API between two measured points), `NightShift` (the close: a night clock driven by the scroll position, with what came in at each time), `ExampleTag` (the one way an example says it is one), `ChannelFlow` (the opening picture: channel buttons wired into the agent and on to four inbox tiles; the wires are SVG paths measured from the layout, a message rides them on `requestAnimationFrame`). | Anything that calls the API. |
@@ -134,8 +134,9 @@ order's call line in the Inbox).
 
 2. Add the route in `src/router.js` with `meta: owner` (or `requiresAdmin`).
    Lazy-load it: `const ThingPage = () => import('./pages/<area>/ThingPage.vue');`
-3. Add it to `lib/navigation.js`: daily work goes in the first group, setting
-   the agent up goes in "Your agent". Pick a Phosphor icon. The sidebar, the
+3. Add it to `lib/navigation.js`: daily work goes in "Your desk", what the
+   business sells in "Your business", and a page set up once goes in the
+   `setup` children of the Settings row (it folds open). Pick a Phosphor icon. The sidebar, the
    phone drawer and the phone tab bar all read this list. Its label is a
    `nav.*` key.
 4. If it needs data from the backend, add the call to `src/api/` first, and add

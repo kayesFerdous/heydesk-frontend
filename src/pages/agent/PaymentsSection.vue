@@ -1,16 +1,57 @@
 <template>
   <div>
-    <!-- Each has its own Connect button, saved apart from the form below. One or
-         both: with both, the customer picks on the pay page (backend D109). -->
-    <SettingsGroup :title="t('payments.online')" :tip="t('payments.onlineTip')">
-      <p class="text-sm text-ink-soft">{{ t('payments.oneOrBoth') }}</p>
-      <SslcommerzConnect @change="sslcommerz = $event"></SslcommerzConnect>
-      <BkashConnect @change="bkash = $event"></BkashConnect>
+    <!-- Each is a row that opens to connect or change it, saved apart from the
+         form below. One or both: with both, the customer picks on the pay page
+         (backend D109). -->
+    <SettingsGroup :title="t('payments.online')" :tip="`${t('payments.onlineTip')} ${t('payments.oneOrBoth')}`">
+      <ul class="-mt-5 -mb-5">
+        <ConnectionRow
+          id="sslcommerz"
+          :icon="PhCreditCard"
+          tile="bg-hover text-ink"
+          weight="regular"
+          name="SSLCommerz"
+          :line="sslcommerz ? inTest(t('payments.storeLine', { store: sslcommerz.store_id }), sslcommerz.sandbox) : t('payments.about.sslcommerz')"
+          :live="liveOf(sslcommerz)"
+          :open="open === 'sslcommerz'"
+          @toggle="toggle('sslcommerz')"
+        >
+          <SslcommerzConnect @change="sslcommerz = $event" @close="open = null"></SslcommerzConnect>
+        </ConnectionRow>
+        <ConnectionRow
+          id="bkash"
+          :icon="PhDeviceMobile"
+          tile="bg-hover text-ink"
+          weight="regular"
+          name="bKash"
+          :line="bkash ? inTest(bkash.username, bkash.sandbox) : t('payments.about.bkash')"
+          :live="liveOf(bkash)"
+          :open="open === 'bkash'"
+          @toggle="toggle('bkash')"
+        >
+          <BkashConnect @change="bkash = $event" @close="open = null"></BkashConnect>
+        </ConnectionRow>
+      </ul>
     </SettingsGroup>
 
     <!-- A shop's courier: every confirmed order is booked there (backend D113). -->
     <SettingsGroup v-if="kind === 'shop'" :title="t('courier.group')" :tip="t('courier.groupTip')">
-      <CourierConnect></CourierConnect>
+      <ul class="-mt-5 -mb-5">
+        <ConnectionRow
+          id="courier"
+          :icon="PhTruck"
+          tile="bg-hover text-ink"
+          weight="regular"
+          :name="courier ? (courier.kind === 'pathao' ? 'Pathao' : 'Steadfast') : t('courier.title')"
+          :line="courier ? inTest(t('courier.linkedShort'), courier.sandbox) : t('payments.about.courier')"
+          :live="liveOf(courier)"
+          :problem="courier?.problem ? t('courier.stuck') : ''"
+          :open="open === 'courier'"
+          @toggle="toggle('courier')"
+        >
+          <CourierConnect @change="courier = $event" @close="open = null"></CourierConnect>
+        </ConnectionRow>
+      </ul>
     </SettingsGroup>
 
     <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-6 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
@@ -41,14 +82,14 @@
       <SettingsGroup v-if="kind === 'shop'" :title="t('payments.areas')" :tip="t('payments.areasText')">
         <!-- One row per area: name, charge, days, then its districts under it.
              The headings show once when the panel is wide enough; narrower, each field keeps its label. -->
-        <div class="panel @container">
-          <div class="hidden grid-cols-[minmax(0,1fr)_6rem_7.5rem_2.75rem] gap-3 px-4 pt-3 @md:grid">
+        <div class="@container">
+          <div class="hidden grid-cols-[minmax(0,1fr)_6rem_7.5rem_2.75rem] gap-3 pb-1 @md:grid">
             <span class="label !mb-0">{{ t('payments.area') }}</span>
             <span class="label !mb-0">{{ t('payments.charge') }} (৳)</span>
             <span class="label !mb-0">{{ t('payments.usuallyTakes') }}</span>
           </div>
-          <div class="divide-y divide-hairline">
-            <div v-for="(zone, index) in form.zones" :key="index" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-end gap-x-3 gap-y-2 px-4 py-3 @md:grid-cols-[minmax(0,1fr)_6rem_7.5rem_2.75rem]">
+          <div class="divide-y divide-hairline border-b border-hairline">
+            <div v-for="(zone, index) in form.zones" :key="index" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-end gap-x-3 gap-y-2.5 py-4 @md:grid-cols-[minmax(0,1fr)_6rem_7.5rem_2.75rem]">
               <div class="col-span-2 @md:col-span-1">
                 <FieldLabel :html-for="`zone-${index}`" class="@md:sr-only">{{ t('payments.area') }}</FieldLabel>
                 <input :id="`zone-${index}`" v-model.trim="zone.name" class="field" :class="{ 'field-invalid': !zone.name }" type="text" :placeholder="t('payments.areaPlaceholder')" />
@@ -75,7 +116,7 @@
               </button>
               <!-- Picked from the 64 (type to search), so nothing is misspelled; none: everywhere else. -->
               <div class="col-span-3 flex flex-wrap items-center gap-2 @md:col-span-4">
-                <FieldLabel :html-for="`zone-districts-${index}`" :tip="t('payments.districtsHint')" class="!mb-0 mr-1">{{ t('payments.districts') }}</FieldLabel>
+                <FieldLabel :html-for="`zone-districts-${index}`" class="sr-only">{{ t('payments.districts') }}</FieldLabel>
                 <span v-for="name in zone.districts" :key="name" class="chip bg-hover text-ink-soft">
                   {{ districtLabel(name) }}
                   <button type="button" class="hover:text-danger" :aria-label="t('payments.removeDistrict', { name: districtLabel(name) })" @click="zone.districts = zone.districts.filter((d) => d !== name)">
@@ -136,13 +177,15 @@
           />
         </div>
 
-        <div class="flex items-center justify-between gap-4">
+        <!-- Paying first needs an account connected above: until then the switch
+             stays away and one line says why. -->
+        <div v-if="connected" class="flex items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-1.5">
               <label class="text-sm font-medium" for="pay-first">{{ t(`${words}.toggle`) }}</label>
               <InfoTip :text="`${t('payments.linkIntroAny')} ${t(`${words}.after`)} ${t('payments.onlyPayment')}`"></InfoTip>
             </div>
-            <!-- Why it cannot be turned on yet stays in view: it is the next step. -->
+            <!-- What is still missing stays in view: it is the next step. -->
             <p v-if="blocker" class="hint !mt-0.5">{{ blocker }}</p>
           </div>
           <ToggleSwitch
@@ -153,6 +196,7 @@
             @update:model-value="form.pay_first = $event"
           ></ToggleSwitch>
         </div>
+        <p v-else class="hint !mt-0">{{ t('payments.connectAccountFirst') }}</p>
       </SettingsGroup>
 
       <SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm"></SaveBar>
@@ -164,8 +208,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhPlus, PhTrash, PhX } from '@phosphor-icons/vue';
+import { PhCreditCard, PhDeviceMobile, PhPlus, PhTrash, PhTruck, PhX } from '@phosphor-icons/vue';
 
+import ConnectionRow from '../../components/ui/ConnectionRow.vue';
 import FormProblems from '../../components/ui/FormProblems.vue';
 import SaveBar from '../../components/ui/SaveBar.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';
@@ -198,10 +243,17 @@ function addDistrict(zone, event) {
 }
 const agent = useAgentStore();
 
-// Which of the business's payment accounts are connected; either one is enough.
-const sslcommerz = ref(false);
-const bkash = ref(false);
-const connected = computed(() => sslcommerz.value || bkash.value);
+// The accounts the rows below report: undefined while still being asked for, null when
+// not connected, else the account. Paying first needs either payment account.
+const sslcommerz = ref(undefined);
+const bkash = ref(undefined);
+const courier = ref(undefined);
+const connected = computed(() => !!sslcommerz.value || !!bkash.value);
+// One connection open at a time, none to begin with.
+const open = ref(null);
+const toggle = (id) => (open.value = open.value === id ? null : id);
+const liveOf = (account) => (account === undefined ? null : !!account);
+const inTest = (line, sandbox) => (sandbox ? `${line} · ${t('payments.testMode')}` : line);
 const kind = computed(() => agent.kind);
 // What each kind of business takes first, in the owner's words: `payments.<kind>.*`.
 const words = computed(() => `payments.${['restaurant', 'clinic'].includes(kind.value) ? kind.value : 'shop'}`);

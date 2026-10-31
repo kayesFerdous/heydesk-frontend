@@ -1,30 +1,33 @@
 <template>
-  <!-- A shop order's call to confirm it (backend D89): how it stands, and a way
-       to call a new order now. It owns its small fetch, like VoiceCall.vue. -->
-  <div v-if="enabled || latest" class="mt-5 flex flex-col gap-2 border-t border-hairline pt-4 text-sm">
-    <p v-if="latest" class="flex items-center justify-between gap-3">
-      <span class="flex items-center gap-2 text-ink-soft">
+  <!-- A shop order's call to confirm it (backend D89), as a section of the open
+       order: how it stands, and a way to call a new order now. It owns its
+       small fetch, like VoiceCall.vue. -->
+  <RecordSection v-if="enabled || latest" :label="t('records.sections.call')">
+    <div class="flex flex-col gap-2">
+      <p v-if="latest" class="flex items-center justify-between gap-3">
+        <span class="flex items-center gap-2 text-ink-soft">
+          <PhPhoneCall :size="16"></PhPhoneCall>
+          {{ t('calls.onOrder') }}
+        </span>
+        <span class="flex items-center gap-2">
+          <span class="text-xs text-ink-soft">{{ formatTime(latest.updated_at) }}</span>
+          <StatusChip :status="callState(latest)"></StatusChip>
+        </span>
+      </p>
+      <button
+        v-if="enabled && order.status === 'new' && !waiting"
+        type="button"
+        class="btn btn-secondary btn-sm self-start"
+        :disabled="busy"
+        @click="call"
+      >
         <PhPhoneCall :size="16"></PhPhoneCall>
-        {{ t('calls.onOrder') }}
-      </span>
-      <span class="flex items-center gap-2">
-        <span class="text-xs text-ink-soft">{{ formatTime(latest.updated_at) }}</span>
-        <StatusChip :status="callState(latest)"></StatusChip>
-      </span>
-    </p>
-    <button
-      v-if="enabled && order.status === 'new' && !waiting"
-      type="button"
-      class="btn btn-secondary w-full"
-      :disabled="busy"
-      @click="call"
-    >
-      <PhPhoneCall :size="16"></PhPhoneCall>
-      {{ t('calls.callToConfirm') }}
-    </button>
-    <router-link v-else-if="waiting" to="/calls" class="link self-start text-sm font-medium">{{ t('calls.seeQueue') }}</router-link>
-    <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
-  </div>
+        {{ t('calls.callToConfirm') }}
+      </button>
+      <router-link v-else-if="waiting" to="/calls" class="link self-start text-sm font-medium">{{ t('calls.seeQueue') }}</router-link>
+      <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
+    </div>
+  </RecordSection>
 </template>
 
 <script setup>
@@ -33,6 +36,7 @@ import { useI18n } from 'vue-i18n';
 import { PhPhoneCall } from '@phosphor-icons/vue';
 
 import StatusChip from '../ui/StatusChip.vue';
+import RecordSection from '../records/RecordSection.vue';
 import { fetchCalls, callOrder } from '../../api/calls.js';
 import { formatTime } from '../../lib/format.js';
 import { callState } from '../../lib/calls.js';

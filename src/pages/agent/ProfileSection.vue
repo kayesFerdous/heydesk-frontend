@@ -129,7 +129,6 @@ const { form, isDirty, isSaving, saveError, problems, errors, savedNote, save, r
     };
   },
   patchFrom: (f) => ({ ...f }),
-  previewFrom: (f) => ({ name: f.name, business_name: f.business_name, greeting: f.greeting }),
 });
 
 // The greeting as a customer reads it, when it uses the placeholder.

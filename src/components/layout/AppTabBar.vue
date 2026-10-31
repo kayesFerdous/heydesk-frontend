@@ -46,7 +46,7 @@ const agent = useAgentStore();
 const inbox = useInboxStore();
 const ui = useUiStore();
 
-// The first group (daily work) plus the agent's settings.
+// The first group: the daily work.
 const items = computed(() => {
   const groups = navGroups({
     isAdmin: !auth.seesBusiness,
@@ -55,9 +55,7 @@ const items = computed(() => {
     waitingTotal: inbox.waitingTotal,
     needsHuman: inbox.needsHuman,
   });
-  const daily = groups[0].items;
-  const settings = groups[1] ? groups[1].items.slice(0, 1) : [];
-  return [...daily, ...settings];
+  return groups[0].items;
 });
 
 function active(item) {

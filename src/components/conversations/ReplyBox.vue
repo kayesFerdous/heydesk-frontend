@@ -5,7 +5,7 @@
        the transcript, ConversationSummary), a question about the chat (its answer
        shows here) and a draft (it fills the box). Nothing goes to the visitor
        until the team sends it. -->
-  <form class="flex flex-col gap-2 border-t border-hairline px-3 py-2.5 sm:px-6" @submit.prevent="send">
+  <form class="flex flex-col gap-2 border-t border-hairline px-3 py-2.5" @submit.prevent="send">
     <div v-if="asking" class="flex gap-2">
       <input
         ref="questionBox"

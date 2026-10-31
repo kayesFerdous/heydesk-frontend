@@ -10,13 +10,7 @@
 
     <!-- Connected: share the link -->
     <div v-else-if="page" class="flex flex-col gap-3">
-      <p class="flex flex-wrap items-center gap-2 text-sm">
-        <span class="chip bg-success-tint text-success">
-          <PhCheckCircle :size="14" weight="bold"></PhCheckCircle>
-          {{ t('connect.connected') }}
-        </span>
-        <InfoTip :text="t('messenger.connectedText')"></InfoTip>
-      </p>
+      <p class="text-sm text-ink-soft">{{ t('messenger.connectedText') }}</p>
       <CopyField :label="t('messenger.link')" :value="page.link" @copied="$emit('copied')"></CopyField>
       <div class="flex flex-wrap items-center gap-3">
         <a :href="page.link" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
@@ -59,7 +53,7 @@
       <button type="button" class="self-start text-sm font-semibold text-ink-soft hover:underline" @click="close">{{ t('common.notNow') }}</button>
     </div>
 
-    <!-- Not connected: Connect with Facebook. What it is sits in the row's tip. -->
+    <!-- Not connected: Connect with Facebook. What it is sits on its row. -->
     <div v-else-if="!open">
       <p class="text-sm text-ink-soft">{{ t('messenger.withFacebookText') }}</p>
       <div class="mt-3 flex flex-wrap items-center gap-3">
@@ -108,12 +102,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhArrowSquareOut, PhCheckCircle, PhFacebookLogo } from '@phosphor-icons/vue';
+import { PhArrowSquareOut, PhFacebookLogo } from '@phosphor-icons/vue';
 
 import CopyField from '../ui/CopyField.vue';
-import InfoTip from '../ui/InfoTip.vue';
 import {
   connectFacebookPage,
   connectMessenger,
@@ -124,7 +117,8 @@ import {
 } from '../../api/messenger.js';
 import { facebookLogin } from '../../lib/facebook.js';
 
-defineEmits(['copied']);
+// `change` tells the page the connected Page (or null), for the row's status.
+const emit = defineEmits(['copied', 'change']);
 const { t } = useI18n();
 
 const page = ref(null);
@@ -222,6 +216,8 @@ async function disconnect() {
   }
   busy.value = false;
 }
+
+watch(() => (loading.value ? undefined : page.value), (value) => emit('change', value), { immediate: true });
 
 load();
 </script>

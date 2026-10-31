@@ -10,6 +10,7 @@ import {
   PhUsersThree,
   PhCreditCard,
   PhTicket,
+  PhGear,
 } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
@@ -26,10 +27,20 @@ export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, nee
     return [{ label: null, items: [{ to: '/admin', match: '/admin', label: t('nav.businesses'), icon: PhBuildings }] }];
   }
 
+  // Set up once and opened rarely: one Settings row that folds open to them.
+  const setup = [
+    { to: '/agent', match: '/agent', label: t('nav.agent'), icon: PhSlidersHorizontal },
+    { to: '/knowledge', match: '/knowledge', label: t('nav.knowledge'), icon: PhBooks },
+    { to: '/channels', match: '/channels', label: t('nav.channels'), icon: PhBroadcast },
+    { to: '/team', match: '/team', label: t('nav.team'), icon: PhUsersThree },
+    { to: '/billing', match: '/billing', label: t('nav.billing'), icon: PhCreditCard },
+  ];
+
   return [
     {
-      // Daily work: what the agent took and who is waiting.
-      label: null,
+      // Daily work: what the agent took and who is waiting. The phone tab bar
+      // shows this group.
+      label: t('nav.yourDesk'),
       items: [
         { to: '/home', match: '/home', label: t('nav.home'), icon: PhHouse },
         { to: '/inbox', match: '/inbox', label: t('nav.inbox'), icon: PhTray, count: waitingTotal },
@@ -47,34 +58,23 @@ export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, nee
       ],
     },
     {
-      // Setting the agent up: what it knows and where customers find it.
-      label: t('nav.yourAgent'),
-      items: canManage
-        ? [
-            { to: '/agent', match: '/agent', label: t('nav.settings'), short: t('nav.agent'), icon: PhSlidersHorizontal },
-            ...listLinks(preset).map((link) => ({ ...link, match: link.to })),
-            { to: '/knowledge', match: '/knowledge', label: t('nav.knowledge'), icon: PhBooks },
-            { to: '/channels', match: '/channels', label: t('nav.channels'), icon: PhBroadcast },
-          ]
-        : listLinks(preset).map((link) => ({ ...link, match: link.to })),
+      // What the business sells: the lists the agent answers from, and a
+      // shop's coupon codes (backend D133).
+      label: t('nav.business'),
+      items: [
+        ...listLinks(preset).map((link) => ({ ...link, match: link.to })),
+        ...(preset === 'shop' && canManage ? [{ to: '/coupons', match: '/coupons', label: t('nav.coupons'), icon: PhTicket }] : []),
+      ],
     },
-    // The business itself: who works in it.
-    ...(canManage
-      ? [
-          {
-            label: t('nav.business'),
-            items: [
-              { to: '/team', match: '/team', label: t('nav.team'), icon: PhUsersThree },
-              { to: '/billing', match: '/billing', label: t('nav.billing'), icon: PhCreditCard },
-              // A shop's coupon codes (backend D133).
-              ...(preset === 'shop' ? [{ to: '/coupons', match: '/coupons', label: t('nav.coupons'), icon: PhTicket }] : []),
-            ],
-          },
-        ]
-      : []),
-  ];
+    // A moderator (D97) has no setup.
+    {
+      label: t('nav.setup'),
+      items: canManage ? [{ to: setup[0].to, match: '/settings', label: t('nav.settings'), icon: PhGear, children: setup }] : [],
+    },
+  ].filter((group) => group.items.length);
 }
 
 export function isActive(item, path) {
+  if (item.children) return item.children.some((child) => isActive(child, path));
   return path === item.match || path.startsWith(item.match + '/');
 }

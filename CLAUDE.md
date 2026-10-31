@@ -59,6 +59,15 @@ session.
 - Record status buttons come from `src/lib/flows.js` (mirrors the backend's
   `FLOWS`); the server stays the judge.
 
+## Workflow
+
+Every feature or fix gets its own branch (`feat/<short-name>`,
+`fix/<short-name>`), never work on `main`. When the work is done, push the
+branch and open a PR with a short, simple title.
+
+Commits and PRs have no AI attribution: no `Co-Authored-By: Claude`
+trailer, no Claude or Anthropic email, no "Generated with Claude Code" line.
+
 ## Commands
 
 ```bash

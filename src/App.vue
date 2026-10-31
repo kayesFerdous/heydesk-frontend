@@ -1,17 +1,21 @@
 <template>
   <router-view v-if="isBare"></router-view>
 
-  <!-- The shell: a black panel for where you can go, and the work on a warm
+  <!-- The shell: a light rail for where you can go, and the work on a cool
        grey canvas, each page laying out its own white islands. The sidebar
        folds to icons on desktop. -->
-  <div v-else class="flex h-dvh bg-canvas md:gap-3 md:p-3">
+  <div v-else class="flex h-dvh bg-canvas md:gap-2 md:p-2">
     <AppSidebar
       class="hidden shrink-0 rounded-[var(--radius-panel)] transition-[width] duration-200 ease-[var(--ease-settle)] motion-reduce:transition-none md:flex"
-      :class="ui.sidebarCollapsed ? 'w-[4.75rem]' : 'w-72'"
+      :class="ui.sidebarCollapsed ? 'w-16' : 'w-58'"
       collapsible
     ></AppSidebar>
 
-    <main class="relative min-h-0 min-w-0 flex-1 overflow-y-auto pb-28 md:pb-0">
+    <!-- While the admin's banner sticks to the top, a page's sticky header sits under it. -->
+    <main
+      class="relative min-h-0 min-w-0 flex-1 overflow-y-auto pb-28 md:pb-0"
+      :class="auth.isViewing ? '[--sticky-top:3.25rem] pointer-coarse:[--sticky-top:4rem]' : ''"
+    >
       <!-- An admin inside a business: whose it is, and the way out. -->
       <div
         v-if="auth.isViewing"

@@ -5,7 +5,7 @@
   <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <PageHeader :title="t('shell.account')"></PageHeader>
 
-    <div class="island px-5 pt-6 pb-4 sm:px-8">
+    <div class="island px-4 pt-4 pb-3 sm:px-6">
       <SettingsGroup :title="t('common.language')" :tip="t('account.languageTip')">
         <!-- Each language is shown in its own words and digits, so the way
              back is readable whichever one is on. -->

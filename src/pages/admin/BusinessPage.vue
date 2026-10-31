@@ -54,7 +54,7 @@
 
     <SkeletonRows v-else-if="!business" class="island overflow-hidden"></SkeletonRows>
 
-    <div v-else class="island px-5 pt-6 pb-4 sm:px-8">
+    <div v-else class="island px-4 pt-4 pb-3 sm:px-6">
       <SettingsGroup :title="t('business.conversations')">
         <div class="grid grid-cols-3 gap-4">
           <div v-for="stat in stats" :key="stat.label">

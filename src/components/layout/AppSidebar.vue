@@ -2,17 +2,17 @@
   <aside class="group/sidebar relative flex min-h-0 flex-col bg-night text-white">
     <!-- One header, one logo: the HeyDesk mark, then whose desk this is and
          whether it is answering customers. Folded, only the mark stays. -->
-    <div class="shrink-0 px-3 pt-4">
+    <div class="shrink-0 px-3 pt-3">
       <router-link
         to="/"
-        class="flex min-w-0 items-center gap-3 rounded-[var(--radius-card)] p-1.5 transition-colors hover:bg-night-tile"
+        class="flex min-w-0 items-center gap-2.5 rounded-[var(--radius-card)] p-1 transition-colors hover:bg-night-tile"
         :class="{ 'justify-center': collapsed }"
         :aria-label="t('shell.homeLink', { name: businessName })"
         :title="collapsed ? businessName : undefined"
       >
-        <BrandMark mark-only class="!h-10 !w-10"></BrandMark>
+        <BrandMark mark-only class="!h-9 !w-9"></BrandMark>
         <span v-if="!collapsed" class="min-w-0 flex-1">
-          <span class="block truncate text-[0.9375rem] font-bold">{{ businessName }}</span>
+          <span class="block truncate text-sm font-bold">{{ businessName }}</span>
           <span v-if="showStatus" class="flex items-center gap-1.5 text-xs font-medium text-night-soft">
             <span class="h-2 w-2 shrink-0 rounded-full" :class="auth.isSuspended ? 'bg-attention-bright' : 'bg-lime'" aria-hidden="true"></span>
             {{ auth.isSuspended ? t('common.pausedByHeyDesk') : t('shell.agentLive') }}
@@ -28,21 +28,49 @@
     <router-link
       v-if="showStatus && inbox.needsHuman && !collapsed"
       to="/conversations?filter=needs_human"
-      class="mx-3 mt-4 flex shrink-0 items-center gap-2.5 rounded-[var(--radius-card)] bg-night-tile px-3 py-2.5 text-[0.8125rem] font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--color-night-tile),white_8%)]"
+      class="mx-3 mt-3 flex shrink-0 items-center gap-2.5 rounded-[var(--radius-card)] bg-night-tile px-3 py-2 text-[0.8125rem] font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--color-night-tile),white_8%)]"
       @click="$emit('navigate')"
     >
-      <PhUserSound :size="18" weight="fill" class="shrink-0 text-attention-bright"></PhUserSound>
+      <PhUserSound :size="16" weight="fill" class="shrink-0 text-attention-bright"></PhUserSound>
       <span class="min-w-0 flex-1 truncate">{{ t('status.needs_human') }}</span>
       <span class="nav-count nav-count-attention">{{ formatNumber(inbox.needsHuman) }}</span>
     </router-link>
 
-    <nav class="mt-4 min-h-0 flex-1 overflow-y-auto px-3" :aria-label="t('shell.mainNav')">
-      <div v-for="(group, index) in groups" :key="index" :class="{ 'mt-5': index > 0 }">
+    <nav class="mt-2 min-h-0 flex-1 overflow-y-auto px-3" :aria-label="t('shell.mainNav')">
+      <div v-for="(group, index) in groups" :key="index" :class="{ 'mt-4': index > 0 }">
         <p v-if="group.label && !collapsed" class="mb-1 px-3 text-xs font-medium text-night-soft">{{ group.label }}</p>
-        <hr v-else-if="group.label" class="mx-3 mb-3 border-night-tile" />
+        <hr v-else-if="group.label && index > 0" class="mx-3 mb-3 border-night-tile" />
         <ul class="flex flex-col gap-0.5">
           <li v-for="item in group.items" :key="item.to">
+            <template v-if="item.children && !collapsed">
+              <button
+                type="button"
+                class="nav-item w-full"
+                :class="{ 'nav-item-active': active(item) && !isOpen(item) }"
+                :aria-expanded="isOpen(item)"
+                :aria-controls="'nav-' + item.match.slice(1)"
+                @click="toggle(item)"
+              >
+                <component :is="item.icon" :size="18" :weight="active(item) ? 'fill' : 'regular'" class="nav-icon"></component>
+                <span class="flex-1 truncate text-left">{{ item.label }}</span>
+                <PhCaretDown :size="14" weight="bold" class="nav-caret" :class="{ 'nav-caret-shut': !isOpen(item) }" aria-hidden="true"></PhCaretDown>
+              </button>
+              <ul v-if="isOpen(item)" :id="'nav-' + item.match.slice(1)" class="nav-children">
+                <li v-for="child in item.children" :key="child.to">
+                  <router-link
+                    :to="child.to"
+                    class="nav-child"
+                    :class="{ 'nav-child-active': active(child) }"
+                    :aria-current="active(child) ? 'page' : undefined"
+                    @click="$emit('navigate')"
+                  >
+                    {{ child.label }}
+                  </router-link>
+                </li>
+              </ul>
+            </template>
             <router-link
+              v-else
               :to="item.to"
               class="nav-item"
               :class="{ 'nav-item-active': active(item), 'nav-item-folded': collapsed }"
@@ -52,7 +80,7 @@
               @click="$emit('navigate')"
             >
               <span class="relative grid place-items-center">
-                <component :is="item.icon" :size="20" :weight="active(item) ? 'fill' : 'regular'" class="nav-icon"></component>
+                <component :is="item.icon" :size="18" :weight="active(item) ? 'fill' : 'regular'" class="nav-icon"></component>
                 <span v-if="collapsed && item.count" class="badge" :class="{ 'badge-attention': item.attention }">{{ formatNumber(item.count) }}</span>
               </span>
               <template v-if="!collapsed">
@@ -84,7 +112,7 @@
 
       <!-- The account: who is signed in. It opens a small menu with the
            language, the account page and signing out. -->
-      <div ref="accountMenu" class="relative mt-3 border-t border-night-tile pt-3">
+      <div ref="accountMenu" class="relative mt-2 border-t border-night-tile pt-2">
         <button
           type="button"
           class="flex w-full items-center gap-2.5 rounded-[var(--radius-card)] p-1 text-left transition-colors hover:bg-night-tile"
@@ -95,7 +123,7 @@
           :aria-expanded="accountOpen"
           @click="accountOpen = !accountOpen"
         >
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-night-tile text-sm font-bold text-white" aria-hidden="true">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-night-tile text-[0.8125rem] font-bold text-white" aria-hidden="true">
             {{ initial }}
           </span>
           <template v-if="!collapsed">
@@ -131,7 +159,7 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { computed, reactive, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
@@ -140,6 +168,7 @@ import {
   PhCaretUpDown,
   PhUserCircle,
   PhUserSound,
+  PhCaretDown,
 } from '@phosphor-icons/vue';
 
 import BrandMark from '../ui/BrandMark.vue';
@@ -211,6 +240,14 @@ function active(item) {
   return isActive(item, route.path);
 }
 
+// A row that folds open (Settings) is open while one of its pages is, until
+// the owner folds it; the caret says which way it goes.
+const folded = reactive({});
+const isOpen = (item) => !(folded[item.to] ?? !active(item));
+function toggle(item) {
+  folded[item.to] = isOpen(item);
+}
+
 function openTestChat() {
   emit('navigate');
   ui.testSheetOpen = true;
@@ -248,11 +285,11 @@ function signOut() {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  height: 2.75rem;
-  padding: 0 0.875rem;
+  gap: 0.625rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
   border-radius: var(--radius-control);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-night-soft);
   transition: background-color 0.15s var(--ease-settle), color 0.15s var(--ease-settle);
@@ -284,6 +321,67 @@ function signOut() {
 
 .nav-item-active .nav-icon {
   color: var(--color-lime);
+}
+
+/* Settings folds open: pages hang from a guide line under its icon, words only. */
+.nav-caret {
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-settle);
+}
+
+.nav-caret-shut {
+  transform: rotate(-90deg);
+}
+
+.nav-children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0.125rem 0 0.25rem 1.3125rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--color-night-tile);
+}
+
+.nav-child {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  color: var(--color-night-soft);
+  transition: background-color 0.15s var(--ease-settle), color 0.15s var(--ease-settle);
+}
+
+.nav-child:hover {
+  color: #fff;
+  background-color: color-mix(in srgb, var(--color-night-tile) 60%, var(--color-night));
+}
+
+.nav-child-active,
+.nav-child-active:hover {
+  color: #fff;
+  font-weight: 600;
+  background-color: var(--color-night-tile);
+}
+
+/* The one lime mark on the guide line: you are here. */
+.nav-child-active::before {
+  content: '';
+  position: absolute;
+  top: 0.375rem;
+  bottom: 0.375rem;
+  left: calc(-0.5rem - 1px);
+  width: 2px;
+  border-radius: 999px;
+  background-color: var(--color-lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-caret {
+    transition: none;
+  }
 }
 
 .nav-count {
@@ -336,5 +434,13 @@ function signOut() {
 .nav-item-active .badge-attention {
   background-color: var(--color-attention-bright);
   color: var(--color-ink);
+}
+/* A finger needs the room a mouse does not (the phone drawer, a tablet). */
+@media (pointer: coarse) {
+  .nav-item,
+  .nav-child {
+    height: 2.75rem;
+    font-size: 0.9375rem;
+  }
 }
 </style>
