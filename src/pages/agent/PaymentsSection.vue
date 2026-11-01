@@ -34,8 +34,8 @@
       </ul>
     </SettingsGroup>
 
-    <!-- A shop's courier: every confirmed order is booked there (backend D113). -->
-    <SettingsGroup v-if="kind === 'shop'" :title="t('courier.group')" :tip="t('courier.groupTip')">
+    <!-- The courier: every confirmed order is booked there (backend D113). -->
+    <SettingsGroup :title="t('courier.group')" :tip="t('courier.groupTip')">
       <ul class="-mt-5 -mb-5">
         <ConnectionRow
           id="courier"
@@ -57,29 +57,8 @@
     <form v-if="form" class="border-t border-hairline [&>section:first-of-type]:!pt-6 [&>section:first-of-type]:!border-t-0" novalidate @submit.prevent="save">
       <FormProblems :message="saveError" :problems="problems" class="mt-6"></FormProblems>
 
-      <!-- A restaurant: pickup only, or delivery too, at one charge to any address. -->
-      <SettingsGroup v-if="kind === 'restaurant'" :title="t('payments.delivery')" :tip="t('payments.deliveryOff')">
-        <div class="flex items-center justify-between gap-4">
-          <label class="text-sm font-medium" for="delivers">{{ t('payments.weDeliver') }}</label>
-          <ToggleSwitch id="delivers" v-model="form.delivers" :label="t('payments.weDeliver')"></ToggleSwitch>
-        </div>
-        <div v-if="form.delivers">
-          <FieldLabel html-for="delivery-charge" :tip="t('payments.deliveryChargeHint')">{{ t('payments.deliveryCharge') }} (৳)</FieldLabel>
-          <input
-            id="delivery-charge"
-            v-model="form.charge"
-            class="field max-w-40"
-            :class="{ 'field-invalid': !validAmount(form.charge) }"
-            type="number"
-            min="0"
-            step="1"
-            inputmode="numeric"
-          />
-        </div>
-      </SettingsGroup>
-
-      <!-- A shop: its delivery areas, each with a charge. -->
-      <SettingsGroup v-if="kind === 'shop'" :title="t('payments.areas')" :tip="t('payments.areasText')">
+      <!-- Its delivery areas, each with a charge. -->
+      <SettingsGroup :title="t('payments.areas')" :tip="t('payments.areasText')">
         <!-- One row per area: name, charge, days, then its districts under it.
              The headings show once when the panel is wide enough; narrower, each field keeps its label. -->
         <div class="@container">
@@ -162,28 +141,14 @@
         </div>
       </SettingsGroup>
 
-      <SettingsGroup :title="t(`${words}.title`)" :tip="t(`${words}.explain`)">
-        <div v-if="kind === 'clinic'">
-          <FieldLabel html-for="deposit" :tip="t('payments.depositHint')">{{ t('payments.deposit') }} (৳)</FieldLabel>
-          <input
-            id="deposit"
-            v-model="form.deposit"
-            class="field max-w-40"
-            :class="{ 'field-invalid': !validAmount(form.deposit) }"
-            type="number"
-            min="0"
-            step="1"
-            inputmode="numeric"
-          />
-        </div>
-
+      <SettingsGroup :title="t('payments.shop.title')" :tip="t('payments.shop.explain')">
         <!-- Paying first needs an account connected above: until then the switch
              stays away and one line says why. -->
         <div v-if="connected" class="flex items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-1.5">
-              <label class="text-sm font-medium" for="pay-first">{{ t(`${words}.toggle`) }}</label>
-              <InfoTip :text="`${t('payments.linkIntroAny')} ${t(`${words}.after`)} ${t('payments.onlyPayment')}`"></InfoTip>
+              <label class="text-sm font-medium" for="pay-first">{{ t('payments.shop.toggle') }}</label>
+              <InfoTip :text="`${t('payments.linkIntroAny')} ${t('payments.shop.after')} ${t('payments.onlyPayment')}`"></InfoTip>
             </div>
             <!-- What is still missing stays in view: it is the next step. -->
             <p v-if="blocker" class="hint !mt-0.5">{{ blocker }}</p>
@@ -191,7 +156,7 @@
           <ToggleSwitch
             id="pay-first"
             :model-value="form.pay_first && !blocker"
-            :label="t(`${words}.toggle`)"
+            :label="t('payments.shop.toggle')"
             :disabled="!!blocker"
             @update:model-value="form.pay_first = $event"
           ></ToggleSwitch>
@@ -221,7 +186,6 @@ import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
 import BkashConnect from '../../components/agent/BkashConnect.vue';
 import CourierConnect from '../../components/agent/CourierConnect.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
-import { useAgentStore } from '../../stores/agent.js';
 import { DISTRICTS } from '../../lib/districts.js';
 
 // Taka in the form, paisa in the API.
@@ -241,8 +205,6 @@ function addDistrict(zone, event) {
   if (!zone.districts.includes(found[0])) zone.districts.push(found[0]);
   event.target.value = '';
 }
-const agent = useAgentStore();
-
 // The accounts the rows below report: undefined while still being asked for, null when
 // not connected, else the account. Paying first needs either payment account.
 const sslcommerz = ref(undefined);
@@ -254,9 +216,6 @@ const open = ref(null);
 const toggle = (id) => (open.value = open.value === id ? null : id);
 const liveOf = (account) => (account === undefined ? null : !!account);
 const inTest = (line, sandbox) => (sandbox ? `${line} · ${t('payments.testMode')}` : line);
-const kind = computed(() => agent.kind);
-// What each kind of business takes first, in the owner's words: `payments.<kind>.*`.
-const words = computed(() => `payments.${['restaurant', 'clinic'].includes(kind.value) ? kind.value : 'shop'}`);
 
 function validAmount(taka) {
   return taka === '' || Number(taka) >= 0;
@@ -266,9 +225,6 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
   formFrom: (config) => {
     const k = config.knowledge;
     return {
-      delivers: !!k.delivers,
-      charge: toTaka(k.delivery_charge),
-      deposit: toTaka(k.deposit),
       zones: (k.delivery || []).map((z) => ({
         name: z.name,
         charge: toTaka(z.charge),
@@ -285,35 +241,24 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
   // payment account is missing: the agent asks for nothing until one is connected.
   patchFrom: (f) => {
     const payFirst = f.pay_first && !nothingToTake.value;
-    // A shop has no switch of its own since backend D92: it's set on every area.
-    const patch = kind.value === 'shop' ? {} : { pay_first: payFirst };
-    if (kind.value === 'restaurant') {
-      patch.delivers = f.delivers;
-      patch.delivery_charge = toPaisa(f.charge);
-    }
-    if (kind.value === 'clinic') patch.deposit = toPaisa(f.deposit);
-    if (kind.value === 'shop') {
-      patch.delivery = f.zones.map((z) => ({
+    // There is no switch of its own since backend D92: it's set on every area.
+    return {
+      delivery: f.zones.map((z) => ({
         name: z.name,
         charge: toPaisa(z.charge),
         days: z.days,
         districts: z.districts,
         pay_first: payFirst,
-      }));
-      patch.free_delivery_over = toPaisa(f.freeOver);
-    }
-    return patch;
+      })),
+      free_delivery_over: toPaisa(f.freeOver),
+    };
   },
 });
 
 // What's missing for there to be anything to take first, or ''.
 const nothingToTake = computed(() => {
   const f = form.value;
-  const needs = t(`${words.value}.needs`);
-  if (kind.value === 'restaurant' && !(f.delivers && toPaisa(f.charge) > 0)) return needs;
-  if (kind.value === 'clinic' && !(toPaisa(f.deposit) > 0)) return needs;
-  if (kind.value === 'shop' && !f.zones.length) return needs;
-  return '';
+  return f.zones.length ? '' : t('payments.shop.needs');
 });
 
 // Why paying first can't be turned on yet, or '' when it can.

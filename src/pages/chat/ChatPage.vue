@@ -42,8 +42,6 @@
           >
             <PhArrowCounterClockwise :size="18"></PhArrowCounterClockwise>
           </button>
-          <!-- Only a receptionist or a clinic takes calls (backend D108). -->
-          <VoiceCall v-if="agent.voice" :public-key="publicKey"></VoiceCall>
         </template>
       </div>
     </header>
@@ -73,7 +71,6 @@ import { useI18n } from 'vue-i18n';
 import { PhArrowCounterClockwise, PhChatSlash } from '@phosphor-icons/vue';
 
 import AgentChat from '../../components/chat/AgentChat.vue';
-import VoiceCall from '../../components/chat/VoiceCall.vue';
 import { fetchChatAgent } from '../../api/chat.js';
 import { initials } from '../../lib/group.js';
 

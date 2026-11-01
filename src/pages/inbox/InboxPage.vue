@@ -198,12 +198,10 @@ import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import { jobTab } from '../../lib/records.js';
 import { useInboxStore } from '../../stores/inbox.js';
-import { useAgentStore } from '../../stores/agent.js';
 
 const route = useRoute();
 const { t } = useI18n();
 const inbox = useInboxStore();
-const agent = useAgentStore();
 
 // ?job=order&open=<id> opens one record straight away (links from Home).
 const currentJob = ref(route.query.job || null);
@@ -233,7 +231,7 @@ let lastAsk = 0; // numbers each records request, so only the newest one counts
 
 const waiting = computed(() => inbox.jobs.find((j) => j.job === currentJob.value)?.waiting ?? 0);
 // A shop's orders have their own steps (lib/flows.js).
-const flow = computed(() => (agent.kind === 'shop' && currentJob.value === 'order' ? 'shop_order' : currentJob.value));
+const flow = computed(() => (currentJob.value === 'order' ? 'shop_order' : currentJob.value));
 const path = computed(() => (flow.value ? pathOf(flow.value) : []));
 const side = computed(() => (flow.value ? sideStatusesOf(flow.value) : []));
 const onSide = computed(() => side.value.includes(status.value));

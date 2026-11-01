@@ -7,15 +7,7 @@ import { t } from '../i18n/index.js';
 // `primary` is the usual next step, `others` are the rarer ones. A `label` is a
 // key under `flows.` in the language files.
 export const FLOWS = {
-  order: {
-    // Waiting for its delivery charge online; the owner can take it another way.
-    unpaid: { primary: { to: 'new', label: 'markPaid' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
-    new: { primary: { to: 'ready', label: 'markReady' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
-    ready: { primary: { to: 'collected', label: 'markCollected' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
-    collected: { primary: null, others: [] },
-    cancelled: { primary: null, others: [] },
-  },
-  // A shop's order: the shop phones to confirm, then a courier takes it (backend D45).
+  // An order: the shop phones to confirm, then a courier takes it (backend D45).
   shop_order: {
     unpaid: { primary: { to: 'new', label: 'markPaid' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
     new: { primary: { to: 'confirmed', label: 'acceptOrder' }, others: [{ to: 'cancelled', label: 'cancelOrder' }] },
@@ -23,13 +15,6 @@ export const FLOWS = {
     shipped: { primary: { to: 'delivered', label: 'markDelivered' }, others: [{ to: 'returned', label: 'markReturned' }] },
     delivered: { primary: null, others: [] },
     returned: { primary: null, others: [] },
-    cancelled: { primary: null, others: [] },
-  },
-  appointment: {
-    unpaid: { primary: { to: 'new', label: 'markPaid' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
-    new: { primary: { to: 'confirmed', label: 'confirmTime' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
-    confirmed: { primary: { to: 'done', label: 'markDone' }, others: [{ to: 'cancelled', label: 'cancelAppointment' }] },
-    done: { primary: null, others: [] },
     cancelled: { primary: null, others: [] },
   },
   message: {

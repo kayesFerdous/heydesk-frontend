@@ -22,7 +22,7 @@ import { listLinks } from './presets.js';
 // `match` is the path prefix that lights the item up: /agent/hours still
 // highlights "Settings". `count` and `attention` drive the small badge.
 // A moderator (`canManage` false, backend D97) sees the daily work and the lists only.
-export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, needsHuman }) {
+export function navGroups({ isAdmin, canManage = true, waitingTotal, needsHuman }) {
   if (isAdmin) {
     return [{ label: null, items: [{ to: '/admin', match: '/admin', label: t('nav.businesses'), icon: PhBuildings }] }];
   }
@@ -53,17 +53,17 @@ export function navGroups({ isAdmin, canManage = true, preset, waitingTotal, nee
           count: needsHuman,
           attention: true,
         },
-        // A shop's calls to confirm its orders (backend D89).
-        ...(preset === 'shop' ? [{ to: '/calls', match: '/calls', label: t('nav.calls'), icon: PhPhoneCall }] : []),
+        // The shop's calls to confirm its orders (backend D89).
+        { to: '/calls', match: '/calls', label: t('nav.calls'), icon: PhPhoneCall },
       ],
     },
     {
-      // What the business sells: the lists the agent answers from, and a
-      // shop's coupon codes (backend D133).
+      // What the shop sells: the products the agent answers from, and its
+      // coupon codes (backend D133).
       label: t('nav.business'),
       items: [
-        ...listLinks(preset).map((link) => ({ ...link, match: link.to })),
-        ...(preset === 'shop' && canManage ? [{ to: '/coupons', match: '/coupons', label: t('nav.coupons'), icon: PhTicket }] : []),
+        ...listLinks().map((link) => ({ ...link, match: link.to })),
+        ...(canManage ? [{ to: '/coupons', match: '/coupons', label: t('nav.coupons'), icon: PhTicket }] : []),
       ],
     },
     // A moderator (D97) has no setup.

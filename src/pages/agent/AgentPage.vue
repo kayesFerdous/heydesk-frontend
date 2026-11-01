@@ -117,22 +117,15 @@ const preview = computed(() => {
   };
 });
 
-const sections = computed(() => {
-  const list = [
+const sections = computed(() => [
     { to: '/agent/profile', label: t('agent.profile') },
     { to: '/agent/hours', label: t('agent.hours') },
     { to: '/agent/answers', label: t('agent.answers') },
-  ];
-  // A receptionist takes no orders or appointments, so nothing to pay for.
-  if (agent.kind === 'clinic') list.push({ to: '/agent/payments', label: t('agent.payments') });
-  if (['restaurant', 'shop'].includes(agent.kind)) {
-    list.push({ to: '/agent/payments', label: t('agent.deliveryAndPayments') });
-  }
-  list.push({ to: '/agent/bubble', label: t('agent.bubble') });
-  // A shop can phone its buyers to confirm their orders (backend D89).
-  if (agent.kind === 'shop') list.push({ to: '/agent/calls', label: t('agent.calls') });
-  return list;
-});
+    { to: '/agent/payments', label: t('agent.deliveryAndPayments') },
+    { to: '/agent/bubble', label: t('agent.bubble') },
+    // The shop can phone its buyers to confirm their orders (backend D89).
+    { to: '/agent/calls', label: t('agent.calls') },
+]);
 
 // How many of the backend's gaps are filled in on this section.
 function gapsIn(path) {

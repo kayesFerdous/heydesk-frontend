@@ -46,11 +46,11 @@
       <div class="rounded-[var(--radius-card)] bg-surface p-4 ring-1 ring-hairline">
         <div class="flex items-center gap-3">
           <span class="avatar" :class="{ 'is-set': isDone(0) }" aria-hidden="true">
-            <PhForkKnife v-if="isDone(0)" :size="18" weight="bold"></PhForkKnife>
+            <PhStorefront v-if="isDone(0)" :size="18" weight="bold"></PhStorefront>
           </span>
           <span class="min-w-0 flex-1">
             <span class="block truncate font-semibold">{{ isDone(0) ? t('landing.setupLive.business') : t('landing.setupLive.yourAgent') }}</span>
-            <span class="block text-xs text-ink-soft">{{ isDone(0) ? t('presets.label.restaurant') : t('landing.setupLive.notYet') }}</span>
+            <span class="block text-xs text-ink-soft">{{ isDone(0) ? t('presets.label.shop') : t('landing.setupLive.notYet') }}</span>
           </span>
           <span v-if="isDone(4)" :key="'live'" class="chip pop bg-success-tint text-success">
             <span class="live-dot" aria-hidden="true"></span>
@@ -78,9 +78,9 @@
             <!-- 1. The kind of business -->
             <template v-if="STEPS[current] === 'create'">
               <div class="grid grid-cols-2 gap-2">
-                <span v-for="kind in KINDS" :key="kind" class="kind" :class="{ 'is-picked': kind === 'restaurant' && beat >= 1 }">
-                  <component :is="presetIcon(kind)" :size="18" class="shrink-0"></component>
-                  <span class="min-w-0 leading-tight">{{ t(`presets.label.${kind}`) }}</span>
+                <span v-for="service in SERVICES" :key="service.id" class="kind" :class="{ 'is-picked': service.live && beat >= 1 }">
+                  <component :is="service.icon" :size="18" class="shrink-0"></component>
+                  <span class="min-w-0 leading-tight">{{ t(`presets.label.${service.id}`) }}</span>
                 </span>
               </div>
             </template>
@@ -99,17 +99,17 @@
             <!-- 3. The menu -->
             <template v-else-if="STEPS[current] === 'list'">
               <div class="flex items-center justify-between px-1">
-                <span class="text-sm font-semibold">{{ t('presets.items.restaurant') }}</span>
+                <span class="text-sm font-semibold">{{ t('presets.items.shop') }}</span>
                 <span class="flex items-center gap-1.5 text-xs font-semibold text-ink-soft">
                   <PhFileCsv :size="15"></PhFileCsv>
                   {{ t('landing.setupLive.import') }}
                 </span>
               </div>
               <ul class="overflow-hidden rounded-[var(--radius-thumb)] bg-surface ring-1 ring-hairline">
-                <template v-for="(dish, index) in DISHES" :key="dish.code">
+                <template v-for="(product, index) in PRODUCTS" :key="product.code">
                   <li v-if="beat > index" class="arrive flex items-center gap-3 border-b border-hairline px-4 py-3 text-sm last:border-b-0">
-                    <span class="min-w-0 flex-1 truncate font-semibold">{{ t(`landing.setupLive.dishes.${index}`) }}</span>
-                    <span class="tabular-nums">{{ formatMoney(dish.price) }}</span>
+                    <span class="min-w-0 flex-1 truncate font-semibold">{{ t(`landing.setupLive.products.${index}`) }}</span>
+                    <span class="tabular-nums">{{ formatMoney(product.price) }}</span>
                     <span class="switch" aria-hidden="true"><span></span></span>
                   </li>
                 </template>
@@ -170,7 +170,7 @@ import {
   PhCircleDashed,
   PhClock,
   PhFileCsv,
-  PhForkKnife,
+  PhStorefront,
   PhLink,
   PhListBullets,
   PhShareNetwork,
@@ -178,7 +178,7 @@ import {
 } from '@phosphor-icons/vue';
 
 import { channelOf } from '../../lib/channels.js';
-import { presetIcon } from '../../lib/presets.js';
+import { SERVICES } from '../../lib/presets.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import ExampleTag from './ExampleTag.vue';
 
@@ -187,18 +187,17 @@ import ExampleTag from './ExampleTag.vue';
 const STEPS = ['create', 'details', 'list', 'try', 'share'];
 // What the agent knows once each step is done, in the same order.
 const FACTS = [
-  { key: 'kind', icon: PhForkKnife },
+  { key: 'kind', icon: PhStorefront },
   { key: 'hours', icon: PhClock },
   { key: 'menu', icon: PhListBullets },
   { key: 'tried', icon: PhChatsCircle },
   { key: 'shared', icon: PhShareNetwork },
 ];
-const KINDS = ['restaurant', 'shop', 'receptionist', 'clinic'];
 const FIELDS = ['address', 'hours', 'phone'];
-const DISHES = [
-  { code: 'chicken-biryani', price: 45000 },
-  { code: 'beef-tehari', price: 26000 },
-  { code: 'borhani', price: 8000 },
+const PRODUCTS = [
+  { code: 'navy-polo', price: 125000 },
+  { code: 'cotton-panjabi', price: 189000 },
+  { code: 'linen-shirt', price: 145000 },
 ];
 const CONNECT = ['whatsapp', 'messenger', 'telegram'];
 // The pause before each beat of a step, in milliseconds; the last beat is

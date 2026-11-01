@@ -15,20 +15,16 @@ export function roleName(role) {
 const THINGS = {
   orders: 'order',
   shop: 'order', // /api/shop/orders
-  bookings: 'booking',
-  appointments: 'appointment',
   messages: 'message',
   conversations: 'conversation',
   calls: 'call',
-  menu: 'list',
   products: 'list',
-  doctors: 'list',
   agent: 'settings',
   team: 'team',
 };
 const VERBS = { POST: 'added', PUT: 'changed', PATCH: 'changed', DELETE: 'removed' };
 // The records the Inbox opens by id.
-const INBOX_JOBS = ['order', 'appointment', 'message'];
+const INBOX_JOBS = ['order', 'message'];
 
 export function describeActivity(event) {
   const [method, path = ''] = event.action.split(' ');

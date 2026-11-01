@@ -164,7 +164,7 @@ import LiveStatus from '../../components/ui/LiveStatus.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import { fetchBusiness, fetchAudit, setBusinessStatus } from '../../api/admin.js';
-import { chatLink, presetLabel } from '../../lib/presets.js';
+import { chatLink, serviceLabel } from '../../lib/presets.js';
 import { formatAgo, formatDay, formatDollars, formatNumber, formatSeconds, formatTime } from '../../lib/format.js';
 import FailedTurns from './FailedTurns.vue';
 import { useAuthStore } from '../../stores/auth.js';
@@ -202,7 +202,7 @@ const usage = computed(() => {
 });
 
 function deskLabel(kind) {
-  return presetLabel({ id: kind, label: kind });
+  return serviceLabel(kind);
 }
 
 async function load() {

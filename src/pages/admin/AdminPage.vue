@@ -175,7 +175,7 @@ import {
 } from '../../api/admin.js';
 import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { formatNumber, formatTime } from '../../lib/format.js';
-import { presetLabel } from '../../lib/presets.js';
+import { serviceLabel } from '../../lib/presets.js';
 import { useAuthStore } from '../../stores/auth.js';
 
 const TABS = ['overview', 'businesses', 'owners', 'activity'];
@@ -232,7 +232,7 @@ const shownUsers = computed(() => {
 });
 
 function deskLabel(kind) {
-  return kind ? presetLabel({ id: kind, label: kind }) : t('shell.noAgentYet');
+  return kind ? serviceLabel(kind) : t('shell.noAgentYet');
 }
 
 // The newest page of the activity log (again after an admin action adds to it).

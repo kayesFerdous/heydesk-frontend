@@ -370,7 +370,7 @@ const channelCount = computed(() => 1 + (telegram.value ? 1 : 0));
 const steps = computed(() =>
   setupSteps({
     missing: agent.missing,
-    itemsLabel: itemsLabel(agent.kind),
+    itemsLabel: itemsLabel(),
     triedIt: conversations.value.length > 0,
     shared: shared.value || !!telegram.value,
   }),
