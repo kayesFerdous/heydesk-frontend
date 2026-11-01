@@ -6,7 +6,7 @@ import { request, getAuthToken } from './client.js';
 // shop's products are the "items". The shop is the only desk now (backend D164).
 
 // Fields every agent has; anything else in a desk's schema is its own.
-const SHARED = ['name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff', 'widget'];
+const SHARED = ['ai_off', 'name', 'business_name', 'timezone', 'country', 'currency', 'greeting', 'notes', 'faq', 'handoff', 'widget'];
 // What each kind of agent does. The words are `jobs.<kind>.<job>` in the language files.
 const JOBS = {
   shop: ['order', 'message'],
