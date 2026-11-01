@@ -96,29 +96,15 @@
 
       <!-- Who gets a chat when a customer asks for a person (backend I1). Saved at once. -->
       <SettingsGroup v-if="agent.config" :title="t('team.handoffs.title')" :tip="t('team.handoffs.tip')">
-        <fieldset class="flex max-w-xl flex-col gap-2" :disabled="savingHandoffs">
-          <legend class="sr-only">{{ t('team.handoffs.title') }}</legend>
-          <label
-            v-for="choice in HANDOFF_CHOICES"
-            :key="choice.id"
-            class="panel flex cursor-pointer items-start gap-3 p-4 transition-colors"
-            :class="{ 'border-ink': autoAssign === choice.on }"
-          >
-            <input
-              type="radio"
-              name="handoffs"
-              class="mt-0.5 h-4 w-4 accent-[var(--color-ink)]"
-              :checked="autoAssign === choice.on"
-              @change="saveHandoffs(choice.on)"
-            />
-            <span>
-              <span class="block text-sm font-semibold">{{ t(`team.handoffs.${choice.id}`) }}</span>
-              <span class="block text-sm text-ink-soft">{{ t(`team.handoffs.${choice.id}Text`) }}</span>
-            </span>
-          </label>
-          <p v-if="handoffsError" class="text-sm text-danger" role="alert">{{ handoffsError }}</p>
-          <p v-else-if="handoffsSaved" class="text-sm text-success" role="status">{{ t('team.handoffs.saved') }}</p>
-        </fieldset>
+        <div class="flex max-w-xl items-center justify-between gap-4">
+          <div class="min-w-0">
+            <label class="text-sm font-medium" for="auto-assign">{{ t('team.handoffs.spread') }}</label>
+            <p class="hint !mt-0.5">{{ t('team.handoffs.spreadText') }}</p>
+          </div>
+          <ToggleSwitch id="auto-assign" :model-value="autoAssign" :label="t('team.handoffs.spread')" :disabled="savingHandoffs" @update:model-value="saveHandoffs"></ToggleSwitch>
+        </div>
+        <p v-if="handoffsError" class="text-sm text-danger" role="alert">{{ handoffsError }}</p>
+        <p v-else-if="handoffsSaved" class="text-sm text-success" role="status">{{ t('team.handoffs.saved') }}</p>
       </SettingsGroup>
 
       <SettingsGroup :title="t('team.activityTitle')" :tip="t('team.activityTip')">
@@ -153,6 +139,7 @@ import { PhChatsCircle, PhCheckCircle, PhEnvelopeSimple, PhUserPlus, PhWarningCi
 
 import PageHeader from '../../components/ui/PageHeader.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';
+import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import LoadError from '../../components/ui/LoadError.vue';
 import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
@@ -205,11 +192,7 @@ async function load() {
   }
 }
 
-// New hand-offs wait for someone to take them, or go to the least busy moderator.
-const HANDOFF_CHOICES = [
-  { id: 'wait', on: false },
-  { id: 'spread', on: true },
-];
+// New hand-offs wait for someone to take them, or go to the least busy moderator (the switch).
 const autoAssign = computed(() => Boolean(agent.config?.handoff.auto_assign));
 
 async function saveHandoffs(on) {

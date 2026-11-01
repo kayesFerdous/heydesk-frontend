@@ -626,6 +626,27 @@ export default {
     needsALook: 'Some details need a look:',
     leaveUnsaved: 'You have unsaved changes. Leave without saving them?',
     calls: 'Calls',
+    forBusiness: '{kind} agent for {business}',
+    ready: 'Ready. Your agent has everything it needs to answer.',
+    openConversations: 'Open Conversations',
+    status: {
+      answering: 'Answering',
+      aiOff: 'AI off',
+    },
+    sectionText: {
+      profile: 'Its name, greeting and your business details.',
+      hours: 'When it answers and who takes over.',
+      answers: 'How it sounds and what customers often ask.',
+      payments: 'Delivery areas, charges and online payments.',
+      bubble: 'How the chat looks on your website.',
+      calls: 'Phone buyers to confirm their orders.',
+    },
+    aiOn: {
+      short: 'AI answers',
+      title: 'AI answers customers',
+      on: 'Your agent answers every customer on every channel.',
+      off: 'The AI is off. Every message waits for your team in Conversations.',
+    },
   },
 
   calls: {
@@ -707,6 +728,22 @@ export default {
         label: 'Days to exchange',
         help: 'How many days after delivery a customer can swap a size or colour. 0 means your agent takes no exchanges.',
       },
+      call_to_confirm: {
+        label: 'Call to confirm cash orders',
+        on: 'A cash on delivery order waits as New until you call the buyer to confirm it.',
+        off: 'A cash on delivery order is confirmed as soon as the buyer places it.',
+      },
+      saved_replies: {
+        label: 'Saved replies',
+        help: 'Ready answers your team picks from the reply box in Conversations. Your agent never sends them on its own.',
+        empty: 'No saved replies yet. Add the answers your team types most often.',
+      },
+    },
+    list: {
+      add: 'Add a reply',
+      remove: 'Remove reply {n}',
+      item: '{label} {n}',
+      count: '{n} of {max}',
     },
   },
 
@@ -1235,8 +1272,6 @@ export default {
     handoffs: {
       title: 'New hand-offs',
       tip: 'When a customer asks for a person, who gets the chat.',
-      wait: 'Keep them under Unassigned',
-      waitText: 'Someone on the team takes each one from Conversations.',
       spread: 'Give each to the least busy moderator',
       spreadText: 'The moderator with the fewest open chats gets it.',
       saved: 'Saved',

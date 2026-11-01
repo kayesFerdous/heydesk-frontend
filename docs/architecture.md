@@ -53,9 +53,10 @@ order's call line in the Inbox).
 | You want to add | Where it goes | Copy this |
 |---|---|---|
 | A new screen in the sidebar | `pages/<area>/<Thing>Page.vue`, a route in `router.js`, an item in `lib/navigation.js` | `pages/channels/ChannelsPage.vue` |
-| A new tab inside Agent settings | `pages/agent/<Thing>Section.vue`, a child route under `/agent`, an entry in `AgentPage.vue` `sections` | `pages/agent/AnswersSection.vue` |
+| A new tab inside Agent settings | `pages/agent/<Thing>Section.vue`, a child route under `/agent`, an entry in `AgentPage.vue` `sections` (path, Phosphor icon, label, a one-line `agent.sectionText.<name>`) | `pages/agent/AnswersSection.vue` |
 | A new list with a detail pane | page in `pages/<area>/`, row, detail and side panel in `components/<area>/`. Three islands: the list, the detail, and who it is with the next step (a wrapper with `xl:contents` stacks the last two under 1280px) | `pages/inbox/InboxPage.vue` + `components/records/` (`RecordRow`, `RecordDetail`, `RecordNextStep`) |
 | Something the team does to an opened chat | who has it is `AssignControl.vue` (one button, its list in a `usePopover` menu); anything else is a `menu-item` in `ConversationActions.vue`'s ⋯ menu, with a chip beside it while it is on. Only Done gets a button of its own | the AI off item in `components/conversations/ConversationActions.vue` |
+| A true/false setting | A `ToggleSwitch` (`components/ui/`), never a checkbox or radio. One that stands alone saves at once (the AI switch in the agent island of `AgentPage.vue`, the hand-off switch in `TeamPage.vue`); one in a form goes through `useAgentSection` | `CallsSection.vue` |
 | A new backend call | a function in `api/<resource>.js` using `request()` | `api/telegram.js` |
 | A new kind of record (e.g. reservations) | `api/records.js` `JOBS` and `JOB_LIST`, `lib/flows.js` `FLOWS`, `lib/records.js` `summarize`, `StatusChip.vue` `LOOKS` for new statuses, and in both language files `status.*`, `flows.*`, `records.name`, `records.tabs`, `jobs.<kind>` | the `message` entries |
 | A new kind of card in the chat (backend D110) | a `v-else-if="card.kind === '…'"` block in `components/chat/ChatCard.vue`, its few fixed words under `chat.card.*`; the backend writes everything else on it, so show its `text` and `value` as sent | the `tracking` block |
@@ -70,7 +71,7 @@ order's call line in the Inbox).
 | A new colour, radius or shadow | `@theme` in `main.css`, and a line in `DESIGN.md`. Never a hex value inside a component. | `--color-attention` |
 | A formatting rule (dates, money, plurals) | `lib/format.js` | `formatAgo` |
 | Any console page | a `<section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">` with `PageHeader` and the content in `.island`s on the grey canvas (`.page` stretches the last island to the bottom of the screen; a list page instead adds `flex flex-col lg:h-full` so its island scrolls inside the screen) | `pages/team/TeamPage.vue` (form), `pages/menu/MenuPage.vue` (list) |
-| A settings section the preview should follow before Save | pass `previewFrom(form)` to `useAgentSection`; `AgentPage` shows it | `pages/agent/BubbleSection.vue` |
+| A settings section the preview should follow before Save | pass `previewFrom(form)` to `useAgentSection` and add the path to `showPreview` in `AgentPage` | `pages/agent/BubbleSection.vue` |
 | A public page (no sign-in, no shell) | `pages/<area>/`, route meta `{ bare: true }` and no `requiresAuth` | `pages/chat/ChatPage.vue` |
 | Something a business's own website loads | `public/` (plain JS, copied as it is), talking to a bare page by `postMessage`; try it on `dev/widget-test/` (`python -m http.server 5500` there) | `public/widget.js` opens `pages/chat/EmbedPage.vue` |
 | A personal setting (notifications, password) | a `SettingsGroup` on `pages/account/AccountPage.vue`. Business-wide settings (team, billing) get their own page, not this one | the Language group |
@@ -158,7 +159,9 @@ screen.
 3. End the form with `<SaveBar :dirty="isDirty" :saving="isSaving" :note="savedNote" @discard="resetForm">`
    and put `<FormProblems :message="saveError" :problems="problems">` at the top.
 4. Add a child route under `/agent` in `router.js` and an entry in the
-   `sections` list in `pages/agent/AgentPage.vue`.
+   `sections` list in `pages/agent/AgentPage.vue` (an icon and a one-line
+   `agent.sectionText.<name>` in both language files: the track under the
+   title shows the icon, the top of the open section the line).
 
 The composable already handles filling the form from the config, the
 unsaved-changes check, the "leave without saving?" question and the saved note.

@@ -267,19 +267,29 @@ charge and days, the districts as chips under them (their label for screen
 readers only), and the "paid online first" switch only once a payment account
 is connected, with one line saying so until then.
 
-**The chat preview shows only on the bubble section** of Agent settings; the
-other sections use the full width.
+**The chat preview shows on the profile and bubble sections** of Agent
+settings (the name, greeting and look); the other sections use the full width.
 
 ## Settings and Menu
 
 `PageHeader` on the canvas, tabs on a white track under it.
 
-- **Agent settings**: the form in one island (`SettingsGroup`s ruled apart,
-  the floating `SaveBar`), and from 1280px a sticky **Preview** island beside
-  it: the website chat (`BubblePreview`) drawn from the open section's unsaved
-  edits. A section shares them with `previewFrom` in `useAgentSection`;
-  `AgentPage` merges them over the saved config. Narrower screens keep the
-  preview inside the Chat bubble section only.
+- **Agent settings**: under the title, the sections on one white track
+  (an icon and the name, the open one lime with a filled icon, gap counts in
+  orange), sticky while a long form scrolls; the tabs share the width from
+  1024px and scroll sideways on a phone with the open one centred. Then the
+  agent's own island: its logo or initials on a black tile, its name with
+  "Answering" (or "AI off", "Paused by HeyDesk"), its kind and business; on
+  the right the "AI answers" switch as a pill (saved at once, orange-tinted
+  while off, with a line pointing to Conversations) and "Copy chat link".
+  Under them, on a grey band, what is still missing as pill links to where
+  each is fixed, or one green "Ready" line. Then the form island, which opens
+  with the section's name and one line on what it holds; the form is
+  `SettingsGroup`s ruled apart with the floating `SaveBar`, and a section
+  settles in with a short fade. From 1280px a sticky **Preview** island
+  (`BubblePreview`) sits beside the profile and bubble sections, drawn from
+  their unsaved edits (`previewFrom` in `useAgentSection`, merged over the
+  saved config in `AgentPage`); narrower, the bubble section keeps it inline.
 - **Menu** (Doctors, Products): one island. On top a grey search pill and the
   categories as pills with counts ("All 42", "Biryani 6"), then any import
   panel or linked-sheet bar, then the list as ruled rows (photo, name, tags,
