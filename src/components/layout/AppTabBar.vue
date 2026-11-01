@@ -35,14 +35,12 @@ import { PhList } from '@phosphor-icons/vue';
 import { navGroups, isActive } from '../../lib/navigation.js';
 import { formatNumber } from '../../lib/format.js';
 import { useAuthStore } from '../../stores/auth.js';
-import { useAgentStore } from '../../stores/agent.js';
 import { useInboxStore } from '../../stores/inbox.js';
 import { useUiStore } from '../../stores/ui.js';
 
 const route = useRoute();
 const { t } = useI18n();
 const auth = useAuthStore();
-const agent = useAgentStore();
 const inbox = useInboxStore();
 const ui = useUiStore();
 
@@ -51,7 +49,6 @@ const items = computed(() => {
   const groups = navGroups({
     isAdmin: !auth.seesBusiness,
     canManage: auth.canManage,
-    preset: agent.kind,
     waitingTotal: inbox.waitingTotal,
     needsHuman: inbox.needsHuman,
   });

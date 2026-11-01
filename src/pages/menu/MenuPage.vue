@@ -3,7 +3,7 @@
        bring a list in, and the list itself. -->
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
-      <template v-if="loaded && !locked && auth.canManage" #actions>
+      <template v-if="loaded && auth.canManage" #actions>
         <!-- The ways to bring a whole list in, behind one button. -->
         <div ref="importRoot" class="relative">
           <button type="button" class="btn btn-secondary" aria-haspopup="menu" :aria-expanded="importMenu" @click="importMenu = !importMenu">
@@ -20,7 +20,7 @@
               <PhTable :size="18" class="text-ink-soft"></PhTable>
               {{ t('menu.sheet.fromSheet') }}
             </button>
-            <button v-if="agent.kind === 'shop' && !linked" type="button" class="menu-item" role="menuitem" @click="openPanel('woo')">
+            <button v-if="!linked" type="button" class="menu-item" role="menuitem" @click="openPanel('woo')">
               <PhStorefront :size="18" class="text-ink-soft"></PhStorefront>
               {{ t('menu.woo.fromWoo') }}
             </button>
@@ -63,7 +63,7 @@
       </div>
     </div>
 
-    <SheetBar v-if="sheet" :sheet="sheet" :kind="agent.kind" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
+    <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
     <WooBar v-if="woo" :woo="woo" @synced="onSynced('woo', $event)" @unlinked="woo = null"></WooBar>
 
     <p v-if="merged" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-success sm:px-8" role="status">
@@ -90,8 +90,6 @@
       <ImportPanel
         v-else-if="importOpen"
         :key="importOpen"
-        :kind="agent.kind"
-        :current-count="items.length"
         :sheet="importOpen === 'sheet'"
         @close="importOpen = null"
         @imported="onImported"
@@ -99,11 +97,10 @@
 
       <div
         v-if="items.length || adding"
-        class="ledger-head sticky top-0 z-[1] gap-x-4 bg-surface px-5 pt-2 sm:px-8"
-        :class="agent.kind === 'shop' ? 'grid-cols-[minmax(0,1fr)_7rem_7.5rem_7rem]' : 'grid-cols-[minmax(0,1fr)_7rem_7.5rem_2.5rem]'"
+        class="ledger-head sticky top-0 z-[1] gap-x-4 bg-surface px-5 pt-2 sm:px-8 grid-cols-[minmax(0,1fr)_7rem_7.5rem_7rem]"
       >
         <span>{{ capitalize(noun) }}</span>
-        <span class="text-right">{{ agent.kind === 'clinic' ? t('menu.fee') : t('menu.price') }}</span>
+        <span class="text-right">{{ t('menu.price') }}</span>
         <span>{{ t('menu.available') }}</span>
         <span></span>
       </div>
@@ -113,9 +110,7 @@
         :key="item.code"
         :item="item"
         :editing="editingCode === item.code"
-        :kind="agent.kind"
         :public-key="agent.publicKey"
-        :locked="locked"
         @toggle="toggle(item)"
         @edit="startEdit(item.code)"
       ></ItemRow>
@@ -125,12 +120,12 @@
       <EmptyState
         v-if="!items.length && !adding"
         :icon="PhListBullets"
-        :title="t('menu.emptyTitle', { nouns: itemNoun(agent.kind, 2) })"
+        :title="t('menu.emptyTitle', { nouns: itemNoun(2) })"
         :text="t('menu.emptyText', { noun })"
       ></EmptyState>
 
       <p v-else-if="!filtered.length && !adding" class="px-5 py-10 text-sm text-ink-soft sm:px-8">
-        {{ t('menu.noMatches', { nouns: itemNoun(agent.kind, 2) }) }}
+        {{ t('menu.noMatches', { nouns: itemNoun(2) }) }}
       </p>
     </div>
     </div>
@@ -141,8 +136,6 @@
       :item="editing"
       :is-new="shownKey === NEW"
       :categories="allCategories"
-      :kind="agent.kind"
-      :locked="locked"
       :saving="saving"
       :failed="saveError"
       :leaving="editor.leaving.value"
@@ -204,14 +197,13 @@ const sheet = ref(null); // the linked Google Sheet, { url, synced_at, problem }
 const woo = ref(null); // a shop's linked WooCommerce store, { url, products, synced_at, problem }, or null
 const limit = ref(PAGE_SIZE);
 
-// The list comes from a sheet or a store. It's changed there, so the rows are locked,
-// except a shop's: its sheet or store only adds and updates its own products (backend D120).
+// The list may come from a sheet or a store. They only add and update products,
+// so the rows stay editable (backend D120).
 const linked = computed(() => !!sheet.value || !!woo.value);
-const locked = computed(() => linked.value && agent.kind !== 'shop');
 // "3 added, 5 updated": what a shop's last import did.
 const merged = ref(null);
-const label = computed(() => itemsLabel(agent.kind));
-const noun = computed(() => itemNoun(agent.kind));
+const label = computed(() => itemsLabel());
+const noun = computed(() => itemNoun());
 const allCategories = computed(() => [...new Set(items.value.map((item) => item.category))]);
 const filtered = computed(() => {
   const q = query.value.toLowerCase();
@@ -221,7 +213,6 @@ const filtered = computed(() => {
       (!q ||
         item.name.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(q)) ||
         (item.colours || []).some((colour) => colour.toLowerCase().includes(q))),
   );
 });
@@ -292,7 +283,7 @@ async function load() {
     [items.value, sheet.value, woo.value] = await Promise.all([
       fetchItems(),
       fetchSheet(),
-      agent.kind === 'shop' ? fetchWoo() : null,
+      fetchWoo(),
     ]);
     loaded.value = true;
   } catch (error) {

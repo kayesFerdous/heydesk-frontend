@@ -14,7 +14,7 @@
         @submit.prevent="submit"
       >
         <header class="flex items-center gap-3 border-b border-hairline px-5 py-4 sm:px-6">
-          <img v-if="shop && photos[0]" :src="photos[0]" alt="" class="size-10 rounded-[var(--radius-thumb)] object-cover ring-1 ring-hairline" />
+          <img v-if="photos[0]" :src="photos[0]" alt="" class="size-10 rounded-[var(--radius-thumb)] object-cover ring-1 ring-hairline" />
           <div class="min-w-0 flex-1">
             <h2 class="truncate text-base font-semibold">{{ title }}</h2>
             <p v-if="!isNew" class="truncate text-sm text-ink-soft">{{ item.name }}</p>
@@ -25,10 +25,9 @@
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto">
-          <p v-if="locked" class="hint mx-5 mt-4 sm:mx-6">{{ t('menu.sheet.onlyPhotos') }}</p>
 
           <!-- Photos (D57): uploaded at once, kept when the product is saved. The first is the one the agent shows. -->
-          <section v-if="shop" class="section">
+          <section class="section">
             <h3 class="mb-3 text-sm font-semibold">{{ t('menu.row.photos') }}</h3>
             <div class="flex flex-wrap gap-3">
               <div v-for="(url, index) in photos" :key="url" class="relative">
@@ -59,8 +58,6 @@
             <p v-if="errors.photos" class="error-text">{{ errors.photos }}</p>
           </section>
 
-          <!-- While a Google Sheet is the list, only photos change here (D58). -->
-          <fieldset :disabled="locked" class="contents">
             <section class="section">
               <h3 class="mb-3 text-sm font-semibold">{{ t('menu.editor.details') }}</h3>
               <div class="grid gap-4 sm:grid-cols-2">
@@ -73,29 +70,17 @@
                   <label class="label" :for="`d-${uid}`">{{ t('menu.row.description') }}</label>
                   <textarea :id="`d-${uid}`" v-model="description" rows="3" class="field resize-y"></textarea>
                 </div>
-                <div :class="{ 'sm:col-span-2': shop }">
-                  <label class="label" :for="`c-${uid}`">{{ kind === 'clinic' ? t('menu.row.speciality') : t('menu.row.category') }}</label>
+                <div class="sm:col-span-2">
+                  <label class="label" :for="`c-${uid}`">{{ t('menu.row.category') }}</label>
                   <input :id="`c-${uid}`" v-model.trim="category" class="field" :class="{ 'field-invalid': errors.category }" type="text" :list="`cats-${uid}`" />
                   <datalist :id="`cats-${uid}`">
                     <option v-for="c in categories" :key="c" :value="c"></option>
                   </datalist>
                   <p v-if="errors.category" class="error-text">{{ errors.category }}</p>
                 </div>
-                <template v-if="!shop">
-                  <div>
-                    <label class="label" :for="`p-${uid}`">{{ kind === 'clinic' ? t('menu.fee') : t('menu.price') }} (৳)</label>
-                    <input :id="`p-${uid}`" v-model.trim="priceText" class="field" :class="{ 'field-invalid': errors.price }" type="text" inputmode="decimal" placeholder="450" />
-                    <p v-if="errors.price" class="error-text">{{ errors.price }}</p>
-                  </div>
-                  <div class="sm:col-span-2">
-                    <FieldLabel :html-for="`t-${uid}`" :tip="t('menu.row.tagsHint')">{{ t('menu.row.tags') }}</FieldLabel>
-                    <input :id="`t-${uid}`" v-model="tagsText" class="field" type="text" placeholder="popular, spicy, vegetarian" />
-                  </div>
-                </template>
               </div>
             </section>
 
-            <template v-if="shop">
               <section class="section">
                 <h3 class="mb-3 text-sm font-semibold">{{ t('menu.price') }}</h3>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -177,8 +162,6 @@
                   </div>
                 </div>
               </section>
-            </template>
-          </fieldset>
         </div>
 
         <p v-if="failed" class="border-t border-hairline px-5 py-2.5 text-sm text-danger sm:px-6" role="alert">{{ failed }}</p>
@@ -196,7 +179,7 @@
           <template v-else>
             <button type="submit" class="btn btn-primary" :disabled="saving || uploading">{{ t('common.save') }}</button>
             <button type="button" class="btn btn-quiet" @click="close">{{ t('common.cancel') }}</button>
-            <button v-if="!isNew && !locked" type="button" class="btn btn-quiet ml-auto !text-danger" @click="confirming = true">
+            <button v-if="!isNew" type="button" class="btn btn-quiet ml-auto !text-danger" @click="confirming = true">
               <PhTrash :size="16"></PhTrash>
               {{ t('menu.row.delete', { noun }) }}
             </button>
@@ -234,10 +217,6 @@ const props = defineProps({
   item: { type: Object, required: true },
   isNew: { type: Boolean, default: false },
   categories: { type: Array, default: () => [] },
-  // The preset: "restaurant", "clinic" or "shop".
-  kind: { type: String, default: null },
-  // A Google Sheet is the list: only a shop's photos change here (backend D58).
-  locked: { type: Boolean, default: false },
   saving: { type: Boolean, default: false },
   // Why the last save didn't go through, from the server.
   failed: { type: String, default: null },
@@ -250,14 +229,12 @@ const { t } = useI18n();
 const uid = useId();
 const nameInput = ref(null);
 const item = props.item;
-const shop = props.kind === 'shop';
-const noun = itemNoun(props.kind);
+const noun = itemNoun();
 
 const name = ref(item.name);
 const description = ref(item.description);
 const category = ref(item.category);
 const priceText = ref(item.price ? String(item.price / 100) : '');
-const tagsText = ref(item.tags.join(', '));
 const sizesText = ref((item.sizes || []).join(', '));
 const coloursText = ref((item.colours || []).join(', '));
 const stockText = ref(item.stock === null || item.stock === undefined ? '' : String(item.stock));
@@ -275,7 +252,7 @@ const discarding = ref(false);
 
 // Everything the form holds, to tell whether anything changed since it opened.
 const snapshot = () =>
-  JSON.stringify([name.value, description.value, category.value, priceText.value, tagsText.value, sizesText.value, coloursText.value, stockText.value, wasText.value, counts.value, videosText.value, goesWithText.value, photos.value]);
+  JSON.stringify([name.value, description.value, category.value, priceText.value, sizesText.value, coloursText.value, stockText.value, wasText.value, counts.value, videosText.value, goesWithText.value, photos.value]);
 const opened = snapshot();
 const changed = computed(() => snapshot() !== opened);
 
@@ -288,7 +265,7 @@ const colourChoices = computed(() => list(coloursText.value));
 const off = computed(() => {
   const price = Number(priceText.value);
   const was = Number(wasText.value);
-  return shop && priceText.value && wasText.value && was > price && price >= 0 ? Math.round(((was - price) * 100) / was) : 0;
+  return priceText.value && wasText.value && was > price && price >= 0 ? Math.round(((was - price) * 100) / was) : 0;
 });
 
 function close() {
@@ -330,8 +307,8 @@ function submit() {
   const price = Number(priceText.value);
   const stock = stockText.value === '' ? null : Number(stockText.value);
   const was = wasText.value === '' ? null : Number(wasText.value);
-  if (shop && was !== null && !(was > price)) found.was_price = t('menu.row.wasPriceError');
-  if (shop && stock !== null && !wholeCount(stockText.value)) found.stock = t('menu.row.stockError');
+  if (was !== null && !(was > price)) found.was_price = t('menu.row.wasPriceError');
+  if (stock !== null && !wholeCount(stockText.value)) found.stock = t('menu.row.stockError');
   if (counts.value.some((c) => c.stock === '' || !wholeCount(c.stock))) found.variants = t('menu.row.stockBySizeError');
   const videos = list(videosText.value);
   const goesWith = list(goesWithText.value);
@@ -344,20 +321,18 @@ function submit() {
   if (Object.keys(found).length) return;
 
   const variants = counts.value.map((c) => ({ size: c.size, colour: c.colour, stock: Number(c.stock) }));
-  const product = shop
-    ? {
-        sizes: sizeChoices.value,
-        colours: colourChoices.value,
-        // With counts per size and colour, they hold the stock (D56).
-        stock: variants.length ? null : stock,
-        variants,
-        available: variants.length ? true : stock !== 0,
-        was_price: was === null ? null : Math.round(was * 100),
-        photos: photos.value,
-        videos,
-        goes_with: goesWith,
-      }
-    : {};
+  const product = {
+    sizes: sizeChoices.value,
+    colours: colourChoices.value,
+    // With counts per size and colour, they hold the stock (D56).
+    stock: variants.length ? null : stock,
+    variants,
+    available: variants.length ? true : stock !== 0,
+    was_price: was === null ? null : Math.round(was * 100),
+    photos: photos.value,
+    videos,
+    goes_with: goesWith,
+  };
   emit('save', {
     ...item,
     ...product,
@@ -365,7 +340,6 @@ function submit() {
     description: description.value,
     category: category.value,
     price: Math.round(price * 100),
-    tags: list(tagsText.value),
   });
 }
 </script>

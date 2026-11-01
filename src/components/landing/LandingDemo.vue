@@ -4,29 +4,6 @@
        then does it arrive in the owner's inbox. Example data, labelled so. -->
   <div ref="root" class="relative">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <!-- Four examples are wider than a phone: the track scrolls sideways there. -->
-      <div class="segmented tabs-scroll max-w-full overflow-x-auto" role="group" :aria-label="t('demo.exampleBusiness')">
-        <button
-          v-for="(item, id) in SCENES"
-          :key="id"
-          type="button"
-          class="segment shrink-0"
-          :class="{ 'segment-active': id === sceneId }"
-          :aria-pressed="id === sceneId ? 'true' : 'false'"
-          @click="choose(id)"
-        >
-          <component :is="item.icon" :size="15" weight="bold"></component>
-          {{ t(`demo.${id}.kind`) }}
-          <!-- While the demo plays on its own, a line shows when it moves on. -->
-          <span
-            v-if="autoplay && id === sceneId"
-            :key="`p${run}`"
-            class="progress"
-            :style="{ animationDuration: `${sceneLength}ms` }"
-            aria-hidden="true"
-          ></span>
-        </button>
-      </div>
       <p class="flex items-center gap-2 text-[0.8125rem]">
         <ExampleTag></ExampleTag>
         <button type="button" class="link" @click="replay">{{ t('demo.playAgain') }}</button>
@@ -145,13 +122,9 @@
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-  PhBuildings,
   PhCalculator,
-  PhForkKnife,
   PhGlobe,
   PhSealCheck,
-  PhStethoscope,
-  PhStorefront,
   PhTShirt,
   PhTray,
 } from '@phosphor-icons/vue';
@@ -160,45 +133,17 @@ import InboxRow from './InboxRow.vue';
 import ExampleTag from './ExampleTag.vue';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 
-// Four example businesses, one per preset. Names and numbers are made up; the
+// One example shop. Names and numbers are made up; the
 // words are `demo.<scene>.*` in the language files (a row's summary and time
 // are `rows.<n>` and `times.<n>`, the new one is row 0).
 const SCENES = {
-  restaurant: {
-    icon: PhForkKnife,
-    initials: 'DK',
-    rows: [
-      { initials: 'TA', name: 'Tanvir Ahmed', code: 'A-104', amount: 90000, status: 'new' },
-      { initials: 'FI', name: 'Farhana Islam', code: 'A-103', amount: 32000, status: 'ready' },
-      { initials: 'IH', name: 'Imran Hossain', code: 'A-102', amount: 155000, status: 'collected' },
-    ],
-  },
-  clinic: {
-    icon: PhStethoscope,
-    initials: 'LC',
-    rows: [
-      { initials: 'NJ', name: 'Nusrat Jahan', code: 'A-101', status: 'new' },
-      { initials: 'RK', name: 'Rahim Khan', code: 'A-100', status: 'handled' },
-      { initials: 'SB', name: 'Sadia Begum', code: 'A-099', status: 'handled' },
-    ],
-  },
   shop: {
-    icon: PhStorefront,
     initials: 'BT',
     photo: true,
     rows: [
       { initials: 'SR', name: 'Sabbir Rahman', code: 'O-215', amount: 131000, status: 'new' },
       { initials: 'MA', name: 'Mitu Akter', code: 'O-214', amount: 249000, status: 'shipped' },
       { initials: 'RK', name: 'Rahim Khan', code: 'O-213', amount: 98000, status: 'delivered' },
-    ],
-  },
-  office: {
-    icon: PhBuildings,
-    initials: 'NR',
-    rows: [
-      { initials: 'RH', name: 'Rafiq Hasan', status: 'new' },
-      { initials: 'MA', name: 'Mitu Akter', status: 'handled' },
-      { initials: 'JU', name: 'Jamal Uddin', status: 'handled' },
     ],
   },
 };
@@ -208,7 +153,6 @@ const SCENES = {
 // the confirmed stamp, before the order leaves for the inbox, its flight, and
 // how long the finished story stays up before the next one.
 const BEAT = { ask: 500, think: 900, typing: 1100, word: 55, yes: 1100, seal: 600, leave: 700, fly: 900, hold: 4200 };
-const ORDER = Object.keys(SCENES);
 
 const { t } = useI18n();
 
@@ -218,11 +162,11 @@ const slotEl = ref(null);
 const ticketEl = ref(null);
 // True while the confirmed order flies to the inbox.
 const ticket = ref(false);
-const sceneId = ref('restaurant');
+const sceneId = ref('shop');
 const step = ref(0);
 const words = ref(0);
 const run = ref(0);
-// Cycles through the examples until the visitor picks one.
+// Plays the story again and again until the visitor replays it.
 const autoplay = ref(true);
 
 const scene = computed(() => {
@@ -250,12 +194,6 @@ const scene = computed(() => {
 const readBackWords = computed(() => scene.value.readBack.split(' '));
 const streamed = computed(() => readBackWords.value.slice(0, words.value).join(' '));
 const streaming = computed(() => step.value === 3 && words.value < readBackWords.value.length);
-// One scene from start to the move to the next, for the progress line.
-const sceneLength = computed(() => {
-  const b = BEAT;
-  return b.ask + b.think + b.typing + b.word * readBackWords.value.length + b.yes + b.seal + b.leave + b.fly + b.hold;
-});
-
 let timers = [];
 let flight = null;
 let observer = null;
@@ -351,13 +289,6 @@ async function play() {
   if (!autoplay.value) return;
   await wait(BEAT.hold);
   if (stale()) return;
-  sceneId.value = ORDER[(ORDER.indexOf(sceneId.value) + 1) % ORDER.length];
-  play();
-}
-
-function choose(id) {
-  autoplay.value = false;
-  sceneId.value = id;
   play();
 }
 
@@ -386,30 +317,6 @@ onBeforeUnmount(() => {
 .count-new {
   background-color: var(--color-brand);
   color: #fff;
-}
-
-.segment {
-  position: relative;
-}
-
-.tabs-scroll {
-  scrollbar-width: none;
-}
-
-.progress {
-  position: absolute;
-  inset: auto 0.5rem 0.125rem;
-  height: 2px;
-  border-radius: 9999px;
-  background-color: var(--color-brand);
-  transform-origin: left;
-  animation: progress linear both;
-}
-
-@keyframes progress {
-  from {
-    transform: scaleX(0);
-  }
 }
 
 .caret {

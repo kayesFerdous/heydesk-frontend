@@ -7,7 +7,7 @@ Last synced 4 Oct 2026 (after agent jobs + document ingest); paging added 9 Oct 
 
 ## Conventions
 
-- **Paging (D46).** Lists that grow (`/orders`, `/appointments`, `/shop/orders`,
+- **Paging (D46).** Lists that grow (`/shop/orders`,
   `/messages`, `/conversations`, `/admin/audit`) take `?limit=` (1 to 100,
   default 100) and `?before=<time>`: the last row's `created_at` (`updated_at`
   for conversations, `at` for the audit log). Newest first, a plain list; fewer
@@ -49,7 +49,7 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 
 ### Team (`team.js`, owner only, D97)
 
-A moderator runs the inbox (conversations, messages, orders, bookings, appointments, calls, the
+A moderator runs the inbox (conversations, messages, orders, calls, the
 lists) and can read the settings, but gets 403 `forbidden` on any change under `/api/agent`, on
 `/api/agent/telegram` and on `/api/team`. A removed moderator's next request is a 401.
 
@@ -59,7 +59,7 @@ lists) and can read the settings, but gets 403 `forbidden` on any change under `
 | `POST /team/members` `{email}` | 201 with the member (`invited`); an email with a code goes to them. 409 `conflict` if the email has an account or the team has 10 moderators; 429 counts with the code emails |
 | `POST /team/members/{id}/invite` | Sends the invite again with a new code. 204; 409 once they've joined |
 | `DELETE /team/members/{id}` | Removes a moderator (invited or joined). 204; 404 for an owner |
-| `GET /team/activity?limit=&before=` | `[{actor_email, action, target, at}]`, newest first: each owner's and moderator's write that succeeded. `action` is `"PATCH /api/orders/{order_id}"`, `target` the ids (`order_id=…`) |
+| `GET /team/activity?limit=&before=` | `[{actor_email, action, target, at}]`, newest first: each owner's and moderator's write that succeeded. `action` is `"PATCH /api/shop/orders/{order_id}"`, `target` the ids (`order_id=…`) |
 
 ### Agent (`agent.js`)
 | Call | What it does |
@@ -70,8 +70,8 @@ lists) and can read the settings, but gets 403 `forbidden` on any change under `
 | `PATCH /agent` `{...config fields}` | Top-level fields replace: send the whole `knowledge`, the whole `handoff`. Live on next message. 422 `invalid_config` |
 | `GET /agent/items` | The menu/services list |
 | `PUT /agent/items` `[Item]` | Replace the whole list, in order |
-| `POST /menu/import`, `/doctors/import`, `/products/import` `{csv, mapping?, dry_run?}` | `{saved, count, preview[5], added}`. Replaces the list unless `dry_run`; a shop's `/products/import` adds instead (D120): a row with the code, or else the name, of a product it has updates it, the rest are added (`added`: how many; null on a dry run), none is deleted. `mapping` is `{ourField: theirColumn}` from `/suggest`, as the owner checked it; without it columns are matched by name. 422 `invalid_config` with `fields` per row ("row 3") or `mapping` (D53) |
-| `POST /menu/import/suggest`, `/doctors/import/suggest`, `/products/import/suggest` `{csv}` | `{columns[{name, about, required}], headers[], samples[3]{header: text}, mapping{field: header}, by_ai}`. The AI's guess at the match; `by_ai: false` means it matched by name only. One model call per request (D53) |
+| `POST /products/import` `{csv, mapping?, dry_run?}` | `{saved, count, preview[5], added}`. Adds instead of replacing (D120): a row with the code, or else the name, of a product it has updates it, the rest are added (`added`: how many; null on a dry run), none is deleted. `mapping` is `{ourField: theirColumn}` from `/suggest`, as the owner checked it; without it columns are matched by name. 422 `invalid_config` with `fields` per row ("row 3") or `mapping` (D53) |
+| `POST /products/import/suggest` `{csv}` | `{columns[{name, about, required}], headers[], samples[3]{header: text}, mapping{field: header}, by_ai}`. The AI's guess at the match; `by_ai: false` means it matched by name only. One model call per request (D53) |
 | `POST /agent/sheet/suggest` `{url}` | A Google Sheet's link (shared "Anyone with the link: Viewer"): the same answer as the import's `/suggest`, for that tab. 422 `invalid_config` `fields.url` for a link that isn't a sheet or a sheet that isn't shared (D58) |
 | `PUT /agent/sheet` `{url, mapping, dry_run?}` | Answers like the import: `{saved, count, preview[5]}`, 422 per row. Unless `dry_run`, links the sheet and takes the list from it; from then on the server reads it every 5 minutes (D58) |
 | `GET /agent/sheet` | `{url, synced_at, problem}`: `synced_at` is the last clean read; `problem` (empty: fine) says why the list didn't change. 404 while none is linked |
@@ -84,10 +84,8 @@ lists) and can read the settings, but gets 403 `forbidden` on any change under `
 
 `Item`: `{code, name, description, price (minor units), category, tags[], available, attributes{}}`.
 
-While a sheet is linked, a menu or doctors list is the sheet's: `PUT /menu`,
-`PUT /doctors` and their CSV imports are 409 `sheet_linked`, and the page locks
-the rows (`ItemRow` `locked`). A shop's sheet only adds and updates its own
-products (D120): `PUT /products` and `/products/import` still work, a product
+A shop's sheet only adds and updates its own products (D120), so the rows stay
+editable: `PUT /products` and `/products/import` still work, a product
 the sheet has changes back when its row changes there, and one deleted in the
 sheet leaves the list; the rest stay. A shop's stock in the sheet is what's on
 the shelf: the server takes off orders not shipped yet, and only when a
@@ -144,8 +142,7 @@ list), with its one
 "pay first" switch on every area; the
 profile section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section.
 
-Jobs (`presets/jobs.yaml`): `order` (pickup order, makes an `order` record),
-`appointment` and `message` (both make a `request` record). The owner cannot toggle
+Jobs: `order` (makes an `order` record) and `message` (makes a `request` record). The owner cannot toggle
 them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
 `GET /jobs` and `config.jobs` are gone, and `GET /agent` returns the read-only
 `jobs` list. The Agent page shows it as plain rows.
@@ -281,7 +278,7 @@ about once a minute. Without one, the owner books by hand (in development a fake
 |---|---|
 | `GET /inbox` | `[{job, title, kind, waiting, total}]` for the sidebar badges |
 | `GET /records?job=&status=&q=` | Newest first. `q` matches code ("a104", "A-104", "a 104", "104"), name or phone |
-| `GET /records/{id}` | One record; really `/orders/{id}`, `/appointments/{id}`, `/messages/{id}`. `fetchRecord`, for an Inbox link older than the first page |
+| `GET /records/{id}` | One record; really `/shop/orders/{id}`, `/messages/{id}`. `fetchRecord`, for an Inbox link older than the first page |
 | `PATCH /records/{id}` `{status}` | 409 `invalid_transition` if not legal. Legal moves mirrored in `lib/flows.js` |
 
 `Record`: `{id, conversation_id, job, kind: order/request, number, code ("A-104": job's first letter + number, not stored), status,
@@ -305,11 +302,8 @@ Order statuses: new, ready, collected, cancelled. Request: new, handled, archive
 ### Visitor chat (`chat.js`, public, the public key is the credential)
 | Call | What it does |
 |---|---|
-| `GET /chat/{public_key}` | `{name, greeting, photos, voice, widget}`. `photos`: true when the visitor can send a photo (a shop, D57). `voice`: true when the visitor can call it (a receptionist or a clinic, D108): show the Call button only then. `widget`: the website chat's look (D82), `{colour: '#rrggbb', side: 'right'/'left', nudge, starters: [up to 4], logo: '' or '/media/…'}`, with `{business_name}` filled in. 404 unknown, 404 `unavailable` if suspended |
+| `GET /chat/{public_key}` | `{name, greeting, photos, voice, widget}`. `photos`: true when the visitor can send a photo (a shop, D57). `voice`: always false since D164 (the shop takes no visitor calls); the frontend has no Call button. `widget`: the website chat's look (D82), `{colour: '#rrggbb', side: 'right'/'left', nudge, starters: [up to 4], logo: '' or '/media/…'}`, with `{business_name}` filled in. 404 unknown, 404 `unavailable` if suspended |
 | `POST /chat/{public_key}` `{message, conversation_id?, visitor_id, photo?}` | SSE stream: `open{conversation_id}`, `token{text}`, `status{label}`, `handoff{message,phone,email}`, `photos{items:[{name, price, url}]}` (products the agent shows, D57), `card{kind, data}` (a tool's card, backend D110: below), `choices{items:[text]}` (buttons under the reply, sent just before `done`; a tap sends its text as the next `message`, backend D99), `done{interrupted}`, `error{message}`. `photo`: a JPEG or PNG as base64 or a data URL, at most 2 MB (`lib/photo.js` makes it a 1024 px JPEG first); `message` may then be empty. A photo to an agent without `photos`, or one that isn't a picture, is a 422 `unreadable_photo`. 409 `conversation_full`. `visitor_id` (8 to 64 characters) is the browser's token from `lib/visitor.js`; 422 without it. 429 `visitor_limited` when the visitor is blocked (five off-topic turns in a row block them for a day) or over today's turns (30 a visitor, 500 a business); its message says how to reach the business (backend D51). 429 `rate_limited` past 6 messages a minute from one visitor_id or 60 from one IP (backend D52) |
-| `GET /voice/ice` | ICE servers for a call: STUN, plus a Cloudflare TURN relay when the backend has keys |
-| `POST /voice/offer?key=<public_key>&visitor=<token>` `{sdp, type}` | WebRTC voice. `visitor` is the same token as the chat's; a limited visitor gets the chat's 429 before the call connects. Send one offer with every ICE candidate (wait for gathering to complete, so no PATCH is needed); the answer is `{sdp, type}`. The microphone must be the first transceiver; open a data channel and ping it each second so the server notices a closed tab. Audio only, no transcript comes back; the call is saved as a `voice` conversation. 404 unknown key. 403 `no_voice` when the agent takes no calls (a shop or a restaurant, D108). Client: `api/voice.js`, `components/chat/VoiceCall.vue` |
-| `PATCH /voice/offer` | Trickle ICE candidates (the frontend does not use it) |
 | `GET /` (backend) | Plain dev chat page at `/?key=<public_key>`; the dev server still forwards `/demo/` to it. The shared link is now the frontend's own page: `lib/presets.js chatLink` builds `<this origin>/chat/<public_key>` (`pages/chat/ChatPage.vue`) |
 
 **Cards (backend D110).** A `card` event's `data` is built by the backend; the page only lays it
@@ -322,8 +316,6 @@ also has `at`, ISO 8601 in UTC. Optional fields are left out, not null. Four kin
   `pay_url` (the `/pay/<id>` link) when it waits for a payment
 - `tracking`, where an order is: `{number, steps: [{label, done, current}], note}`; a cancelled
   or unpaid order is one step on its own
-- `doctors`, who fits: `{doctors: [{name, speciality, days, hours, fee, book}]}`; a Book button
-  sends `book` ("Book with Dr. Imran Hasan") as the visitor's message
 
 ### Admin (`admin.js`, role admin only, under `/api/admin`)
 | Call | What it does |
@@ -363,7 +355,7 @@ also has `at`, ISO 8601 in UTC. Optional fields are left out, not null. Four kin
   (`PAGE_SIZE`) and `ShowMore` fetches the next. A link to a record older than
   the first page (`/inbox?job=&open=`) fetches that one record (`fetchRecord`).
 - `src/router.js`: `/` (landing page when signed out, else Home or Admin), `/chat/:key` (public, the customer's chat page), `/home /inbox /conversations /calls /agent/{profile,hours,answers,payments,bubble,calls}
-  /menu /knowledge /channels /team /coupons` (owner; `/calls`, `/coupons` and its section for a shop; `/agent`, `/knowledge`, `/channels`, `/team` and `/setup` are `requiresManager`: a moderator is sent Home, D97), `/admin` (admin), `/setup`, `/sign-in`.
+  /menu /knowledge /channels /team /coupons` (owner; `/setup` shows every service but only the shop can be picked; `/agent`, `/knowledge`, `/channels`, `/team` and `/setup` are `requiresManager`: a moderator is sent Home, D97), `/admin` (admin), `/setup`, `/sign-in`.
   Guards use route `meta`. `/inbox?job=&open=` and `/conversations?open=`
   open one item.
 - Pages: `pages/{landing,home,inbox,conversations,calls,coupons,agent,menu,knowledge,channels,team,setup,admin,auth,chat,account}`.

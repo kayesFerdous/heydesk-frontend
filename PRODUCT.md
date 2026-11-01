@@ -17,7 +17,7 @@ invented customers, logos, quotes or numbers.
 
 ## Who uses it
 
-An **owner of a small business** (a restaurant, a clinic, a front-office), in
+An **owner of a small business** (an online shop first; restaurants, clinics and front offices are coming), in
 Dhaka first. Not technical. Uses a laptop at the shop or a phone between
 customers. English UI today; the customer-facing agent may talk to visitors in
 other languages, which the owner should see in transcripts verbatim.
@@ -41,8 +41,7 @@ banner that says whose business it is; every change is in the audit log.
 5. **Tune the agent.** Name, greeting, opening hours, address, policies, FAQ,
    hand-off phone, and `notes` for tone and rules. Edits are **live on the next
    message**, with no publish step.
-6. **Set up once.** Pick a preset (restaurant host, receptionist, clinic front
-   desk), fill what `missing` lists, test it, share the chat link.
+6. **Set up once.** Pick a service (the online shop; the others show "Coming soon"), fill what `missing` lists, test it, share the chat link.
 
 ## Product truth (do not contradict)
 

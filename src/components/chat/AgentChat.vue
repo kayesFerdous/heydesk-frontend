@@ -7,9 +7,6 @@
           {{ formatToday() }}
           <span class="h-px flex-1 bg-hairline"></span>
         </p>
-        <!-- What the page shows above the first message (the customer's page
-             says who answers here). -->
-        <slot name="intro"></slot>
 
         <div
           v-for="(message, index) in messages"
@@ -85,8 +82,8 @@
               </div>
             </div>
 
-            <!-- What a tool showed: a bill to say yes to, a receipt, where an order is, doctors (D110). -->
-            <ChatCard v-for="(card, i) in message.cards" :key="i" :card="card" :busy="sending" class="mt-3" @ask="ask"></ChatCard>
+            <!-- What a tool showed: a bill to say yes to, a receipt, where an order is. -->
+            <ChatCard v-for="(card, i) in message.cards" :key="i" :card="card" class="mt-3"></ChatCard>
 
             <span
               v-if="isPending(index) && (!message.text || status)"

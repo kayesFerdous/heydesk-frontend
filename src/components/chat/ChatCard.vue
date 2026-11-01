@@ -66,46 +66,19 @@
     </ol>
     <p v-if="data.note" class="mt-3 text-sm text-ink-soft">{{ data.note }}</p>
   </div>
-
-  <!-- doctors: who fits, a row to swipe along like the products, each with a Book button. -->
-  <div v-else-if="card.kind === 'doctors'" class="-mr-4 flex snap-x gap-3 overflow-x-auto pr-4 pb-1 whitespace-normal sm:mr-0 sm:pr-0">
-    <div v-for="doctor in data.doctors" :key="doctor.name" class="panel flex w-56 shrink-0 snap-start flex-col p-4">
-      <p class="font-semibold leading-snug">{{ doctor.name }}</p>
-      <p class="text-sm text-ink-soft">{{ doctor.speciality }}</p>
-      <p class="mt-3 flex items-start gap-2 text-sm">
-        <PhCalendarBlank :size="16" class="mt-0.5 shrink-0 text-ink-faint"></PhCalendarBlank>
-        {{ doctor.days }}
-      </p>
-      <p class="mt-1 flex items-start gap-2 text-sm">
-        <PhClock :size="16" class="mt-0.5 shrink-0 text-ink-faint"></PhClock>
-        {{ doctor.hours }}
-      </p>
-      <p class="mt-1 flex items-start gap-2 text-sm">
-        <PhCoins :size="16" class="mt-0.5 shrink-0 text-ink-faint"></PhCoins>
-        {{ t('chat.card.fee', { money: doctor.fee.text }) }}
-      </p>
-      <button type="button" class="btn btn-secondary btn-sm mt-4" :disabled="busy" @click="emit('ask', doctor.book)">
-        {{ t('chat.card.book') }}
-      </button>
-    </div>
-  </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCalendarBlank, PhCheckCircle, PhClock, PhCoins, PhCreditCard, PhHourglassMedium } from '@phosphor-icons/vue';
+import { PhCheckCircle, PhCreditCard, PhHourglassMedium } from '@phosphor-icons/vue';
 
 import { formatNumber } from '../../lib/format.js';
 
 const props = defineProps({
-  // `{kind, data}` as the chat stream sent it: summary, receipt, tracking or doctors.
+  // `{kind, data}` as the chat stream sent it: summary, receipt or tracking.
   card: { type: Object, required: true },
-  // A reply is being written: a Book tap waits for it.
-  busy: { type: Boolean, default: false },
 });
-// `ask`: words to send as the visitor's next message (a doctor's Book button).
-const emit = defineEmits(['ask']);
 const { t } = useI18n();
 
 const data = computed(() => props.card.data);

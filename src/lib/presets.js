@@ -1,40 +1,32 @@
-import { PhForkKnife, PhPhone, PhFirstAid, PhSparkle, PhStethoscope, PhStorefront, PhTShirt } from '@phosphor-icons/vue';
+import { PhForkKnife, PhPhone, PhFirstAid, PhStorefront, PhTShirt } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
 
-// Icons are the frontend's; the words come from the API. An unknown preset
-// still renders, with a neutral icon.
-const ICONS = {
-  restaurant: PhForkKnife,
-  receptionist: PhPhone,
-  clinic: PhFirstAid,
-  shop: PhStorefront,
-};
+// The services HeyDesk offers, in the order the first page shows them. Only the
+// shop is live (backend D164); the others show "Coming soon" and cannot be picked.
+export const SERVICES = [
+  { id: 'shop', icon: PhStorefront, live: true },
+  { id: 'restaurant', icon: PhForkKnife, live: false },
+  { id: 'clinic', icon: PhFirstAid, live: false },
+  { id: 'receptionist', icon: PhPhone, live: false },
+];
 
-export function presetIcon(id) {
-  return ICONS[id] || PhSparkle;
+export function serviceLabel(id) {
+  return SERVICES.some((service) => service.id === id) ? t(`presets.label.${id}`) : id;
 }
 
-const KNOWN = ['restaurant', 'receptionist', 'clinic', 'shop'];
-
-// What one entry in the list is called: "dish" for one, "dishes" for `count`.
-export function itemNoun(presetId, count = 1) {
-  return t(`presets.noun.${KNOWN.includes(presetId) ? presetId : 'other'}`, count);
+export function serviceDescription(id) {
+  return t(`presets.description.${id}`);
 }
 
-// A kind of business in the chosen language. The API's own words are kept for
-// a kind the frontend has not heard of yet.
-export function presetLabel(preset) {
-  return KNOWN.includes(preset.id) ? t(`presets.label.${preset.id}`) : preset.label;
+// What one product is called: "product" for one, "products" for `count`.
+export function itemNoun(count = 1) {
+  return t('presets.noun.shop', count);
 }
 
-export function presetDescription(preset) {
-  return KNOWN.includes(preset.id) ? t(`presets.description.${preset.id}`) : preset.description;
-}
-
-// What the preset calls the list the owner keeps: Menu, Services, Doctors.
-export function itemsLabel(presetId) {
-  return t(`presets.items.${KNOWN.includes(presetId) ? presetId : 'other'}`);
+// What the list the owner keeps is called, in the nav and on its page.
+export function itemsLabel() {
+  return t('presets.items.shop');
 }
 
 // Where a visitor opens the agent: this app's own chat page, /chat/<public key>
@@ -56,15 +48,7 @@ export function productLink(publicKey, code) {
   return `${publicBase()}/p/${publicKey}/${encodeURIComponent(code)}`;
 }
 
-// The navigation link to a desk's own list: a restaurant's menu, a clinic's
-// doctors, a shop's products. A receptionist has none (its services are on the Agent page).
-const LIST_ICONS = {
-  restaurant: PhForkKnife,
-  clinic: PhStethoscope,
-  shop: PhTShirt,
-};
-
-export function listLinks(presetId) {
-  const icon = LIST_ICONS[presetId];
-  return icon ? [{ to: '/menu', label: itemsLabel(presetId), icon }] : [];
+// The navigation link to the shop's own list: its products.
+export function listLinks() {
+  return [{ to: '/menu', label: itemsLabel(), icon: PhTShirt }];
 }

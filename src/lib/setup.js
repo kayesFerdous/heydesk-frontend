@@ -10,11 +10,11 @@ export function whereToFix(item) {
   if (text.includes('sslcommerz') || text.includes('bkash') || text.includes('delivery')) return '/agent/payments';
   if (text.includes('hours')) return '/agent/hours';
   if (text.includes('phone') || text.includes('email') || text.includes('person')) return '/agent/hours';
-  if (text.includes('menu') || text.includes('doctor') || text.includes('product')) return '/menu';
+  if (text.includes('product')) return '/menu';
   return '/agent/profile'; // address, services and anything new
 }
 
-const LIST_WORDS = ['menu', 'doctor', 'service', 'product'];
+const LIST_WORDS = ['product'];
 
 function isAboutList(item) {
   const text = item.toLowerCase();
@@ -24,7 +24,7 @@ function isAboutList(item) {
 // Five steps, the shortest road to a first real customer. Each one says what
 // it gets the owner, and how to do it from here.
 //   missing          the backend's list of gaps
-//   itemsLabel       "Menu", "Doctors" or "Services", in the chosen language
+//   itemsLabel       "Products", in the chosen language
 //   triedIt          the agent has had at least one conversation
 //   shared           Telegram is connected, or the chat link was copied
 export function setupSteps({ missing, itemsLabel, triedIt, shared }) {

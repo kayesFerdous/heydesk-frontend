@@ -2,7 +2,7 @@
   <!-- The open record in one panel. At the top, who and when, and one row of
        actions (the next step, call, the conversation, the rarer moves); under
        it, the proof in one line. Then sections of one shape: the order and its
-       total, the delivery or pickup, the courier, the call to confirm, details. -->
+       total, the delivery, the courier, the call to confirm, details. -->
   <div class="flex flex-col pb-2">
     <div class="px-4 pt-4 pb-4 sm:px-5">
       <div class="flex items-center gap-2 text-[0.8125rem]">
@@ -77,10 +77,7 @@
         <p v-if="record.status === 'unpaid'" class="mt-2 text-ink-soft">{{ t('records.waitingForPayment') }}</p>
       </RecordSection>
 
-      <RecordSection v-if="record.due_at || record.address || record.note" :label="t(record.address ? 'records.sections.delivery' : 'records.sections.pickup')">
-        <p v-if="record.due_at" class="mb-1">
-          {{ record.address ? t('records.deliverAt') : t('records.pickupAt') }} <span class="font-semibold">{{ formatTime(record.due_at) }}</span>
-        </p>
+      <RecordSection v-if="record.address || record.note" :label="t('records.sections.delivery')">
         <p v-if="record.address" class="leading-relaxed">{{ record.address }}</p>
         <p v-if="record.note" class="mt-1 text-ink-soft">{{ t('records.noteLine', { note: record.note }) }}</p>
       </RecordSection>

@@ -37,36 +37,38 @@
         <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em]">{{ t('setup.chooseTitle') }}</h1>
         <p class="mt-2 text-ink-soft">{{ t('setup.chooseText') }}</p>
 
-        <p v-if="loadError" class="mt-8 text-sm text-danger" role="alert">
-          {{ loadError }}
-          <button type="button" class="link ml-2" @click="loadPresets">
-            {{ t('common.tryAgain') }}
-          </button>
-        </p>
-
-        <!-- The kinds of agent, as ruled rows: one line each, chosen like a radio. -->
-        <div v-else class="mt-8 flex flex-col gap-1.5" role="radiogroup" :aria-label="t('setup.kind')">
+        <!-- Every service, as ruled rows: one line each, chosen like a radio. Only the live one can be chosen. -->
+        <div class="mt-8 flex flex-col gap-1.5" role="radiogroup" :aria-label="t('setup.kind')">
           <button
-            v-for="preset in presets"
-            :key="preset.id"
+            v-for="service in SERVICES"
+            :key="service.id"
             type="button"
             role="radio"
-            :aria-checked="preset.id === presetId"
+            :aria-checked="service.id === presetId"
+            :aria-disabled="!service.live"
+            :disabled="!service.live"
             class="flex w-full items-center gap-4 rounded-[var(--radius-card)] p-3 text-left transition-colors sm:p-4"
-            :class="preset.id === presetId ? 'bg-brand-tint' : 'bg-wash hover:bg-hover'"
-            @click="presetId = preset.id"
+            :class="[service.id === presetId ? 'bg-brand-tint' : 'bg-wash', service.live ? 'hover:bg-hover' : 'cursor-not-allowed']"
+            @click="presetId = service.id"
           >
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface text-ink" aria-hidden="true">
-              <component :is="presetIcon(preset.id)" :size="22"></component>
+            <span
+              class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface text-ink"
+              :class="{ 'opacity-55': !service.live }"
+              aria-hidden="true"
+            >
+              <component :is="service.icon" :size="22"></component>
             </span>
-            <span class="min-w-0 flex-1">
-              <span class="block font-semibold">{{ presetLabel(preset) }}</span>
-              <span class="mt-0.5 block text-sm text-ink-soft">{{ presetDescription(preset) }}</span>
+            <span class="min-w-0 flex-1" :class="{ 'opacity-55': !service.live }">
+              <span class="block font-semibold">{{ serviceLabel(service.id) }}</span>
+              <span class="mt-0.5 block text-sm text-ink-soft">{{ serviceDescription(service.id) }}</span>
             </span>
-            <PhCheckCircle v-if="preset.id === presetId" :size="22" weight="fill" class="shrink-0 text-brand" aria-hidden="true"></PhCheckCircle>
+            <span v-if="!service.live" class="chip shrink-0 bg-surface text-ink-soft">{{ t('setup.comingSoon') }}</span>
+            <PhCheckCircle v-else-if="service.id === presetId" :size="22" weight="fill" class="shrink-0 text-brand" aria-hidden="true"></PhCheckCircle>
             <PhCircle v-else :size="22" class="shrink-0 text-line-strong" aria-hidden="true"></PhCircle>
           </button>
         </div>
+
+        <p v-if="formError" class="mt-6 text-sm text-danger" role="alert">{{ formError }}</p>
 
         <div class="mt-10 flex items-center justify-between">
           <p class="text-sm text-ink-soft">{{ t('setup.liveSoon') }}</p>
@@ -169,7 +171,7 @@ import BrandMark from '../../components/ui/BrandMark.vue';
 import CopyField from '../../components/ui/CopyField.vue';
 import LanguageSwitch from '../../components/ui/LanguageSwitch.vue';
 import AgentChat from '../../components/chat/AgentChat.vue';
-import { presetIcon, presetLabel, presetDescription, chatLink } from '../../lib/presets.js';
+import { SERVICES, serviceLabel, serviceDescription, chatLink } from '../../lib/presets.js';
 import { formatNumber } from '../../lib/format.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { useAgentStore } from '../../stores/agent.js';
@@ -180,33 +182,17 @@ const auth = useAuthStore();
 const agent = useAgentStore();
 
 const step = ref(0);
-const presetId = ref(null);
+const presetId = ref('shop'); // the one live service, chosen from the start
 const businessName = ref('');
 const agentName = ref('');
 const agentNameEdited = ref(false);
 const address = ref('');
 const fieldErrors = ref({});
 const formError = ref(null);
-const loadError = ref(null);
 const isCreating = ref(false);
 
 const steps = computed(() => [t('setup.stepChoose'), t('setup.stepDetails'), t('setup.stepTry')]);
-// Most common first; a preset the frontend has not heard of goes last.
-const presets = computed(() => {
-  const order = ['restaurant', 'shop', 'receptionist', 'clinic'];
-  const rank = (p) => (order.includes(p.id) ? order.indexOf(p.id) : order.length);
-  return [...agent.presets].sort((a, b) => rank(a) - rank(b));
-});
 const link = computed(() => chatLink(agent.publicKey));
-
-async function loadPresets() {
-  loadError.value = null;
-  try {
-    await agent.loadPresets();
-  } catch (error) {
-    loadError.value = error.message;
-  }
-}
 
 function suggestedName() {
   return businessName.value ? t('setup.suggestedName', { name: businessName.value }) : '';
@@ -257,7 +243,7 @@ async function start() {
   try {
     await agent.load();
   } catch (error) {
-    loadError.value = error.message;
+    formError.value = error.message;
     return;
   }
   if (agent.hasAgent) {
@@ -266,7 +252,6 @@ async function start() {
   }
   businessName.value = auth.business?.name ?? '';
   agentName.value = suggestedName();
-  loadPresets();
 }
 
 start();
