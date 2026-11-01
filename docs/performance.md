@@ -28,6 +28,7 @@ conversations, so these did not show in the measurement above):
 | Home with 6 customers waiting for a person | +24 requests | +0 |
 | Sidebar badge counts | every record ever taken, downloaded | only the waiting ones |
 | Open Inbox on a busy business | up to 100 records per kind, older ones unreachable | 30, and "Show more" reaches all of them |
+| One visitor message, console open on Conversations (D167) | about 14 | 4, plus 1 if that chat is open |
 
 ## 1. Remember the agent's kind (`api/agent.js` `agentKind`)
 
@@ -64,17 +65,19 @@ Settings, Doctors, Knowledge or Channels fetched the agent again.
 
 **Benefit.** Moving between pages costs only what the new page shows.
 
-## 3. Badge counts ask only for what they count (`api/records.js` `fetchInbox`)
+## 3. Badge counts come from the server (`stores/inbox.js`, backend D167)
 
 **Problem.** To show "3 waiting" next to Inbox, the app downloaded every
 order and message the business ever received and counted the `new` ones in
 the browser. That grows forever, and it ran on every page change that
 refreshes the counts.
 
-**Fix.** Ask the server `?status=new` and count what comes back. The
-`total` field it also returned was not used anywhere, so it is gone.
+**Fix.** First the app asked `?status=new` per kind and counted the rows,
+which still downloaded up to 100 of each and stopped the badge at 100. Now
+`GET /conversations/counts` also answers `orders_new` and `messages_new`, so
+`inbox/load` is that one request and `fetchInbox` is gone.
 
-**Benefit.** The download is the size of the waiting pile, not the history.
+**Benefit.** The badges cost one small request, whatever the pile's size.
 
 ## 4. No fetch per conversation (`api/records.js` `byConversation`, `api/conversations.js`)
 
@@ -94,18 +97,20 @@ request at all.
 **Benefit.** 120 requests become 30 (the previews), and Home's handoff list
 is free.
 
-## 5. Show the list first, fill previews in later (`pages/conversations/ConversationsPage.vue`)
+## 5. Previews come with the list (`pages/conversations/ConversationsPage.vue`, backend D167)
 
 **Problem.** The page waited for all 30 transcripts before showing a
 single row, so one slow transcript held up the whole page.
 
-**Fix.** Rows appear as soon as the list and the records arrive. The
-previews (last message) load in the background, only for the rows on
-screen, and appear as each one arrives. `rows` is now a computed property,
-so Vue redraws a row the moment its preview lands. A preview that fails is
-just an empty line, not an error over the transcript pane.
+**Fix.** First the previews loaded in the background, one transcript per
+row: still 30 requests, and again for every row that changed. Now each
+conversation in `GET /conversations` has `preview`, its last line, so no
+transcript is fetched until one is opened. When the list is fetched again,
+the open chat's transcript is fetched again if it moved on, and the others
+that moved on are forgotten until opened.
 
-**Benefit.** The page is usable after 3 requests instead of 121.
+**Benefit.** The page needs 3 requests (the list and the records for names)
+instead of 121, and a change costs no transcript fetches.
 
 ## 6. Real pagination, on both sides (backend D46, `components/ui/ShowMore.vue`)
 
@@ -185,9 +190,10 @@ The warning is gone.
 
 New orders and hand-offs show without a reload: the console holds one
 stream to `GET /conversations/live` (backend D158), and the server sends an
-event for each conversation that changed. Each event asks `inbox/load` again
-(the badge requests only, J + 1 of them, never one per row) and makes an
-open Conversations page fetch its first page. Nothing is requested while
+event for each conversation that changed. Events that come within half a
+second of each other (one visitor turn commits more than once) become one
+`inbox/load` (one request) and one fetch of an open Conversations page's
+first page. Nothing is requested while
 nothing happens. The shell also asks `inbox/load` every two minutes while the
 tab is visible, and at once when it comes back, for what changes no
 conversation (an order paid by a webhook). It waits until the business has an
@@ -217,7 +223,8 @@ Paging is done (section 6). Two more small additions would cut requests
 further. Each one is a frontend change of
 a few lines after it lands:
 
-1. **Name and last message in `GET /conversations`.** Then the
-   Conversations list needs 1 request instead of 33.
-2. **Counts endpoint** (`GET /inbox` with waiting per job, today's totals).
-   Then the badges are 1 small request and Home's "Today" line needs no lists.
+1. **Name in `GET /conversations`.** The last message is there now
+   (D167); with the name too, the Conversations list needs 1 request
+   instead of 3.
+2. **Today's totals.** The waiting counts are in `GET /conversations/counts`
+   now (D167); with today's totals too, Home's "Today" line needs no lists.
