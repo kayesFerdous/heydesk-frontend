@@ -16,15 +16,11 @@ export function useLiveInbox(enabled) {
   const inbox = useInboxStore();
   let controller = null;
 
-  // The text of one frame: its `event:` name and its `data:` line.
-  function parse(frame) {
-    let event = 'message';
-    let data = '';
-    for (const line of frame.split('\n')) {
-      if (line.startsWith('event:')) event = line.slice(6).trim();
-      else if (line.startsWith('data:')) data = line.slice(5).trim();
-    }
-    return { event, data };
+  // One frame's `event:` name. Its data (which chat) isn't needed: the store
+  // fetches the counts and the list once for the frames that come together.
+  function eventOf(frame) {
+    const line = frame.split('\n').find((l) => l.startsWith('event:'));
+    return line ? line.slice(6).trim() : 'message';
   }
 
   // Reads frames until the stream ends. Returns whether it ever opened.
@@ -40,17 +36,13 @@ export function useLiveInbox(enabled) {
       buffer += decoder.decode(value, { stream: true }).replace(/\r\n?/g, '\n');
       let end;
       while ((end = buffer.indexOf('\n\n')) !== -1) {
-        const { event, data } = parse(buffer.slice(0, end));
+        const event = eventOf(buffer.slice(0, end));
         buffer = buffer.slice(end + 2);
         if (event === 'open') {
           opened = true;
-          if (reconnected) inbox.changed(null);
+          if (reconnected) inbox.changed();
         } else if (event === 'changed') {
-          try {
-            inbox.changed(JSON.parse(data).conversation_id);
-          } catch (err) {
-            inbox.changed(null);
-          }
+          inbox.changed();
         }
       }
     }

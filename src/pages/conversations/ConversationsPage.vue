@@ -311,17 +311,16 @@ const channelOptions = computed(() => CHANNEL_IDS.map((id) => ({ id, ...channelO
 // What the list is showing; a page asked for under another one is dropped.
 const listKey = computed(() => `${who.value}|${filter.value}|${channel.value}|${query.value}`);
 
-// The list endpoint has no previews. The name is the messaging app's, else a
-// record's the conversation made; the preview from its transcript, once loaded.
+// The name is the messaging app's, else a record's the conversation made; the
+// preview is the last thing said, from the list itself (backend D167).
 const rows = computed(() =>
   list.value.map((c) => {
-    const messages = details.value[c.id]?.messages ?? [];
     const known = c.name || (recordsOf.value[c.id] || [])[0]?.customer_name;
     return {
       ...c,
       name: known || t('conversations.visitor'),
       named: Boolean(known),
-      preview: messages.length ? messages[messages.length - 1].text : '',
+      preview: c.preview || '',
       record: (recordsOf.value[c.id] || [])[0], // the newest order or request it made
     };
   }),
@@ -362,20 +361,14 @@ function fetchPage(before) {
   });
 }
 
-// Previews for one page of rows, filled in as they arrive. The list does
-// not wait for them, and a missing preview is only an empty line.
-// Not for an admin inside a business: each preview reads a whole conversation,
-// which the audit log would record as opened (backend D23).
-function loadPreviews(conversations) {
-  if (auth.isViewing) return;
-  conversations.forEach(async (c) => {
-    // Already loaded and nothing new said since: keep it.
-    if (details.value[c.id]?.updated_at === c.updated_at) return;
-    try {
-      details.value[c.id] = await fetchConversation(c.id);
-    } catch (err) {
-      // Best effort: the row shows no preview.
-    }
+// Transcripts that moved on since they were fetched: the open one is fetched
+// again, so it shows the new lines; the others are forgotten until opened.
+function dropChanged(page) {
+  page.forEach((c) => {
+    const known = details.value[c.id];
+    if (!known || known.updated_at === c.updated_at) return;
+    if (c.id === selectedId.value) loadDetail(c.id);
+    else delete details.value[c.id];
   });
 }
 
@@ -392,7 +385,6 @@ async function load() {
     hasMore.value = page.length === PAGE_SIZE;
     recordsOf.value = byConversation(records);
     loaded.value = true;
-    loadPreviews(page);
   } catch (err) {
     // No agent yet means no conversations: send them to set it up.
     if (err.status === 404) {
@@ -404,8 +396,8 @@ async function load() {
   }
 }
 
-// New work came in (the counts went up): the first page again, quietly, the
-// old rows staying until it arrives. Rows that moved on load their preview again.
+// Chats changed or new work came in: the first page again, quietly, the old rows
+// staying until it arrives.
 async function refresh() {
   if (!loaded.value || filter.value === 'blocked') return;
   const asked = listKey.value;
@@ -415,7 +407,7 @@ async function refresh() {
     list.value = page;
     hasMore.value = page.length === PAGE_SIZE;
     recordsOf.value = byConversation(records);
-    loadPreviews(page);
+    dropChanged(page);
   } catch (err) {
     // Best effort: the list on screen stays.
   }
@@ -542,7 +534,6 @@ async function showMore() {
     if (asked === listKey.value) {
       list.value = [...list.value, ...older];
       hasMore.value = older.length === PAGE_SIZE;
-      loadPreviews(older);
     }
   } catch (err) {
     moreError.value = err.message;
@@ -560,8 +551,7 @@ function loadMembers() {
   if (auth.canManage && !auth.isViewing) fetchMembers().then((found) => (members.value = found)).catch(() => {});
 }
 loadMembers();
-watch(() => inbox.arrivals, refresh);
-watch(() => inbox.changes, refresh); // the server said a conversation changed (backend D158)
+watch(() => inbox.changes, refresh); // chats changed (backend D158), or more are waiting
 watch(
   selectedId,
   (id) => {
