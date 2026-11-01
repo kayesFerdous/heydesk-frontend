@@ -58,18 +58,6 @@ async function fetchJob(job, { status, q, limit, before } = {}) {
   return rows.map((row) => toRecord(job, row, path));
 }
 
-// The sidebar numbers: each job the agent does, with how many are waiting.
-// Only the waiting ones are asked for (status=new), not the whole history.
-export async function fetchInbox() {
-  return Promise.all(
-    JOB_LIST.map(async (job) => ({
-      job,
-      kind: JOBS[job].kind,
-      waiting: (await fetchJob(job, { status: 'new' })).length,
-    })),
-  );
-}
-
 // Newest first. `job` is "order" or "message"; left out, all of
 // them (then `limit` is per job, so only page with one job).
 export async function fetchRecords({ job, status, q, limit, before } = {}) {
