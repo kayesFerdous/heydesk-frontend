@@ -145,21 +145,21 @@ get `--shadow-float`.
   to 76px icons) is black with 20px corners. Each page lays out its own
   white islands on the canvas under `PageHeader` (title on the canvas, tabs
   on a white track). Settings-like pages (Team, Account,
-  Knowledge, Calls, Admin) are one island; Channels has its own layout (below).
+  Documents, Calls, Admin) are one island; Channels has its own layout (below).
 - The sidebar: the mark on a lime tile, the business name and live status,
   an orange "Needs a person" strip while someone waits (hidden when folded,
-  where the count sits on the Conversations icon), the grouped nav (the open
+  where the count sits on the Chats icon), the grouped nav (the open
   item a quiet fill with its filled icon in lime; counts in dark pills,
   orange when someone waits),
-  "Try your agent" as a dark pill with a lime icon, the account row.
-  The nav has three labelled groups from `navGroups`: Your desk, Your
+  "Try your assistant" as a dark pill with a lime icon, the account row.
+  The nav has three labelled groups from `navGroups`: Daily work, Your
   business (the lists, a shop's Coupons) and Setup, one Settings row that
-  folds open to Agent, Knowledge, Channels, Team and Billing on a guide line
+  folds open to Assistant, Documents, Channels, Team and Plan and payment on a guide line
   (words only; the open page white with a 2px lime mark on the line). It
   opens by itself on one of its pages and stays as the owner leaves it
-  (`aria-expanded`). Folded to icons, Settings opens Agent. A moderator has
+  (`aria-expanded`). Folded to icons, Settings opens Assistant. A moderator has
   no Setup.
-- Under 768px: a floating black pill tab bar (the "Your desk" group, then
+- Under 768px: a floating black pill tab bar (the "Daily work" group, then
   More, the open one lime); More opens the sidebar as a drawer.
 
 ### Where settings live
@@ -182,17 +182,17 @@ Then a bento:
   after it; a finger sees the step always. Under it **today** in one island:
   one figure leads (the money taken today, else the first job's count) in
   40px at 500 with its hours (`HourBars`) under it, beside the small figures
-  two to a row (conversations, the other jobs); one with nothing yet says
+  two to a row (chats, the other jobs); one with nothing yet says
   "None yet" in soft ink instead of a bold 0.
-- Right: **the agent as a card of its own** (its initials on a black tile in
+- Right: **the assistant as a card of its own** (its initials on a black tile in
   lime, "Live on 2 channels", the ask box as a pill opening the test chat,
   channels as pills, copy the chat link and edit settings as quiet links),
-  and under it **Today so far** ruling what the agent answered and what went
+  and under it **Today so far** ruling what the assistant answered and what went
   to the team.
 
-## Inbox and Conversations
+## Inbox and Chats
 
-**Conversations** (v8, denser): one ruled island, three panes edge to edge.
+**Chats** (v8, denser): one ruled island, three panes edge to edge.
 The list (21rem, 20rem at xl, 23rem from 1536px) has search with a funnel
 icon (channel, blocked visitors), Mine / Unassigned / All as a segmented
 switch, All / Needs a person / Done as small tabs, then ruled rows under
@@ -274,18 +274,18 @@ settings (the name, greeting and look); the other sections use the full width.
 
 `PageHeader` on the canvas, tabs on a white track under it.
 
-- **Agent settings**: under the title, the sections on one white track,
+- **Assistant settings**: under the title, the sections on one white track,
   in setup order: Business (its details and opening hours), How it talks
-  (name, greeting, tone, hand-off, what it does), Answers (common questions,
-  saved replies), Delivery and payments (accounts, courier, areas, cash
-  orders, paying first), Chat bubble, Calls
+  (name, welcome message, tone, hand-off, what it does), Answers (common
+  questions, saved replies), Delivery and payments (accounts, courier, areas,
+  cash orders, paying first), Chat bubble, Calls
   (an icon and the name, the open one lime with a filled icon, gap counts in
   orange), sticky while a long form scrolls; the tabs share the width from
   1024px and scroll sideways on a phone with the open one centred. Then the
   agent's own island: its logo or initials on a black tile, its name with
   "Answering" (or "AI off", "Paused by HeyDesk"), its kind and business; on
   the right the "AI answers" switch as a pill (saved at once, orange-tinted
-  while off, with a line pointing to Conversations) and "Copy chat link".
+  while off, with a line pointing to Chats) and "Copy chat link".
   Under them, on a grey band, what is still missing as pill links to where
   each is fixed, or one green "Ready" line. Then the form island, which opens
   with the section's name and one line on what it holds; the form is
@@ -301,6 +301,8 @@ settings (the name, greeting and look); the other sections use the full width.
   page). Edit and Add open the form in a sheet from the right (`ItemEditor`), the
   row marked meanwhile: photos first, then sections, Save always at the bottom;
   closing with changes asks first. Full screen on a phone.
+
+- **Coupons**: the codes are the page. The `PageHeader` says how many are live, with "Send an offer" (secondary) and "New coupon" (the black primary) on the right; they hide while a form is open, so the form's own button is the one black one. A form opens as one island under the header (Cancel closes it): the kind of discount as a segmented switch with the amount beside it, the optional fields marked so, and the coupon read back in one plain sentence before saving. The list is one island of ruled rows under "Live" and "Stopped working": the code as a serial chip, what it takes off over its uses and last day, a status chip (Live, Ended, Used up) and a quiet Stop or Remove that asks once in the row.
 
 ## The front door (signed out)
 
@@ -408,7 +410,7 @@ for the action, lime for the signature.
     `NightShift`, a dark tile run by the scroll. As it comes up the screen
     its clock turns from 9 PM to 3 AM, a lime line fills, and what the agent
     handled appears at its time (two confirmed orders on lime, an answer and
-    a message on dark): you are asleep, your agent is not. Under reduced
+    a message on dark): you are asleep, your assistant is not. Under reduced
     motion the whole night shows.
   - Sections are rows with rules, never feature cards. A number marks a step
     only where the order means something (setup).
@@ -465,6 +467,8 @@ under `prefers-reduced-motion`.
 
 Friendly, direct, short sentences. Outcome words ("Add your doctors", "Share it
 with customers"), never system words ("Configure workspace"). Controls name
-their action. Help lives behind an `InfoTip`, not in paragraphs. Errors are
+their action. The words are for a non-technical seller: "assistant" not
+"agent", Documents, Chats, Upload (PRODUCT.md, Brand and tone, has the list and
+the Bangla rules). Help lives behind an `InfoTip`, not in paragraphs. Errors are
 the backend's own sentence. No em-dashes, no emoji, no ALL CAPS, no labels
 above headings.
