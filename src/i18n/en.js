@@ -615,9 +615,9 @@ export default {
     subtitle: 'Changes are live on the next message.',
     previewText: 'What a customer sees on your website, as you type.',
     sections: 'Settings sections',
-    profile: 'Profile',
-    hours: 'Hours and hand-off',
-    answers: 'Answers and tone',
+    business: 'Business',
+    talk: 'How it talks',
+    answers: 'Answers',
     payments: 'Payments',
     deliveryAndPayments: 'Delivery and payments',
     toFillIn: '{n} to fill in',
@@ -634,9 +634,9 @@ export default {
       aiOff: 'AI off',
     },
     sectionText: {
-      profile: 'Its name, greeting and your business details.',
-      hours: 'When it answers and who takes over.',
-      answers: 'How it sounds and what customers often ask.',
+      business: 'Your business details and opening hours. Your agent answers from these.',
+      talk: 'Its name, greeting and tone, and what it says when a customer needs a person.',
+      answers: 'What customers often ask, and saved replies for your team.',
       payments: 'Delivery areas, charges and online payments.',
       bubble: 'How the chat looks on your website.',
       calls: 'Phone buyers to confirm their orders.',
@@ -775,6 +775,7 @@ export default {
   },
 
   payments: {
+    cash: 'Cash on delivery',
     online: 'Online payments',
     areas: 'Delivery areas',
     areasText: 'Give each area its districts. Your agent finds the buyer\'s district from their address, then tells them the charge and the total. Leave one area\'s districts empty for everywhere else.',

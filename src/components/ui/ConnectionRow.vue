@@ -5,7 +5,22 @@
        body stays mounted (v-show) so what sits in it can ask for its own state. -->
   <li class="border-b border-hairline last:border-b-0">
     <button type="button" class="group flex w-full items-center gap-4 py-5 text-left" :aria-expanded="open" :aria-controls="`connection-${id}`" @click="$emit('toggle')">
-      <span class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-card)]" :class="tile">
+      <!-- A brand's own mark on white, or a Phosphor icon on its tint. -->
+      <span v-if="image" class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-card)] border border-hairline bg-surface">
+        <img :src="image" alt="" class="h-6 w-6 object-contain" />
+      </span>
+      <!-- Either of two brands (a courier not yet picked): both marks, one over the other's corner. -->
+      <span v-else-if="images.length" class="relative h-10 w-10 shrink-0">
+        <span
+          v-for="(src, i) in images"
+          :key="src"
+          class="absolute grid h-7 w-7 place-items-center rounded-full border border-hairline bg-surface"
+          :class="i ? 'right-0 bottom-0' : 'top-0 left-0'"
+        >
+          <img :src="src" alt="" class="h-4 w-4 object-contain" />
+        </span>
+      </span>
+      <span v-else class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-card)]" :class="tile">
         <component :is="icon" :size="20" :weight="weight"></component>
       </span>
       <span class="min-w-0 flex-1">
@@ -36,9 +51,11 @@ import { PhCaretDown, PhCheckCircle, PhWarningCircle } from '@phosphor-icons/vue
 
 defineProps({
   id: { type: String, required: true },
-  icon: { type: [Object, Function], required: true },
-  // The logo tile's colours.
-  tile: { type: String, required: true },
+  // A brand's logo file (public/logos/), or else an icon on a tile of these colours.
+  image: { type: String, default: '' },
+  images: { type: Array, default: () => [] },
+  icon: { type: [Object, Function], default: null },
+  tile: { type: String, default: '' },
   weight: { type: String, default: 'fill' },
   name: { type: String, required: true },
   line: { type: String, required: true },

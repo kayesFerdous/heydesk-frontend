@@ -19,7 +19,7 @@ import { listLinks } from './presets.js';
 // The one list of where an owner can go. The sidebar and the phone tab bar both
 // read it, so a new page is added here once.
 //
-// `match` is the path prefix that lights the item up: /agent/hours still
+// `match` is the path prefix that lights the item up: /agent/talk still
 // highlights "Settings". `count` and `attention` drive the small badge.
 // A moderator (`canManage` false, backend D97) sees the daily work and the lists only.
 export function navGroups({ isAdmin, canManage = true, waitingTotal, needsHuman }) {

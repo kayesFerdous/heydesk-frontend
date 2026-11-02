@@ -11,8 +11,8 @@ const SetupPage = () => import('./pages/setup/SetupPage.vue');
 const InboxPage = () => import('./pages/inbox/InboxPage.vue');
 const ConversationsPage = () => import('./pages/conversations/ConversationsPage.vue');
 const AgentPage = () => import('./pages/agent/AgentPage.vue');
-const ProfileSection = () => import('./pages/agent/ProfileSection.vue');
-const HoursSection = () => import('./pages/agent/HoursSection.vue');
+const BusinessSection = () => import('./pages/agent/BusinessSection.vue');
+const TalkSection = () => import('./pages/agent/TalkSection.vue');
 const AnswersSection = () => import('./pages/agent/AnswersSection.vue');
 const PaymentsSection = () => import('./pages/agent/PaymentsSection.vue');
 const BubbleSection = () => import('./pages/agent/BubbleSection.vue');
@@ -74,14 +74,17 @@ const router = createRouter({
       path: '/agent',
       component: AgentPage,
       meta: manager,
-      redirect: '/agent/profile',
+      redirect: '/agent/business',
       children: [
-        { path: 'profile', component: ProfileSection, meta: manager },
-        { path: 'hours', component: HoursSection, meta: manager },
+        { path: 'business', component: BusinessSection, meta: manager },
+        { path: 'talk', component: TalkSection, meta: manager },
         { path: 'answers', component: AnswersSection, meta: manager },
         { path: 'payments', component: PaymentsSection, meta: manager },
         { path: 'bubble', component: BubbleSection, meta: manager },
         { path: 'calls', component: CallsSection, meta: manager },
+        // Old links from before the sections were regrouped.
+        { path: 'profile', redirect: '/agent/business' },
+        { path: 'hours', redirect: '/agent/business' },
       ],
     },
     { path: '/menu', component: MenuPage, meta: owner },

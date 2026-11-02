@@ -267,14 +267,18 @@ charge and days, the districts as chips under them (their label for screen
 readers only), and the "paid online first" switch only once a payment account
 is connected, with one line saying so until then.
 
-**The chat preview shows on the profile and bubble sections** of Agent
+**The chat preview shows on the How it talks and bubble sections** of Agent
 settings (the name, greeting and look); the other sections use the full width.
 
 ## Settings and Menu
 
 `PageHeader` on the canvas, tabs on a white track under it.
 
-- **Agent settings**: under the title, the sections on one white track
+- **Agent settings**: under the title, the sections on one white track,
+  in setup order: Business (its details and opening hours), How it talks
+  (name, greeting, tone, hand-off, what it does), Answers (common questions,
+  saved replies), Delivery and payments (accounts, courier, areas, cash
+  orders, paying first), Chat bubble, Calls
   (an icon and the name, the open one lime with a filled icon, gap counts in
   orange), sticky while a long form scrolls; the tabs share the width from
   1024px and scroll sideways on a phone with the open one centred. Then the
@@ -287,7 +291,7 @@ settings (the name, greeting and look); the other sections use the full width.
   with the section's name and one line on what it holds; the form is
   `SettingsGroup`s ruled apart with the floating `SaveBar`, and a section
   settles in with a short fade. From 1280px a sticky **Preview** island
-  (`BubblePreview`) sits beside the profile and bubble sections, drawn from
+  (`BubblePreview`) sits beside the How it talks and bubble sections, drawn from
   their unsaved edits (`previewFrom` in `useAgentSection`, merged over the
   saved config in `AgentPage`); narrower, the bubble section keeps it inline.
 - **Menu** (Doctors, Products): one island. On top a grey search pill and the

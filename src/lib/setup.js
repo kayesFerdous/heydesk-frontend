@@ -8,10 +8,9 @@ export function whereToFix(item) {
   const text = item.toLowerCase();
   // "Connect SSLCommerz or bKash to take payments first." (backend D109)
   if (text.includes('sslcommerz') || text.includes('bkash') || text.includes('delivery')) return '/agent/payments';
-  if (text.includes('hours')) return '/agent/hours';
-  if (text.includes('phone') || text.includes('email') || text.includes('person')) return '/agent/hours';
+  if (text.includes('phone') || text.includes('email') || text.includes('person')) return '/agent/talk';
   if (text.includes('product')) return '/menu';
-  return '/agent/profile'; // address, services and anything new
+  return '/agent/business'; // address, hours, services and anything new
 }
 
 const LIST_WORDS = ['product'];
@@ -47,7 +46,7 @@ export function setupSteps({ missing, itemsLabel, triedIt, shared }) {
         ? details.map((item) => item.replace(/\.$/, '')).join('. ') + '.'
         : t('setupSteps.details.text'),
       done: details.length === 0,
-      to: details.length ? whereToFix(details[0]) : '/agent/profile',
+      to: details.length ? whereToFix(details[0]) : '/agent/business',
       action: t('setupSteps.details.action'),
     },
     {
