@@ -136,7 +136,7 @@ order's call line in the Inbox).
 
 2. Add the route in `src/router.js` with `meta: owner` (or `requiresAdmin`).
    Lazy-load it: `const ThingPage = () => import('./pages/<area>/ThingPage.vue');`
-3. Add it to `lib/navigation.js`: daily work goes in "Your desk", what the
+3. Add it to `lib/navigation.js`: daily work goes in "Daily work", what the
    business sells in "Your business", and a page set up once goes in the
    `setup` children of the Settings row (it folds open). Pick a Phosphor icon. The sidebar, the
    phone drawer and the phone tab bar all read this list. Its label is a
