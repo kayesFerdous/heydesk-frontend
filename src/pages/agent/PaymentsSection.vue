@@ -7,9 +7,7 @@
       <ul class="-mt-5 -mb-5">
         <ConnectionRow
           id="sslcommerz"
-          :icon="PhCreditCard"
-          tile="bg-hover text-ink"
-          weight="regular"
+          image="/logos/sslcommerz.svg"
           name="SSLCommerz"
           :line="sslcommerz ? inTest(t('payments.storeLine', { store: sslcommerz.store_id }), sslcommerz.sandbox) : t('payments.about.sslcommerz')"
           :live="liveOf(sslcommerz)"
@@ -20,9 +18,7 @@
         </ConnectionRow>
         <ConnectionRow
           id="bkash"
-          :icon="PhDeviceMobile"
-          tile="bg-hover text-ink"
-          weight="regular"
+          image="/logos/bkash.png"
           name="bKash"
           :line="bkash ? inTest(bkash.username, bkash.sandbox) : t('payments.about.bkash')"
           :live="liveOf(bkash)"
@@ -39,9 +35,8 @@
       <ul class="-mt-5 -mb-5">
         <ConnectionRow
           id="courier"
-          :icon="PhTruck"
-          tile="bg-hover text-ink"
-          weight="regular"
+          :image="courier ? `/logos/${courier.kind}.png` : ''"
+          :images="['/logos/steadfast.png', '/logos/pathao.png']"
           :name="courier ? (courier.kind === 'pathao' ? 'Pathao' : 'Steadfast') : t('courier.title')"
           :line="courier ? inTest(t('courier.linkedShort'), courier.sandbox) : t('payments.about.courier')"
           :live="liveOf(courier)"
@@ -141,6 +136,17 @@
         </div>
       </SettingsGroup>
 
+      <!-- Whether a cash order waits for the shop's call before it is sent (backend call_to_confirm). -->
+      <SettingsGroup v-if="hasCallToConfirm" :title="t('payments.cash')">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <label class="text-sm font-medium" for="call-to-confirm">{{ t('profile.fields.call_to_confirm.label') }}</label>
+            <p class="hint !mt-0.5">{{ form.call_to_confirm ? t('profile.fields.call_to_confirm.on') : t('profile.fields.call_to_confirm.off') }}</p>
+          </div>
+          <ToggleSwitch id="call-to-confirm" v-model="form.call_to_confirm" :label="t('profile.fields.call_to_confirm.label')"></ToggleSwitch>
+        </div>
+      </SettingsGroup>
+
       <SettingsGroup :title="t('payments.shop.title')" :tip="t('payments.shop.explain')">
         <!-- Paying first needs an account connected above: until then the switch
              stays away and one line says why. -->
@@ -173,7 +179,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhCreditCard, PhDeviceMobile, PhPlus, PhTrash, PhTruck, PhX } from '@phosphor-icons/vue';
+import { PhPlus, PhTrash, PhX } from '@phosphor-icons/vue';
 
 import ConnectionRow from '../../components/ui/ConnectionRow.vue';
 import FormProblems from '../../components/ui/FormProblems.vue';
@@ -186,6 +192,7 @@ import SslcommerzConnect from '../../components/agent/SslcommerzConnect.vue';
 import BkashConnect from '../../components/agent/BkashConnect.vue';
 import CourierConnect from '../../components/agent/CourierConnect.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
+import { useAgentStore } from '../../stores/agent.js';
 import { DISTRICTS } from '../../lib/districts.js';
 
 // Taka in the form, paisa in the API.
@@ -193,6 +200,10 @@ const toTaka = (paisa) => String((paisa || 0) / 100);
 const toPaisa = (taka) => Math.round(Number(taka || 0) * 100);
 
 const { t, locale } = useI18n();
+const agent = useAgentStore();
+
+// Only a desk that has the switch (a shop).
+const hasCallToConfirm = computed(() => 'call_to_confirm' in (agent.preset?.knowledge_schema.properties ?? {}));
 
 // A district's name in the console's language; the English one is saved.
 const districtLabel = (en) => (locale.value === 'bn' && DISTRICTS.find(([d]) => d === en)?.[1]) || en;
@@ -235,6 +246,7 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
       freeOver: toTaka(k.free_delivery_over),
       // A shop pays first per area (backend D92); this one switch is on if any area is.
       pay_first: !!k.pay_first || (k.delivery || []).some((z) => z.pay_first),
+      call_to_confirm: k.call_to_confirm ?? true,
     };
   },
   // Only this desk's own fields. Paying first stays as the owner left it while the
@@ -251,6 +263,7 @@ const { form, isDirty, isSaving, saveError, problems, savedNote, save, resetForm
         pay_first: payFirst,
       })),
       free_delivery_over: toPaisa(f.freeOver),
+      ...(hasCallToConfirm.value && { call_to_confirm: f.call_to_confirm }),
     };
   },
 });

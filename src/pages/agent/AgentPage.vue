@@ -3,7 +3,7 @@
     <!-- The frame around the settings sections: the sections on a track
          under the title, who the agent is and whether it answers, what is
          still missing, and on the
-         profile and bubble sections a preview of what a customer sees, drawn
+         talk and bubble sections a preview of what a customer sees, drawn
          from the form as it is edited. Each section (a child route) has its
          own form and Save.
          This comment stays inside <section>: one placed before it makes a
@@ -14,20 +14,20 @@
     <!-- The sections, on a white track under the title, staying in reach while
          a long form scrolls. Full width from 1024px; on a phone it scrolls
          sideways and keeps the open one in view. -->
-    <div v-if="!loadError" class="sticky top-[var(--sticky-top,0px)] z-20 -mx-1 bg-canvas px-1 pb-2">
+    <div v-if="!loadError" class="sticky top-[var(--sticky-top,0px)] z-20 bg-canvas pb-2">
       <nav
         ref="sectionNav"
-        class="flex gap-1 overflow-x-auto rounded-[var(--radius-panel)] border border-hairline bg-surface p-1.5 [scrollbar-width:none]"
+        class="flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-full border border-hairline bg-surface p-1 [scrollbar-width:none]"
         :aria-label="t('agent.sections')"
       >
         <router-link
           v-for="section in sections"
           :key="section.to"
           :to="section.to"
-          class="group inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-[var(--radius-control)] px-3.5 text-sm font-semibold whitespace-nowrap transition-colors duration-200 lg:flex-1"
+          class="group inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-semibold whitespace-nowrap transition-colors duration-200"
           :class="isOpen(section) ? 'is-open bg-lime text-ink' : 'text-ink-soft hover:bg-wash hover:text-ink'"
         >
-          <component :is="section.icon" :size="18" :weight="isOpen(section) ? 'fill' : 'regular'" class="shrink-0"></component>
+          <component :is="section.icon" :size="16" :weight="isOpen(section) ? 'fill' : 'regular'" class="shrink-0"></component>
           {{ section.label }}
           <span v-if="section.gaps" class="count count-attention" :aria-label="t('agent.toFillIn', { n: formatNumber(section.gaps) })">
             {{ formatNumber(section.gaps) }}
@@ -39,11 +39,11 @@
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
 
     <div v-else-if="!agent.config" class="flex flex-col gap-2" aria-hidden="true">
-      <div class="island flex items-center gap-4 p-5 sm:p-6">
-        <div class="skeleton h-14 w-14 !rounded-[var(--radius-card)]"></div>
+      <div class="island flex items-center gap-3 px-4 py-3 sm:px-5">
+        <div class="skeleton h-10 w-10 !rounded-[var(--radius-control)]"></div>
         <div class="flex-1">
-          <div class="skeleton h-5 w-40"></div>
-          <div class="skeleton mt-2.5 h-3.5 w-64 max-w-full"></div>
+          <div class="skeleton h-4 w-40"></div>
+          <div class="skeleton mt-2 h-3 w-64 max-w-full"></div>
         </div>
       </div>
       <div class="island px-4 py-3 sm:px-6">
@@ -60,28 +60,28 @@
     <div v-else class="flex flex-col gap-2">
       <!-- Who the agent is, whether it answers, and the two things done from
            here most: switch the AI off, copy the chat link. -->
-      <div class="island p-5 sm:p-6">
-        <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
-          <div class="flex min-w-0 flex-1 basis-72 items-center gap-4">
+      <div class="island px-4 py-3 sm:px-5">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div class="flex min-w-0 flex-1 basis-72 items-center gap-3">
             <img
               v-if="agent.config.widget?.logo"
               :src="agent.config.widget.logo"
               alt=""
-              class="h-14 w-14 shrink-0 rounded-[var(--radius-card)] border border-hairline bg-surface object-cover"
+              class="h-10 w-10 shrink-0 rounded-[var(--radius-control)] border border-hairline bg-surface object-cover"
             />
             <span
               v-else
-              class="grid h-14 w-14 shrink-0 place-items-center rounded-[var(--radius-card)] bg-ink text-lg font-bold text-lime"
+              class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-ink text-sm font-bold text-lime"
               aria-hidden="true"
             >
               {{ initials(agent.config.name) }}
             </span>
             <div class="min-w-0">
               <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                <h2 class="truncate text-xl leading-tight font-semibold tracking-[-0.02em]">{{ agent.config.name || t('nav.yourAgent') }}</h2>
+                <h2 class="truncate text-base leading-tight font-semibold tracking-[-0.015em]">{{ agent.config.name || t('nav.yourAgent') }}</h2>
                 <LiveStatus :paused="!answering" :label="t('agent.status.answering')" :paused-label="pausedLabel"></LiveStatus>
               </div>
-              <p class="mt-1 truncate text-sm text-ink-soft">
+              <p class="mt-0.5 truncate text-[0.8125rem] text-ink-soft">
                 {{ t('agent.forBusiness', { business: agent.config.business_name || t('common.businessName'), kind: serviceLabel(agent.kind) }) }}
               </p>
             </div>
@@ -90,14 +90,14 @@
           <div class="flex flex-wrap items-center gap-2 max-sm:w-full">
             <!-- The master switch for the whole agent: saved at once, so it is never lost in a form. -->
             <div
-              class="flex h-9 items-center gap-3 rounded-full border pr-1.5 pl-4 transition-colors max-sm:flex-1 max-sm:justify-between"
+              class="flex h-8 items-center gap-2 rounded-full border pr-1 pl-3 transition-colors max-sm:h-11 max-sm:flex-1 max-sm:justify-between max-sm:pr-2.5"
               :class="aiOn ? 'border-line-strong' : 'border-attention/40 bg-attention-tint/60'"
             >
-              <label class="text-sm font-semibold whitespace-nowrap" for="ai-on">{{ t('agent.aiOn.short') }}</label>
+              <label class="text-[0.8125rem] font-semibold whitespace-nowrap" for="ai-on">{{ t('agent.aiOn.short') }}</label>
               <ToggleSwitch id="ai-on" :model-value="aiOn" :label="t('agent.aiOn.title')" :disabled="savingAi" @update:model-value="saveAiOn"></ToggleSwitch>
             </div>
-            <button type="button" class="btn btn-secondary !rounded-full max-sm:flex-1" @click="copyLink">
-              <component :is="copied ? PhCheck : PhLink" :size="16" :weight="copied ? 'bold' : 'regular'"></component>
+            <button type="button" class="btn btn-secondary btn-sm !rounded-full max-sm:flex-1" @click="copyLink">
+              <component :is="copied ? PhCheck : PhLink" :size="14" :weight="copied ? 'bold' : 'regular'"></component>
               {{ copied ? t('common.copied') : t('home.copyChatLink') }}
             </button>
           </div>
@@ -105,7 +105,7 @@
 
         <p v-if="aiError" class="mt-3 text-sm text-danger" role="alert">{{ aiError }}</p>
         <!-- With the AI off, say plainly where the messages go now. -->
-        <p v-else-if="!aiOn" class="mt-4 flex items-start gap-2 text-sm text-ink" role="status">
+        <p v-else-if="!aiOn" class="mt-2.5 flex items-start gap-2 text-sm text-ink" role="status">
           <PhHandPalm :size="18" class="mt-px shrink-0 text-attention"></PhHandPalm>
           <span>
             {{ t('agent.aiOn.off') }}
@@ -115,12 +115,12 @@
 
         <!-- What the backend says is still missing, each a link to its field;
              once nothing is, one green line says so. -->
-        <div v-if="agent.missing.length" class="mt-5 rounded-[var(--radius-card)] bg-wash p-4" role="status">
+        <div v-if="agent.missing.length" class="mt-3 rounded-[var(--radius-card)] bg-wash p-3" role="status">
           <p class="flex items-center gap-2 text-sm font-semibold">
             <PhListChecks :size="18" class="shrink-0 text-attention"></PhListChecks>
             {{ t('agent.thingsLeft', { n: formatNumber(agent.missing.length) }, agent.missing.length) }}
           </p>
-          <ul class="mt-3 flex flex-wrap gap-2">
+          <ul class="mt-2 flex flex-wrap gap-2">
             <li v-for="item in agent.missing" :key="item">
               <router-link
                 :to="whereToFix(item)"
@@ -132,8 +132,8 @@
             </li>
           </ul>
         </div>
-        <p v-else class="mt-4 flex items-center gap-2 border-t border-hairline pt-4 text-sm text-ink-soft">
-          <PhCheckCircle :size="18" weight="fill" class="shrink-0 text-success"></PhCheckCircle>
+        <p v-else class="mt-3 flex items-center gap-2 border-t border-hairline pt-2.5 text-[0.8125rem] text-ink-soft">
+          <PhCheckCircle :size="16" weight="fill" class="shrink-0 text-success"></PhCheckCircle>
           {{ t('agent.ready') }}
         </p>
       </div>
@@ -142,12 +142,12 @@
         class="grid grid-cols-[minmax(0,1fr)] items-start gap-2"
         :class="{ 'xl:grid-cols-[minmax(0,1fr)_22rem]': showPreview }"
       >
-        <div class="island min-w-0 self-stretch px-4 pt-5 sm:px-6">
+        <div class="island min-w-0 self-stretch px-4 pt-4 sm:px-6">
           <!-- The open section's name and what it is for, so the form never starts cold. -->
-          <div v-if="openSection" class="mb-2 flex items-start gap-3 border-b border-hairline pb-4">
+          <div v-if="openSection" class="mb-1 flex items-start gap-3 border-b border-hairline pb-3">
             <div class="min-w-0">
-              <h2 class="text-lg leading-tight font-semibold tracking-[-0.015em]">{{ openSection.label }}</h2>
-              <p class="mt-1 text-sm text-ink-soft">{{ openSection.text }}</p>
+              <h2 class="text-base leading-tight font-semibold tracking-[-0.015em]">{{ openSection.label }}</h2>
+              <p class="mt-0.5 text-sm text-ink-soft">{{ openSection.text }}</p>
             </div>
           </div>
 
@@ -159,7 +159,7 @@
         </div>
 
         <!-- What a customer sees, following the form before it is saved. -->
-        <aside v-if="showPreview" class="island sticky top-[calc(var(--sticky-top,0px)+4.75rem)] hidden p-4 xl:block">
+        <aside v-if="showPreview" class="island sticky top-[calc(var(--sticky-top,0px)+3.5rem)] hidden p-4 xl:block">
           <div class="px-2 pt-1 pb-3">
             <h2 class="text-base font-semibold">{{ t('bubble.preview') }}</h2>
             <p class="text-sm text-ink-soft">{{ t('agent.previewText') }}</p>
@@ -178,15 +178,15 @@ import { useI18n } from 'vue-i18n';
 import {
   PhArrowRight,
   PhChatCircleDots,
+  PhChatCircleText,
   PhChatsCircle,
   PhCheck,
   PhCheckCircle,
-  PhClock,
   PhHandPalm,
-  PhIdentificationCard,
   PhLink,
   PhListChecks,
   PhPhoneCall,
+  PhStorefront,
   PhTruck,
 } from '@phosphor-icons/vue';
 
@@ -249,7 +249,7 @@ async function copyLink() {
 onBeforeUnmount(() => clearTimeout(copiedTimer));
 
 // The name, greeting and bubble change what the chat looks like, so those sections show the preview.
-const showPreview = computed(() => ['/agent/profile', '/agent/bubble'].includes(route.path));
+const showPreview = computed(() => ['/agent/talk', '/agent/bubble'].includes(route.path));
 
 // The open section's unsaved edits that the preview shows (useAgentSection's
 // previewFrom); anything not being edited comes from the saved config.
@@ -274,8 +274,8 @@ const preview = computed(() => {
 
 const sections = computed(() =>
   [
-    { to: '/agent/profile', icon: PhIdentificationCard, label: t('agent.profile'), text: t('agent.sectionText.profile') },
-    { to: '/agent/hours', icon: PhClock, label: t('agent.hours'), text: t('agent.sectionText.hours') },
+    { to: '/agent/business', icon: PhStorefront, label: t('agent.business'), text: t('agent.sectionText.business') },
+    { to: '/agent/talk', icon: PhChatCircleText, label: t('agent.talk'), text: t('agent.sectionText.talk') },
     { to: '/agent/answers', icon: PhChatsCircle, label: t('agent.answers'), text: t('agent.sectionText.answers') },
     { to: '/agent/payments', icon: PhTruck, label: t('agent.deliveryAndPayments'), text: t('agent.sectionText.payments') },
     { to: '/agent/bubble', icon: PhChatCircleDots, label: t('agent.bubble'), text: t('agent.sectionText.bubble') },

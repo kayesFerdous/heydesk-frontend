@@ -140,7 +140,8 @@ backend D92, and a shop has no `pay_first` of its own), `free_delivery_over`, `p
 and payments section sends the whole `delivery` with its districts (picked from a searchable
 list), with its one
 "pay first" switch on every area; the
-profile section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section.
+Business section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section;
+`call_to_confirm` is a switch under Cash on delivery, and `saved_replies` sits on the Answers section.
 
 Jobs: `order` (makes an `order` record) and `message` (makes a `request` record). The owner cannot toggle
 them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,

@@ -1,7 +1,7 @@
 # PRODUCT.md
 
-**HeyDesk** is the business owner's side of an AI front desk: set up the agent
-that answers customers by web chat or voice, then watch what it took.
+**HeyDesk** is the business owner's side of an AI front desk: set up the AI
+assistant that answers customers by web chat or voice, then watch what it took.
 
 > Written 4 Oct 2026 from the backend repo (`../heydesk`: README, PLAN,
 > CLAUDE.md, API routes) and the owner's brief. The audience, tone and
@@ -34,7 +34,7 @@ banner that says whose business it is; every change is in the audit log.
    job (`GET /api/inbox`).
 2. **Handle hand-offs.** A conversation flagged `needs_human` is a customer
    waiting for a person. Open it, read the transcript, act.
-3. **Read conversations.** Transcript of what the agent said, and the orders or
+3. **Read chats.** Transcript of what the assistant said, and the orders or
    messages that came out of it.
 4. **Keep the menu / services current.** Items, prices, availability, a CSV
    import. The preset names the list ("Menu", "Services").
@@ -79,12 +79,22 @@ banner that says whose business it is; every change is in the audit log.
 
 ## Brand and tone
 
-- Friendly, direct, short sentences. "Your agent is live." not "Agent
+- Friendly, direct, short sentences. "Your assistant is on." not "Agent
   deployment successful."
 - Calm confidence of a tool that handles money and customers: no hype, no
   gamification, no emoji in the UI.
 - Plain words over system words: "Menu", "Messages", "Opening hours", never
   "items payload", "workspace", "record".
+- **The owner is a non-technical seller.** On screen the agent is always the
+  **assistant** (Bangla **সহকারী**, never এজেন্ট, which reads as a bKash agent);
+  "agent" stays the word in code, routes and the API. Other screen names:
+  Documents (not Knowledge), Chats (not Conversations), Plan and payment (not
+  Billing), Upload (not Import), Update (not Sync), Welcome message (not
+  Greeting), and no "hand-off" ("a customer who wants a person").
+- **Bangla is plain spoken Bangla, not a word-for-word translation.** Use the
+  words sellers already say, English loanwords included: চ্যাট, মেসেজ, কাস্টমার,
+  কনফার্ম, এডিট, ডিসকানেক্ট, ইনভাইট. Avoid bookish words (কথোপকথন, বার্তা,
+  গ্রাহক, পরিশোধিত, পূর্ণসংখ্যা, হস্তান্তর).
 
 ## Anti-references
 

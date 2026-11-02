@@ -56,6 +56,7 @@
           :aria-checked="kind === value"
           @click="kind = value; error = null"
         >
+          <img :src="`/logos/${value}.png`" alt="" class="h-4 w-4 object-contain" />
           {{ name }}
         </button>
       </div>
