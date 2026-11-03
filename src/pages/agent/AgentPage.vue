@@ -260,10 +260,9 @@ const preview = computed(() => {
   const config = agent.config;
   const widget = config.widget || {};
   const pick = (key, saved) => (key in draft ? draft[key] : saved);
-  const businessName = pick('business_name', config.business_name) || '';
   return {
     name: pick('name', config.name),
-    greeting: (pick('greeting', config.greeting) || '').replaceAll('{business_name}', businessName),
+    greeting: (pick('greeting', config.greeting) || '').replaceAll('{business_name}', pick('business_name', config.business_name) || ''),
     colour: pick('colour', widget.colour || SWATCHES[0]),
     side: pick('side', widget.side || 'right'),
     nudge: pick('nudge', widget.nudge ?? ''),
