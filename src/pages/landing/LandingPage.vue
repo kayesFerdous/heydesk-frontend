@@ -1,185 +1,114 @@
 <template>
-  <!-- The front door for visitors who are not signed in. Same world as the
-       app: white islands on the grey canvas, black only where you can act. The proof
-       is the product itself (LandingDemo), never invented customers. -->
-  <div class="min-h-dvh bg-canvas">
-    <header class="sticky top-0 z-30 bg-canvas/90 backdrop-blur-sm transition-shadow duration-300" :class="{ 'shadow-[var(--shadow-lift)]': scrolled }">
-      <nav class="wrap flex h-16 items-center gap-6" :aria-label="t('shell.mainNav')">
-        <router-link to="/" :aria-label="t('landing.home')"><BrandMark></BrandMark></router-link>
-        <div class="hidden items-center gap-6 text-sm text-ink-soft md:flex">
-          <a href="#how" class="nav-link">{{ t('landing.nav.how') }}</a>
-          <a href="#features" class="nav-link">{{ t('landing.nav.features') }}</a>
-          <a href="#setup" class="nav-link">{{ t('landing.nav.setup') }}</a>
+  <!-- The front door for visitors who are not signed in, told as a story the
+       scroll runs: the desk at night, what customers ask, how an order is
+       made, what else it does, when it needs a person, setup, the close.
+       Same world as the app: black for the action, lime for "you are here".
+       The proof is the product itself, labelled as an example, never
+       invented customers. -->
+  <div class="landing min-h-dvh bg-canvas">
+    <!-- How far down the page you are. -->
+    <span class="page-progress" :style="{ transform: `scaleX(${pageProgress})` }" aria-hidden="true"></span>
+
+    <!-- A floating pill: it steps aside while you read down, and comes back
+         as soon as you scroll up. The section you are in is marked lime. -->
+    <header class="site-header" :class="{ 'is-away': away, 'is-scrolled': scrolled }">
+      <nav class="flex h-14 items-center gap-2 rounded-full bg-surface/95 pr-2 pl-5 backdrop-blur-md sm:gap-6" :aria-label="t('shell.mainNav')">
+        <router-link to="/" class="shrink-0" :aria-label="t('landing.home')"><BrandMark></BrandMark></router-link>
+        <div class="hidden items-center gap-1 text-sm md:flex">
+          <a v-for="link in LINKS" :key="link" :href="`#${link}`" class="nav-link" :class="{ 'is-here': here === link }">
+            {{ t(`landing.nav.${link}`) }}
+          </a>
         </div>
-        <div class="ml-auto flex items-center gap-2">
+        <div class="ml-auto flex items-center gap-1">
           <router-link to="/sign-in" class="btn btn-quiet btn-sm">{{ t('common.signIn') }}</router-link>
-          <router-link :to="signUp" class="btn btn-secondary btn-sm">{{ t('landing.getStarted') }}</router-link>
+          <router-link :to="signUp" class="btn btn-primary btn-sm rounded-full">{{ t('landing.getStarted') }}</router-link>
         </div>
       </nav>
     </header>
 
-    <!-- Every band is an island on the grey canvas, like the console: white
-         for reading, lime for the demo, black for the hand-off and the close. -->
-    <main class="flex flex-col gap-3 px-3">
-      <!-- Opening: the offer in one line, one action, then the mechanism at work. -->
-      <section class="island pt-12 pb-12 sm:pt-16">
-        <div class="wrap">
-        <div class="max-w-[58rem]">
-          <h1 class="enter text-[2.125rem] leading-[1.04] font-extrabold tracking-[-0.04em] text-balance sm:text-[3.25rem] xl:text-[3.5rem]">
-            {{ t('landing.hero') }}
-          </h1>
-          <p class="enter mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft" style="--i: 1">
-            {{ t('landing.heroText') }}
-          </p>
-          <div class="enter mt-8 flex flex-wrap items-center gap-x-6 gap-y-4" style="--i: 2">
-            <router-link :to="signUp" class="btn btn-primary btn-lg">
-              {{ t('signIn.signupTitle') }}
-              <PhArrowRight :size="18" weight="bold"></PhArrowRight>
-            </router-link>
-            <p class="text-sm text-ink-soft">{{ t('landing.fiveMinutes') }}</p>
-          </div>
-        </div>
+    <main>
+      <!-- The opening. From 1024px it pins and recedes as the next band
+           slides up over it. -->
+      <div ref="opening" class="relative">
+        <div class="hero-pin">
+          <section class="hero" :class="{ 'is-shown': ready }" :style="heroStyle" @pointermove="spot">
+            <span class="dots" aria-hidden="true"></span>
+            <span class="dots dots-lit" :style="{ '--x': `${light.x}px`, '--y': `${light.y}px` }" aria-hidden="true"></span>
 
-        <!-- Every channel into one agent, and on into the inbox. -->
-        <div class="enter mt-14 sm:mt-16" style="--i: 3">
-          <ChannelFlow></ChannelFlow>
-        </div>
-      </div>
-      </section>
-
-      <section class="rounded-[var(--radius-panel)] bg-lime py-8 sm:py-10" :aria-label="t('landing.seeItWork')">
-        <div class="wrap">
-          <LandingDemo></LandingDemo>
-        </div>
-      </section>
-
-      <!-- The one idea a competitor cannot copy: the model talks, the system decides. -->
-      <section id="how" class="island scroll-mt-20 py-20 sm:py-28">
-        <div class="wrap">
-        <div class="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
-          <div class="lg:sticky lg:top-28 lg:self-start">
-            <h2 class="section-heading">{{ t('landing.howTitle') }}</h2>
-            <p class="mt-5 max-w-md leading-relaxed text-ink-soft">{{ t('landing.howText') }}</p>
-          </div>
-
-          <!-- The split, shown: the reply's words arrive with blanks, and each
-               number is stamped in from the sum worked out from the menu. -->
-          <PriceStamp></PriceStamp>
-        </div>
-      </div>
-      </section>
-
-      <!-- Beyond the demo: what else the same agent does, each with its own example. -->
-      <section id="features" class="island scroll-mt-20 py-20 sm:py-28">
-        <div class="wrap">
-          <div class="max-w-2xl">
-            <h2 class="section-heading">{{ t('landing.tourTitle') }}</h2>
-            <p class="mt-5 leading-relaxed text-ink-soft">{{ t('landing.tourText') }}</p>
-          </div>
-          <div class="mt-12 lg:mt-4">
-            <CapabilityTour></CapabilityTour>
-          </div>
-        </div>
-      </section>
-
-      <!-- When it needs a person: the customer's chat and the owner's phone,
-           played on one clock (v-reveal on the grid) in the order it happens. -->
-      <section class="rounded-[var(--radius-panel)] bg-night text-white">
-        <div v-reveal class="handoff wrap grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2 lg:gap-20">
-          <div>
-            <h2 class="section-heading">{{ t('landing.handoffTitle') }}</h2>
-            <p class="mt-5 max-w-md leading-relaxed text-night-soft">{{ t('landing.handoffText') }}</p>
-
-            <!-- The owner's phone: the alert buzzes in, the reply goes back. -->
-            <div class="phone mt-10" role="group" :aria-label="t('landing.handoffPhone')">
-              <div class="phone-screen">
-                <span class="notch" aria-hidden="true"></span>
-                <div class="handoff-beat drop rounded-[var(--radius-thumb)] bg-surface p-3 shadow-[var(--shadow-lift)]" style="--b: 2">
-                  <p class="flex items-center gap-1.5 text-[0.6875rem] font-semibold text-ink-soft">
-                    <PhTelegramLogo :size="14" weight="fill" class="shrink-0 text-telegram"></PhTelegramLogo>
-                    {{ t('landing.handoffAlertApp') }}
-                    <span class="ml-auto font-normal">{{ t('landing.handoffNow') }}</span>
-                  </p>
-                  <p class="mt-1 text-[0.8125rem] leading-snug text-ink">
-                    {{ t('landing.handoffAlert', { name: 'Nusrat Jahan', phone: '01712 345678' }) }}
-                  </p>
+            <div class="hero-inner wrap" :style="innerStyle">
+              <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
+                <div>
+                  <h1 class="hero-title">
+                    <SplitWords tag="span" :text="t('landing.heroLead')" class="block"></SplitWords>
+                    <SplitWords tag="span" :text="t('landing.heroMark')" :from="leadWords" class="block text-lime"></SplitWords>
+                  </h1>
+                  <p class="rise mt-7 max-w-xl text-lg leading-relaxed text-night-soft" style="--i: 1">{{ t('landing.heroText') }}</p>
+                  <div class="rise mt-9 flex flex-wrap items-center gap-x-6 gap-y-4" style="--i: 2">
+                    <router-link v-magnetic :to="signUp" class="btn btn-lime btn-lg">
+                      {{ t('signIn.signupTitle') }}
+                      <PhArrowRight :size="18" weight="bold"></PhArrowRight>
+                    </router-link>
+                    <p class="text-sm text-night-soft">{{ t('landing.fiveMinutes') }}</p>
+                  </div>
                 </div>
-                <p class="handoff-beat mt-auto max-w-[88%] self-end rounded-[var(--radius-card)] rounded-br-md bg-telegram px-3 py-2 text-[0.8125rem] leading-snug text-white" style="--b: 3">
-                  {{ t('landing.handoffTeam') }}
-                </p>
-                <p class="handoff-beat flex items-center gap-1 self-end text-[0.6875rem] text-ink-soft" style="--b: 3.6">
-                  <PhChecks :size="13" weight="bold" class="shrink-0 text-telegram"></PhChecks>
-                  {{ t('landing.handoffSent') }}
-                </p>
+                <HeroDesk class="rise" style="--i: 3"></HeroDesk>
               </div>
-            </div>
-          </div>
 
-          <figure class="rounded-[var(--radius-card)] bg-surface text-ink" :aria-label="t('landing.handoffExample')">
-            <div class="flex items-center justify-between border-b border-hairline px-5 py-3.5">
-              <div>
-                <p class="text-sm font-semibold">Nusrat Jahan</p>
-                <p class="text-xs text-ink-soft">{{ t('landing.handoffWhen') }}</p>
-              </div>
-              <StatusChip status="needs_human"></StatusChip>
-            </div>
-            <!-- The ask, the agent's promise, the alert to the owner, and the
-                 owner's reply arriving from the phone. -->
-            <div class="flex flex-col gap-3 bg-wash px-5 py-5">
-              <div class="handoff-beat notice items-center" style="--b: 2">
-                <PhUserSound :size="20" weight="bold" class="shrink-0 text-attention"></PhUserSound>
-                <div class="min-w-0 flex-1">
-                  <p class="font-semibold text-ink">{{ t('conversations.askedForPerson', { name: 'Nusrat Jahan' }) }}</p>
-                  <p class="mt-0.5 text-ink-soft">{{ t('conversations.callToPickUp', { phone: '01712 345678' }) }}</p>
-                </div>
-              </div>
-              <p class="handoff-beat max-w-[85%] self-start rounded-[var(--radius-card)] rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline" style="--b: 0">
-                {{ t('landing.handoffAsk') }}
+              <!-- Where it answers. -->
+              <p class="rise mt-12 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-night-soft lg:mt-14" style="--i: 4">
+                <span>{{ t('landing.answersOn') }}</span>
+                <span v-for="channel in CHANNELS" :key="channel.id" class="inline-flex items-center gap-1.5 text-white">
+                  <component :is="channel.icon" :size="16" weight="fill"></component>
+                  {{ t(`landing.channels.${channel.id}.name`) }}
+                </span>
               </p>
-              <p class="handoff-beat max-w-[85%] self-end rounded-[var(--radius-card)] rounded-tr-md bg-brand-tint px-4 py-2.5 text-sm text-ink" style="--b: 1">
-                {{ t('landing.handoffReply', { phone: '01712 345678' }) }}
-              </p>
-              <div class="handoff-beat from-phone max-w-[85%] self-end" style="--b: 4.2">
-                <p class="mb-1 flex items-center justify-end gap-1.5 text-xs text-ink-soft">
-                  <PhTelegramLogo :size="14" weight="fill" class="text-telegram"></PhTelegramLogo>
-                  {{ t('chat.fromTeam') }}
-                </p>
-                <p class="rounded-[var(--radius-card)] rounded-tr-md bg-surface px-4 py-2.5 text-sm text-ink ring-1 ring-hairline">
-                  {{ t('landing.handoffTeam') }}
-                </p>
-              </div>
             </div>
-            <figcaption class="border-t border-hairline px-5 py-3">
-              <ExampleTag></ExampleTag>
-            </figcaption>
-          </figure>
+          </section>
+        </div>
+
+        <!-- The band that slides over the opening: what customers ask, then
+             what HeyDesk does about it, read at the pace of the scroll. -->
+        <section class="cover">
+          <AskMarquee></AskMarquee>
+          <div class="wrap mt-24 sm:mt-32">
+            <ScrollWords :text="t('landing.manifesto')" class="max-w-[64rem]"></ScrollWords>
+          </div>
+        </section>
+      </div>
+
+      <div id="how" class="scroll-mt-0">
+        <OrderStory></OrderStory>
+      </div>
+
+      <div id="features">
+        <CapabilityRail></CapabilityRail>
+      </div>
+
+      <section class="band mx-3 bg-night py-24 text-white sm:py-32">
+        <div class="wrap">
+          <HandoffScene></HandoffScene>
         </div>
       </section>
 
-      <!-- Setup -->
-      <section id="setup" class="island scroll-mt-20">
-        <div class="wrap py-20 sm:py-28">
-          <div class="max-w-2xl">
-            <h2 class="section-heading">{{ t('landing.setupTitle') }}</h2>
+      <section id="setup" class="scroll-mt-16 py-24 sm:py-32">
+        <div class="wrap">
+          <div v-reveal class="max-w-2xl">
+            <SplitWords :text="t('landing.setupTitle')" class="section-title"></SplitWords>
             <p class="mt-5 leading-relaxed text-ink-soft">{{ t('landing.setupText') }}</p>
           </div>
-
-          <!-- The steps played out: each one builds the agent beside it. -->
-          <div class="mt-12">
+          <div v-reveal="{ delay: 150 }" class="band mt-12 bg-surface p-5 ring-1 ring-hairline sm:p-8">
             <SetupLive></SetupLive>
           </div>
         </div>
       </section>
 
-      <!-- Close: the promise, the action, and the night it covers. -->
-      <section class="rounded-[var(--radius-panel)] bg-night py-24 text-white sm:py-32">
-        <div class="wrap grid items-center gap-12 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-20">
-          <div v-reveal class="flex flex-col items-start gap-8">
-            <h2 class="max-w-2xl text-[2rem] leading-[1.1] font-extrabold tracking-[-0.03em] text-balance sm:text-[2.75rem]">
-              {{ t('landing.closeTitle') }}
-            </h2>
+      <!-- The close: the promise, the action, and the night it covers. -->
+      <section class="band mx-3 bg-night py-24 text-white sm:py-32">
+        <div class="wrap grid items-center gap-14 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-20">
+          <div v-reveal class="flex flex-col items-start gap-9">
+            <SplitWords :text="t('landing.closeTitle')" class="close-title"></SplitWords>
             <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-              <router-link :to="signUp" class="btn btn-lime btn-lg">
+              <router-link v-magnetic :to="signUp" class="btn btn-lime btn-lg">
                 {{ t('signIn.signupTitle') }}
                 <PhArrowRight :size="18" weight="bold"></PhArrowRight>
               </router-link>
@@ -191,51 +120,138 @@
       </section>
     </main>
 
-    <footer>
-      <div class="wrap flex flex-col gap-4 py-8 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between">
-        <BrandMark></BrandMark>
+    <!-- The name, rising letter by letter as the page reaches its end. -->
+    <footer ref="footer" class="overflow-hidden pt-16">
+      <div class="wrap flex flex-col gap-6 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between">
         <p>{{ t('landing.footer', { year: formatNumber(year, { useGrouping: false }) }) }}</p>
+        <div class="flex flex-wrap gap-x-6 gap-y-2">
+          <a v-for="link in LINKS" :key="link" :href="`#${link}`" class="nav-foot">{{ t(`landing.nav.${link}`) }}</a>
+          <router-link to="/sign-in" class="nav-foot">{{ t('common.signIn') }}</router-link>
+        </div>
       </div>
+      <p class="wordmark" aria-hidden="true">
+        <span v-for="(letter, index) in wordmark" :key="index" :style="{ transform: `translateY(${letterRise(index)}%)` }">{{ letter }}</span>
+      </p>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, watchEffect, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { PhArrowRight, PhChecks, PhTelegramLogo, PhUserSound } from '@phosphor-icons/vue';
+import { PhArrowRight, PhChatCircle, PhMessengerLogo, PhMicrophone, PhTelegramLogo, PhWhatsappLogo } from '@phosphor-icons/vue';
 
 import BrandMark from '../../components/ui/BrandMark.vue';
-import StatusChip from '../../components/ui/StatusChip.vue';
-import LandingDemo from '../../components/landing/LandingDemo.vue';
-import CapabilityTour from '../../components/landing/CapabilityTour.vue';
-import ChannelFlow from '../../components/landing/ChannelFlow.vue';
-import SetupLive from '../../components/landing/SetupLive.vue';
-import ExampleTag from '../../components/landing/ExampleTag.vue';
+import AskMarquee from '../../components/landing/AskMarquee.vue';
+import CapabilityRail from '../../components/landing/CapabilityRail.vue';
+import HandoffScene from '../../components/landing/HandoffScene.vue';
+import HeroDesk from '../../components/landing/HeroDesk.vue';
 import NightShift from '../../components/landing/NightShift.vue';
-import PriceStamp from '../../components/landing/PriceStamp.vue';
+import OrderStory from '../../components/landing/OrderStory.vue';
+import ScrollWords from '../../components/landing/ScrollWords.vue';
+import SetupLive from '../../components/landing/SetupLive.vue';
+import SplitWords from '../../components/landing/SplitWords.vue';
+import vMagnetic from '../../directives/magnetic.js';
 import vReveal from '../../directives/reveal.js';
+import { useScrollProgress } from '../../composables/useScrollProgress.js';
 import { formatNumber } from '../../lib/format.js';
 
+const LINKS = ['how', 'features', 'setup'];
+const CHANNELS = [
+  { id: 'web', icon: PhChatCircle },
+  { id: 'whatsapp', icon: PhWhatsappLogo },
+  { id: 'messenger', icon: PhMessengerLogo },
+  { id: 'telegram', icon: PhTelegramLogo },
+  { id: 'voice', icon: PhMicrophone },
+];
 
 const { t } = useI18n();
 
 const signUp = { path: '/sign-in', query: { mode: 'signup' } };
 const year = new Date().getFullYear();
-// The header gets its hairline once the page moves under it.
+
+// The opening's words rise in once the page has drawn.
+const ready = ref(false);
+const leadWords = computed(() => t('landing.heroLead').split(' ').length);
+
+// As the opening scrolls away (one screen), it shrinks back and dims.
+const opening = ref(null);
+// Under reduced motion it stays as it is.
+const { progress: leaving, reduce } = useScrollProgress(opening, { start: 0, end: -1 });
+const heroStyle = computed(() =>
+  reduce ? null : { transform: `scale(${1 - 0.07 * leaving.value})`, borderRadius: `${2 + leaving.value * 1.5}rem` }
+);
+const innerStyle = computed(() =>
+  reduce ? null : { transform: `translateY(${-leaving.value * 6}rem)`, opacity: 1 - leaving.value * 0.9 }
+);
+
+// A soft light over the dot grid follows the pointer.
+const light = reactive({ x: 900, y: 260 });
+function spot(event) {
+  const box = event.currentTarget.getBoundingClientRect();
+  light.x = event.clientX - box.left;
+  light.y = event.clientY - box.top;
+}
+
+// The header and the progress line follow the page.
 const scrolled = ref(false);
+const away = ref(false);
+const pageProgress = ref(0);
+const here = ref('');
+let lastY = 0;
+let frame = null;
+
+// The footer's letters rise as the last stretch of the page goes by.
+const footer = ref(null);
+const footerIn = ref(0);
+const wordmark = computed(() => [...t('landing.wordmark')]);
+const letterRise = (index) => {
+  if (reduce) return 0;
+  const own = Math.min(1, Math.max(0, footerIn.value * 1.5 - index * 0.07));
+  return (1 - own) * 100;
+};
+
+function measure() {
+  frame = null;
+  const y = window.scrollY;
+  const end = document.documentElement.scrollHeight - window.innerHeight;
+  scrolled.value = y > 8;
+  // It steps aside on the way down, past the first screen, and comes back on the way up.
+  if (Math.abs(y - lastY) > 6) away.value = y > lastY && y > window.innerHeight * 0.8;
+  lastY = y;
+  pageProgress.value = end > 0 ? y / end : 0;
+  if (footer.value) {
+    footerIn.value = Math.min(1, Math.max(0, 1 - (end - y) / footer.value.offsetHeight));
+  }
+}
 
 function onScroll() {
-  scrolled.value = window.scrollY > 8;
+  if (frame === null) frame = requestAnimationFrame(measure);
+}
+
+// The section crossing the middle of the screen is marked in the header.
+let observer = null;
+function onCross(entries) {
+  for (const entry of entries) {
+    if (entry.isIntersecting) here.value = entry.target.id;
+    else if (here.value === entry.target.id) here.value = '';
+  }
 }
 
 watchEffect(() => (document.title = t('landing.pageTitle')));
+
 onMounted(() => {
+  requestAnimationFrame(() => requestAnimationFrame(() => (ready.value = true)));
   window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  measure();
+  observer = new IntersectionObserver(onCross, { rootMargin: '-50% 0px -50% 0px' });
+  LINKS.forEach((id) => observer.observe(document.getElementById(id)));
 });
+
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll);
+  if (frame !== null) cancelAnimationFrame(frame);
+  observer.disconnect();
   document.title = 'HeyDesk';
 });
 </script>
@@ -254,139 +270,224 @@ onBeforeUnmount(() => {
   }
 }
 
-.section-heading {
-  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
+/* The landing page's bands are rounder than the console's islands: they
+   are as wide as the screen. */
+.band {
+  border-radius: 2rem;
 }
 
-/* Bengali's joined letters and vowel signs need normal spacing and taller lines. */
-.section-heading:lang(bn) {
-  line-height: 1.35;
-  letter-spacing: normal;
+.page-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  height: 3px;
+  background-color: var(--color-lime);
+  transform-origin: left;
+}
+
+/* The header: a white pill floating over the page. */
+.site-header {
+  position: fixed;
+  inset: 0.75rem 0.75rem auto;
+  z-index: 40;
+  max-width: 64rem;
+  margin-inline: auto;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgb(17 17 17 / 0.06);
+  transition:
+    transform 0.5s var(--ease-settle),
+    box-shadow 0.3s var(--ease-settle);
+}
+
+.site-header.is-scrolled {
+  box-shadow: var(--shadow-float);
+}
+
+.site-header.is-away {
+  transform: translateY(calc(-100% - 1.5rem));
+}
+
+@media (min-width: 1024px) {
+  .site-header {
+    inset-inline: 1.5rem;
+  }
 }
 
 .nav-link {
-  transition: color 150ms;
+  position: relative;
+  border-radius: 9999px;
+  padding: 0.375rem 0.875rem;
+  color: var(--color-ink-soft);
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 }
 
 .nav-link:hover {
   color: var(--color-ink);
 }
 
+/* Lime is "you are here": the section the page is in. */
+.nav-link.is-here {
+  background-color: var(--color-lime);
+  color: var(--color-ink);
+}
+
+.nav-foot:hover {
+  color: var(--color-ink);
+}
+
 .btn-lg {
-  height: 3rem;
-  padding-inline: 1.25rem;
-  font-size: 0.9375rem;
+  height: 3.25rem;
+  padding-inline: 1.5rem;
+  border-radius: 9999px;
+  font-size: 1rem;
 }
 
-/* The hand-off plays in order once its panel arrives, 0.7s a beat. */
-.handoff.reveal .handoff-beat {
-  transition:
-    opacity 0.5s var(--ease-settle),
-    transform 0.5s var(--ease-settle);
-  transition-delay: calc(0.5s + var(--b) * 0.7s);
+/* The opening: a black band the height of the screen. */
+.hero-pin {
+  padding: 0.75rem;
 }
 
-.handoff.reveal:not(.is-shown) .handoff-beat {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-/* The alert drops in from the top of the phone; the owner's reply arrives in
-   the chat from the phone's side. */
-.handoff.reveal:not(.is-shown) .drop {
-  transform: translateY(-14px);
-}
-
-.handoff.reveal:not(.is-shown) .from-phone {
-  transform: translate(-20px, -6px);
-}
-
-/* The owner's phone, drawn plainly: a black frame round a light screen. */
-.phone {
-  width: 100%;
-  max-width: 17rem;
-  border-radius: 2.25rem;
-  background-color: #000;
-  padding: 0.5rem;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.14);
-}
-
-.phone-screen {
+.hero {
+  position: relative;
   display: flex;
-  min-height: 16rem;
+  min-height: calc(100dvh - 1.5rem);
   flex-direction: column;
-  gap: 0.5rem;
-  border-radius: 1.75rem;
-  background-color: var(--color-wash);
-  padding: 2.25rem 0.75rem 1rem;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 2rem;
+  background-color: var(--color-night);
+  padding-top: 7rem;
+  padding-bottom: 3rem;
+  color: #fff;
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+
+@media (min-width: 1024px) {
+  .hero-pin {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+  }
+
+  .hero {
+    height: 100%;
+    min-height: 0;
+    padding-top: 5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+.hero-inner {
   position: relative;
 }
 
-.notch {
+.hero-title {
+  font-size: clamp(2.5rem, min(6.6vw, 9.4vh), 5.5rem);
+  line-height: 0.98;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+}
+
+.hero-title:lang(bn) {
+  line-height: 1.3;
+  letter-spacing: normal;
+}
+
+/* A dot grid over the black, brighter in a circle round the pointer. */
+.dots {
   position: absolute;
-  top: 0.625rem;
-  left: 50%;
-  width: 4.5rem;
-  height: 1.125rem;
-  border-radius: 9999px;
-  background-color: #000;
-  transform: translateX(-50%);
+  inset: 0;
+  background-image: radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1.5px);
+  background-size: 26px 26px;
+  pointer-events: none;
 }
 
-/* It buzzes as the alert arrives, the same beat as the orange pulse. */
-.handoff.reveal.is-shown .phone {
-  animation: buzz 0.6s linear both;
-  animation-delay: calc(0.5s + 2 * 0.7s);
+.dots-lit {
+  background-image: radial-gradient(rgb(212 243 107 / 0.55) 1px, transparent 1.5px);
+  mask-image: radial-gradient(22rem circle at var(--x) var(--y), #000, transparent 70%);
 }
 
-@keyframes buzz {
-  0%,
-  100% {
-    transform: none;
-  }
-  10%,
-  50%,
-  90% {
-    transform: translateX(-2px) rotate(-1.2deg);
-  }
-  30%,
-  70% {
-    transform: translateX(2px) rotate(1.2deg);
+/* The band that slides up over the opening. */
+.cover {
+  position: relative;
+  z-index: 10;
+  border-radius: 2rem 2rem 0 0;
+  background-color: var(--color-canvas);
+  padding-top: 5rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 1024px) {
+  .cover {
+    box-shadow: 0 -40px 80px -40px rgb(0 0 0 / 0.45);
   }
 }
 
-/* The owner's alert lands with a pulse of orange: someone is waiting. */
-.handoff.reveal.is-shown .notice.handoff-beat {
-  animation: alert 1.2s ease-out both;
-  animation-delay: calc(0.5s + var(--b) * 0.7s);
+.section-title {
+  font-size: clamp(1.75rem, 1.2rem + 1.8vw, 3rem);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
 }
 
-@keyframes alert {
-  0% {
-    box-shadow: 0 0 0 0 var(--color-attention-bright);
-  }
-  100% {
-    box-shadow: 0 0 0 10px rgb(255 138 61 / 0);
-  }
+.close-title {
+  max-width: 40rem;
+  font-size: clamp(2.25rem, 1.4rem + 3vw, 4.25rem);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
-/* The opening settles in once, a beat apart: headline, line, action, demo. */
+.section-title:lang(bn),
+.close-title:lang(bn) {
+  line-height: 1.35;
+  letter-spacing: normal;
+}
+
+.wordmark {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 2rem;
+  font-size: 23vw;
+  line-height: 0.78;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  color: var(--color-ink);
+  user-select: none;
+}
+
+.wordmark span {
+  display: inline-block;
+  padding-bottom: 0.08em;
+  will-change: transform;
+}
+
+/* The rest of the opening settles in once, a beat after the headline. */
 @media (prefers-reduced-motion: no-preference) {
-  .enter {
-    animation: enter 0.8s var(--ease-settle) both;
-    animation-delay: calc(0.08s + var(--i, 0) * 0.1s);
+  .rise {
+    animation: rise 1s var(--ease-settle) both;
+    animation-delay: calc(0.45s + var(--i, 0) * 0.12s);
   }
 }
 
-@keyframes enter {
+@keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
-    filter: blur(4px);
+    transform: translateY(18px);
+    filter: blur(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .hero {
+    transition: none;
   }
 }
 </style>
