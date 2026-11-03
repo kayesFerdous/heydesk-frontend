@@ -340,106 +340,76 @@ for the action, lime for the signature.
   (done black, current lime). The kinds of agent are rounded grey rows, the
   chosen one pale lime. The last step puts the live chat beside the chat
   link and a notice listing what is still to fill in.
-- **Landing** (`/`): every band an island on the canvas: white for reading,
-  lime behind the demo, black for "When it needs a person" and the close
-  (whose button is lime). The headline is the one place type goes large.
-  - **Proof is the product.** `LandingDemo` plays the mechanism: the customer
-    asks, the agent reads it back with the total (and a caption saying where
-    the number came from), the customer says yes, a green "Confirmed by the
-    customer" seal thuds down beside the yes, and only then does the order
-    leave the chat as a white ticket (initials, name, amount) that arcs over
-    to the inbox and lands there, lit in pale lime for a beat. A segmented
-    control switches restaurant, clinic, online shop (the customer sends a
-    photo first) and front office; on a phone the track scrolls sideways.
-    Labelled with `ExampleTag`, as every example on the page is (one info
-    icon and "An example, not real customers", the same everywhere). Under
-    reduced motion it shows the finished story.
-  - **The opening picture** (`ChannelFlow`, in the hero island under the
-    action): five channel buttons wired into a black agent tile, wired on to
-    four tiles (Orders, Messages, Answered, Needs a person). A message rides
-    its channel's wire as a black chip, inking the wire behind it; the agent
-    ticks off what it checks ("Checking your menu", "৳900, added up from your
-    prices") with a lime ring breathing while it works; the result rides out
-    as a lime chip and the tile's count rolls up like an odometer (orange for
-    a person). A lock sits where the wire meets Orders: grey and shut, it
-    turns lime and opens only after "The customer said yes", lets the order
-    through, and shuts again. It plays
-    one channel after another while on screen; a tap sends that channel's
-    message now. Across from 768px, top to bottom on a phone. Under reduced
-    motion a tap shows the result at once.
-  - **How it decides** (`PriceStamp`, beside "The AI talks. Your prices
-    decide."): the split, played once when it comes into view. The customer
-    asks; "HeyDesk is adding it up" while each line of a sum from the menu
-    (two dishes, food, delivery, total) lights pale lime in turn; the agent's
-    reply arrives with dashed blanks where the numbers go. Then each number
-    lifts off the sum, rises to just above its blank, scaled up, and presses
-    into it as a lime pill (a squash and a lime ring). A key says who did
-    what: the model writes the words, HeyDesk works out every number. The
-    sums are added up in the component from the prices, never typed in.
-    Under reduced motion it shows the finished state.
-  - **What it can do** (`CapabilityTour`, after "How it decides"): five rows
-    (a product found from a photo, delivery and payment, a call to confirm a
-    cash order, an answer from the owner's documents, a reply in Bangla,
-    Banglish or English), each with a small example (`CapabilityScene`). On a
-    wide screen the example sits sticky beside the list and changes as a row
-    crosses the middle of the screen; the open row's marker is lime and a
-    black rail fills to it. On a phone each row carries its own example,
-    full width. In the language example the two bubbles stay put and their
-    words scramble into the next language, settling left to right out of
-    letters from both scripts (split into graphemes, so a Bangla letter keeps
-    its vowel sign).
-  - **When it needs a person** (black): the heading and text, then the
-    owner's phone (a plain black frame round a light screen) beside the
-    customer's chat, both on one clock. The customer asks, the agent
-    promises a call, then at the same beat the chat's notice pulses orange
-    and a Telegram alert drops into the phone as it buzzes; the owner's reply
-    goes out in Telegram blue ("Sent to their chat") and arrives in the
-    customer's chat from the phone's side under "From the team".
-  - **Setup** (`SetupLive`): the five steps as rows (the open one on a grey
-    row with its number on lime and a line filling until it moves on, done
-    ones black with a check) beside the agent they build: a card that
-    collects what the agent knows as pills (kind, hours, dishes, tried,
-    shared) and turns from "Setting up" to "Live", over what the open step
-    is doing (the restaurant kind picked, the details typed in, the dishes
-    arriving, a test question answered, the link copied and WhatsApp
-    connected). A step can be picked to play it alone. Above the card a
-    small ring fills towards five minutes as a clock counts up what each
-    step takes a real owner (4:22 at the end), and each fact pill flies from
-    its step's number into the card.
-  - **The close** (black): the promise and the lime action beside
-    `NightShift`, a dark tile run by the scroll. As it comes up the screen
-    its clock turns from 9 PM to 3 AM, a lime line fills, and what the agent
-    handled appears at its time (two confirmed orders on lime, an answer and
-    a message on dark): you are asleep, your assistant is not. Under reduced
-    motion the whole night shows.
-  - Sections are rows with rules, never feature cards. A number marks a step
-    only where the order means something (setup).
-  - No testimonials, logos or statistics until real ones exist.
+- **Landing** (`/`, redesigned 3 Nov 2026): a story the scroll runs, told
+  in the same world (black for the action, lime for "you are here"). Bands
+  are rounder than the console's islands (32px) because they span the
+  screen. Every example says it is one (`ExampleTag`, "An example, not real
+  customers"). No testimonials, logos or statistics until real ones exist.
+  - **Header**: a white pill floating over the page. It steps aside while
+    the visitor reads down, past the first screen, and comes back on any
+    scroll up. The section in view is a lime pill in its nav. A 3px lime line
+    across the top of the screen shows how far down the page is.
+  - **The opening** (black, one screen tall): the headline in two parts, the
+    second in lime ("and never guesses an order."), its words rising out of
+    their own lines (`SplitWords`); the line, the lime action (it leans
+    towards the pointer, `v-magnetic`), and the channels it answers on.
+    Beside it **`HeroDesk`**: the assistant's card, live. A message arrives
+    from one channel after another at the top, says what the assistant is
+    doing, and ends as an order on lime, an answer, or "Waiting for you" in
+    orange; the count of what it handled rolls up. The card leans a few
+    degrees towards the pointer. Behind it all a faint dot grid lights lime
+    round the pointer. From 1024px the opening pins and, as the page
+    scrolls, shrinks back and fades while the next band slides up over it.
+  - **What customers ask** (`AskMarquee`): two rows of question pills in
+    the words and letters customers use (Banglish, Bangla, English), running
+    opposite ways. Scrolling pushes them faster; scrolling up turns them round.
+  - **The manifesto** (`ScrollWords`): one paragraph in display size whose
+    words turn from faint to ink as it moves up the screen; the words
+    between stars in its sentence get a lime marker sweeping in behind them.
+  - **How an order is made** (`OrderStory`, `#how`): a tall section whose
+    contents pin while the visitor scrolls through four steps (ask, HeyDesk
+    works it out, it reads the order back, it lands in your inbox). On the
+    left the steps, the open one expanded with a line filling as it plays
+    (a title jumps there); on a phone only the open one. On the right three
+    cards over each other: the customer's chat (a photo and the question),
+    the sum from the shop's own list (each line pale lime in turn, the total
+    counting up, "the AI only writes the words around them"), the read-back
+    arriving word by word with a caret, its numbers pressed in as lime pills,
+    the yes and "Confirmed by the customer" stamping down beside it; then
+    the inbox slides in over the dimmed chat, the order lands lit in pale
+    lime and the new count bumps. Scrolling back plays it backwards. The
+    sums are added up in the component, never typed in.
+  - **What it can do** (`CapabilityRail`, `#features`): five wide panels
+    (photo, delivery and payment, confirmation calls, documents, language),
+    each a title, a line and its `CapabilityScene`. From 1024px the section
+    pins and the scroll slides the row sideways; the panel in the middle is
+    full strength and plays, the others rest smaller and faint; a counter
+    and line show how far along. On a phone they stand one under the other.
+  - **When it needs a person** (`HandoffScene`, black): the owner's phone
+    and the customer's chat on one clock: the ask, the promise, the orange
+    pulse as the phone buzzes with the Telegram alert, the owner's reply
+    arriving in the chat from the phone's side.
+  - **Setup** (`SetupLive`, `#setup`): as before, in a white band under its
+    heading.
+  - **The close** (black): a large heading, the lime action and
+    `NightShift` (the night clock run by the scroll).
+  - **Footer**: the line and links, then "heydesk" across the full width,
+    its letters rising one after another as the last stretch of the page
+    goes by.
 
-Landing motion (every piece explains something, all of it off under
-`prefers-reduced-motion`):
+Landing motion (every piece explains something or carries the visitor to
+the next; all of it off under `prefers-reduced-motion`):
 
-- **Demo, the main moment.** The read-back streams in word by word with a
-  black caret, like the real agent; the "new" count bumps when the order
-  lands. The demo cycles restaurant, clinic, front office on its own, with a
-  2px black line filling under the active tab to show when it moves on. It
-  plays only while on screen, and stops cycling once the visitor picks a tab
-  or presses Play again.
-- **Opening** settles in once (headline, line, action, demo, 0.1s apart, 14px
-  up with a 4px blur clearing).
-- **Scroll moments** use `v-reveal` (`src/directives/reveal.js`): lists arrive
-  row by row. The hand-off plays in the order it happens (the ask, the agent's
-  promise, the owner's alert with one orange pulse as the phone buzzes, the
-  owner's reply from Telegram arriving from the phone's side). Content below the fold is the only thing ever hidden first.
-- **The capability examples** each act out their one idea: a line passes
-  over the photo before the match appears; the address's delivery area turns
-  pale lime and the total adds up; the call goes queued, ringing (rings
-  going out), on the call (moving bars), confirmed; the policy lines the
-  answer came from fill pale lime; the language switch cycles on its own
-  until clicked. One example gives way to the next with a short blur.
-- Every loop (the opening picture, the demo, the setup walk-through, the language switch) runs only
-  while it is on screen.
-- The header's rule appears only once the page scrolls.
+- Scroll-run pieces read their position from `useScrollProgress`
+  (`composables/`), a 0-to-1 number for how far an element has travelled
+  through the screen, or through its pinned stretch. Under reduced motion
+  it is 1 at once, so every story shows its end and nothing pins.
+- Headings rise word by word (`SplitWords`, under `v-reveal`), 45ms apart,
+  0.9s on `--ease-settle`. The rest of the opening settles in once after
+  the headline (18px up, a 6px blur clearing).
+- Loops (`HeroDesk`, `AskMarquee`, the capability scenes, `SetupLive`) run
+  only while on screen.
+- Long, showy motion is kept for this page: the console stays at 150-250ms.
 
 ## Signature details
 
