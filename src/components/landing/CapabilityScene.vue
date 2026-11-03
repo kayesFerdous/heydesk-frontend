@@ -84,7 +84,7 @@
         <span v-for="n in 12" :key="n" class="wave" :style="{ animationDelay: `${(n % 5) * 0.09}s` }"></span>
       </div>
 
-      <p v-if="beat >= 3" class="bubble-us arrive">{{ t('landing.tour.calls.opening', { code: 'O-215', total: formatMoney(131000) }) }}</p>
+      <p v-if="beat >= 3" class="bubble-us arrive">{{ t('landing.tour.calls.opening', { total: formatMoney(131000) }) }}</p>
       <p v-if="beat >= 4" class="bubble-them arrive">{{ t('landing.tour.calls.yes') }}</p>
       <p v-if="beat >= 5" class="arrive mt-auto flex items-center gap-1.5 px-1 text-xs font-medium text-success">
         <PhSealCheck :size="15" weight="fill" class="shrink-0"></PhSealCheck>

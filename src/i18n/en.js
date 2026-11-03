@@ -674,6 +674,15 @@ export default {
     seeQueue: 'See the calls waiting',
   },
 
+  // Coloured tags in a message, filled in by the backend (TagField).
+  tags: {
+    add: 'Add:',
+    business_name: 'Shop name',
+    items: 'What they bought',
+    total: 'Total',
+    code: 'Order code',
+  },
+
   callSettings: {
     title: 'Calls to confirm orders',
     text: 'After a new order, your assistant phones the buyer, reads the order back and asks them to confirm it. A yes marks the order Confirmed.',
@@ -691,8 +700,9 @@ export default {
     openingTitle: 'What your assistant says first',
     openingText: 'The first thing the buyer hears. It reads the order back, so the buyer can say yes to it.',
     opening: 'First line',
-    openingHint: 'Keep {code} and {total} in it: your assistant puts in the order code and total.',
-    preview: 'For an order O-104, the buyer hears',
+    openingHint: 'The coloured tags are filled in for each order. Keep what they bought and the total, so the buyer knows what they are saying yes to.',
+    preview: 'For a sample order, the buyer hears',
+    sampleItems: 'a black Cotton Kurti in size M',
     phoneTitle: 'The demo phone',
     phoneText: 'There is no phone line yet. Open this link on a phone and type its number: it rings like a real call when your assistant calls that number.',
     phoneLink: 'Demo phone link',
@@ -703,7 +713,7 @@ export default {
     nameAndGreeting: 'Name and welcome message',
     agentName: 'Assistant name',
     greeting: 'Welcome message',
-    greetingHint: 'The first thing customers see. Write {placeholder} to insert your business name.',
+    greetingHint: 'The first thing customers see. The coloured tag becomes your business name.',
     greetingPreview: 'Customers see: {text}',
     about: 'About your business',
     canDo: 'What it does',
@@ -1473,7 +1483,7 @@ export default {
       calls: {
         title: 'Calls to confirm cash orders',
         text: 'For cash on delivery, it rings the customer within your calling hours, reads the order back and marks it confirmed or cancelled. No answer? It tries again later.',
-        opening: 'Assalamu alaikum, this is Banani Threads about order {code}, {total}. Shall we send it?',
+        opening: 'Assalamu alaikum, this is Banani Threads. You ordered a black kurti in size M, {total} with delivery. Shall we send it?',
         yes: 'Ji, please send it.',
         confirmed: 'Confirmed on the call',
       },

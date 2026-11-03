@@ -9,10 +9,9 @@
         <p v-if="errors.name" class="error-text">{{ errors.name }}</p>
       </div>
       <div>
-        <FieldLabel html-for="greeting" :tip="t('profile.greetingHint', { placeholder: '{business_name}' })">{{ t('profile.greeting') }}</FieldLabel>
-        <textarea id="greeting" v-model="form.greeting" class="field" :class="{ 'field-invalid': errors.greeting }" rows="2"></textarea>
+        <FieldLabel html-for="greeting" :tip="t('profile.greetingHint')">{{ t('profile.greeting') }}</FieldLabel>
+        <TagField id="greeting" v-model="form.greeting" :label="t('profile.greeting')" :tags="tags" :invalid="!!errors.greeting"></TagField>
         <p v-if="errors.greeting" class="error-text">{{ errors.greeting }}</p>
-        <!-- The {business_name} placeholder is a system word: show what it becomes. -->
         <p v-else-if="greetingPreview" class="hint">{{ t('profile.greetingPreview', { text: greetingPreview }) }}</p>
       </div>
     </SettingsGroup>
@@ -86,6 +85,7 @@ import SaveBar from '../../components/ui/SaveBar.vue';
 import SettingsGroup from '../../components/ui/SettingsGroup.vue';
 import FieldLabel from '../../components/ui/FieldLabel.vue';
 import InfoTip from '../../components/ui/InfoTip.vue';
+import TagField from '../../components/ui/TagField.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { useAgentStore } from '../../stores/agent.js';
 import { formatNumber } from '../../lib/format.js';
@@ -123,7 +123,8 @@ const { form, isDirty, isSaving, saveError, problems, errors, savedNote, save, r
   previewFrom: (f) => ({ name: f.name, greeting: f.greeting }),
 });
 
-// The greeting as a customer reads it, when it uses the placeholder.
+// The welcome message's one tag, and the message as a customer reads it.
+const tags = computed(() => [{ key: 'business_name', label: t('tags.business_name') }]);
 const greetingPreview = computed(() => {
   const greeting = form.value?.greeting ?? '';
   if (!greeting.includes('{business_name}')) return '';

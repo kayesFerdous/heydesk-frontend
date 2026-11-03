@@ -141,7 +141,7 @@ and payments section sends the whole `delivery` with its districts (picked from 
 list), with its one
 "pay first" switch on every area; the
 Business section shows `policies` and `size_guide` as long fields, and leaves `calls` to its own section;
-`call_to_confirm` is a switch under Cash on delivery, and `saved_replies` sits on the Answers section.
+`call_to_confirm` is a switch under Cash on delivery (saving it off also turns `calls.enabled` off, no 422), and `saved_replies` sits on the Answers section.
 
 Jobs: `order` (makes an `order` record) and `message` (makes a `request` record). The owner cannot toggle
 them. Since D37 a preset fixes its jobs and tools, owners cannot switch them,
@@ -178,8 +178,9 @@ on first, or stopped: the owner cancelled it), tries (rings so far), next_try_at
 
 A shop's config has `calls: {enabled (false), wait_minutes (1), start ("10:00:00"), end
 ("20:00:00"), tries (2), retry_minutes (30), opening}`, edited whole by the Calls section of Agent
-settings. `opening` is the call's first line; the backend fills in `{business_name}`, `{code}` and
-`{total}`. `end` must be after `start` (422 on `calls`). The phone is the backend's `/phone` page,
+settings. `opening` is the call's first line; the backend fills in the tags `{business_name}`,
+`{items}` ("a black Cotton Kurti in size M"), `{total}` and `{code}`. The console shows them as
+coloured pills (`TagField`), as it does `{business_name}` in `greeting`; the owner may delete any. `end` must be after `start` (422 on `calls`). The phone is the backend's `/phone` page,
 reached through the dev server at `/demo/phone` (`phoneLink()` in `lib/calls.js`): there is no
 phone carrier.
 

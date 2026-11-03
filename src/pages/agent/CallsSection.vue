@@ -48,12 +48,9 @@
       <SettingsGroup :title="t('callSettings.openingTitle')" :tip="t('callSettings.openingText')">
         <div>
           <FieldLabel html-for="calls-opening">{{ t('callSettings.opening') }}</FieldLabel>
-          <textarea id="calls-opening" v-model="form.calls.opening" class="field" :class="{ 'field-invalid': errors['calls.opening'] }" rows="3" maxlength="500"></textarea>
+          <TagField id="calls-opening" v-model="form.calls.opening" :label="t('callSettings.opening')" :tags="tags" :invalid="!!errors['calls.opening']"></TagField>
           <p v-if="errors['calls.opening']" class="error-text">{{ errors['calls.opening'] }}</p>
-          <i18n-t keypath="callSettings.openingHint" tag="p" class="hint" scope="global">
-            <template #code><code>{{ CODE }}</code></template>
-            <template #total><code>{{ TOTAL }}</code></template>
-          </i18n-t>
+          <p class="hint">{{ t('callSettings.openingHint') }}</p>
         </div>
         <div class="panel p-4 text-sm">
           <p class="text-xs font-medium text-ink-soft">{{ t('callSettings.preview') }}</p>
@@ -86,13 +83,10 @@ import SettingsGroup from '../../components/ui/SettingsGroup.vue';
 import FieldLabel from '../../components/ui/FieldLabel.vue';
 import ToggleSwitch from '../../components/ui/ToggleSwitch.vue';
 import CopyField from '../../components/ui/CopyField.vue';
+import TagField from '../../components/ui/TagField.vue';
 import { useAgentSection } from '../../composables/useAgentSection.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';
 import { phoneLink } from '../../lib/calls.js';
-
-// The placeholders the backend fills in, shown as they are typed.
-const CODE = '{code}';
-const TOTAL = '{total}';
 
 const { t } = useI18n();
 const phone = phoneLink();
@@ -106,11 +100,15 @@ const { form, isDirty, isSaving, saveError, problems, errors, savedNote, save, r
   patchFrom: (f) => ({ knowledge: { calls: { ...f.calls } } }),
 });
 
+// The tags the backend fills in on each call, offered in this order.
+const tags = computed(() => ['business_name', 'items', 'total', 'code'].map((key) => ({ key, label: t(`tags.${key}`) })));
+
 // The first line as the buyer hears it, for a sample order.
 const preview = computed(() =>
   (form.value?.calls.opening ?? '')
     .replaceAll('{business_name}', form.value?.businessName ?? '')
-    .replaceAll(CODE, 'O-104')
-    .replaceAll(TOTAL, formatMoney(101000)),
+    .replaceAll('{items}', t('callSettings.sampleItems'))
+    .replaceAll('{total}', formatMoney(101000))
+    .replaceAll('{code}', 'O-104'),
 );
 </script>
