@@ -340,76 +340,68 @@ for the action, lime for the signature.
   (done black, current lime). The kinds of agent are rounded grey rows, the
   chosen one pale lime. The last step puts the live chat beside the chat
   link and a notice listing what is still to fill in.
-- **Landing** (`/`, redesigned 3 Nov 2026): a story the scroll runs, told
-  in the same world (black for the action, lime for "you are here"). Bands
-  are rounder than the console's islands (32px) because they span the
-  screen. Every example says it is one (`ExampleTag`, "An example, not real
-  customers"). No testimonials, logos or statistics until real ones exist.
-  - **Header**: a white pill floating over the page. It steps aside while
-    the visitor reads down, past the first screen, and comes back on any
-    scroll up. The section in view is a lime pill in its nav. A 3px lime line
-    across the top of the screen shows how far down the page is.
-  - **The opening** (black, one screen tall): the headline in two parts, the
-    second in lime ("and never guesses an order."), its words rising out of
-    their own lines (`SplitWords`); the line, the lime action (it leans
-    towards the pointer, `v-magnetic`), and the channels it answers on.
-    Beside it **`HeroDesk`**: the assistant's card, live. A message arrives
-    from one channel after another at the top, says what the assistant is
-    doing, and ends as an order on lime, an answer, or "Waiting for you" in
-    orange; the count of what it handled rolls up. The card leans a few
-    degrees towards the pointer. Behind it all a faint dot grid lights lime
-    round the pointer. From 1024px the opening pins and, as the page
-    scrolls, shrinks back and fades while the next band slides up over it.
-  - **What customers ask** (`AskMarquee`): two rows of question pills in
-    the words and letters customers use (Banglish, Bangla, English), running
-    opposite ways. Scrolling pushes them faster; scrolling up turns them round.
-  - **The manifesto** (`ScrollWords`): one paragraph in display size whose
-    words turn from faint to ink as it moves up the screen; the words
-    between stars in its sentence get a lime marker sweeping in behind them.
-  - **How an order is made** (`OrderStory`, `#how`): a tall section whose
-    contents pin while the visitor scrolls through four steps (ask, HeyDesk
-    works it out, it reads the order back, it lands in your inbox). On the
-    left the steps, the open one expanded with a line filling as it plays
-    (a title jumps there); on a phone only the open one. On the right three
-    cards over each other: the customer's chat (a photo and the question),
-    the sum from the shop's own list (each line pale lime in turn, the total
-    counting up, "the AI only writes the words around them"), the read-back
-    arriving word by word with a caret, its numbers pressed in as lime pills,
-    the yes and "Confirmed by the customer" stamping down beside it; then
-    the inbox slides in over the dimmed chat, the order lands lit in pale
-    lime and the new count bumps. Scrolling back plays it backwards. The
-    sums are added up in the component, never typed in.
-  - **What it can do** (`CapabilityRail`, `#features`): five wide panels
-    (photo, delivery and payment, confirmation calls, documents, language),
-    each a title, a line and its `CapabilityScene`. From 1024px the section
-    pins and the scroll slides the row sideways; the panel in the middle is
-    full strength and plays, the others rest smaller and faint; a counter
-    and line show how far along. On a phone they stand one under the other.
-  - **When it needs a person** (`HandoffScene`, black): the owner's phone
-    and the customer's chat on one clock: the ask, the promise, the orange
-    pulse as the phone buzzes with the Telegram alert, the owner's reply
-    arriving in the chat from the phone's side.
-  - **Setup** (`SetupLive`, `#setup`): as before, in a white band under its
-    heading.
-  - **The close** (black): a large heading, the lime action and
-    `NightShift` (the night clock run by the scroll).
-  - **Footer**: the line and links, then "heydesk" across the full width,
-    its letters rising one after another as the last stretch of the page
-    goes by.
+- **Landing** (`/`, restructured 4 Nov 2026): one offer told in order: the
+  promise, the problem, one message followed from the customer to the owner, what
+  that changes, then what it takes to start. Same customers throughout: the
+  night's messages are the orders further down. Bands that do not reach the edges
+  are 32px round. Every example says it is one (`ExampleTag`). No testimonials,
+  logos or statistics until real ones exist. The one place lime may be a whole
+  field is the close, with the black action on it.
+  - **Nothing is a picture and nothing is scaled.** What looks like the console
+    is plain HTML at its real size, simplified on purpose so a visitor gets the
+    idea without learning the dashboard. No screenshots, no tilt and no
+    `transform: scale` on anything holding words: the owner rejected those as
+    blurry.
+  - **Header**: a plain bar, the section you are in lime. It steps aside on the
+    way down and comes back on the way up.
+  - **The promise** (canvas, centred): the headline on two lines, the line, the
+    black action with "no card" under it; below, `HeroConsole` running while on
+    screen: a customer's message appears beside the console, is answered, flies in
+    and lands as an order lit lime, the takings roll up, and the owner's phone
+    hears. Then the channels it answers on.
+  - **The problem** (`NightStory`, black): a tall section whose contents pin, so
+    the scroll runs a clock from 9 PM to 8:05 AM. A white phone fills with
+    customers' messages at their own times, none answered, and the unread count
+    climbs; the last message is the customer who went elsewhere, in orange.
+  - **The turn** (`ScrollWords`, white, sliding up over the black): one
+    paragraph whose words light as it rises, the promises marked in lime.
+  - **How it works** (`OneOrder`, `#how`): Sabbir's message from the night, followed
+    through three lanes on one pinned screen: the customer's phone, HeyDesk's three
+    jobs on black (checks the list, works out the total, waits for a yes), the
+    owner's inbox. The scroll runs the story and rewinds it; four bars and one big
+    sentence say which step it is, and something visibly travels between lanes. A
+    phone shows one lane at a time.
+  - **What changes** (`Perk*`, cards of different weights): the three languages
+    through the night on black, the orange strip and the owner taking the chat on
+    white, and "8:05 AM" on pale lime, where the list slides in, the takings roll
+    up and the hours grow.
+  - **Try it** (`AskTry`, `#try`): the one live thing. Pick a question in
+    Banglish, Bangla or English and the answer comes back in that language, from
+    the example shop's real prices. Written answers, and it says it is an
+    example; a request for a person ends in the orange chip.
+  - **Setup**: three outcome-worded steps beside `SetupHub`: the four channels
+    wire up to the assistant one at a time, then messages run the wires.
+  - **Price** (`#price`): plans as rows, the free trial in black. The figures
+    are copied from the backend's `PLANS`.
+  - **Questions**: native `<details>` rows, the fears an owner has first.
+  - **The close** (lime): "Tonight, someone will ask your price." and the black
+    action. **Footer** (black): the line, the links, and "heydesk" in lime across
+    the full width, its letters rising as the page ends.
 
-Landing motion (every piece explains something or carries the visitor to
-the next; all of it off under `prefers-reduced-motion`):
+Landing motion. Each piece had to pass one test: it explains something, or it
+shows where something went. The old marquee, magnetic buttons, pointer-lit dots,
+leaning card, progress line and sideways rail did not, and went.
 
-- Scroll-run pieces read their position from `useScrollProgress`
-  (`composables/`), a 0-to-1 number for how far an element has travelled
-  through the screen, or through its pinned stretch. Under reduced motion
-  it is 1 at once, so every story shows its end and nothing pins.
-- Headings rise word by word (`SplitWords`, under `v-reveal`), 45ms apart,
-  0.9s on `--ease-settle`. The rest of the opening settles in once after
-  the headline (18px up, a 6px blur clearing).
-- Loops (`HeroDesk`, `AskMarquee`, the capability scenes, `SetupLive`) run
-  only while on screen.
-- Long, showy motion is kept for this page: the console stays at 150-250ms.
+- Scroll-run pieces (the night, how it works, the paragraph, the footer) read
+  `useScrollProgress`. Under reduced motion it is 1 at once, so every story shows
+  its end and nothing pins.
+- Timed pieces (the hero, the perks, the setup hub) run on `useSceneClock`, only
+  while on screen, and under reduced motion show their last step. Digits roll
+  (`RollingNumber`) on `--ease-settle`.
+- Headings rise word by word (`SplitWords`), the rest of a section settles in
+  once (`v-reveal`, 16px, staggered 60-70ms).
+- Press feedback on the main actions and the question pills (scale 0.97).
+- Long motion is kept for this page: the console stays at 150-250ms.
 
 ## Signature details
 
