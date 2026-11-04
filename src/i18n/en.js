@@ -1437,16 +1437,12 @@ export default {
     heroTitle: 'Your shop answers, even when you can’t.',
     heroText: 'HeyDesk is an AI assistant for online shops. It answers customers in Bangla, Banglish or English at any hour, and saves an order only after the customer says yes.',
     heroNote: 'No card needed. Setting up takes about five minutes.',
-    shotsNote: 'Real HeyDesk screens, filled with an example shop.',
+    shotsNote: "HeyDesk's screens, simplified, with an example shop.",
     answersOn: 'Answers on',
     channels: { web: 'Website chat', messenger: 'Messenger', whatsapp: 'WhatsApp', telegram: 'Telegram' },
-    arrival: 'Silk Panjabi, to Gazipur',
     shots: {
-      inbox: 'The HeyDesk inbox: new orders by day, with one order open and marked as confirmed by the customer.',
-      home: 'The HeyDesk home screen in the morning: orders that need the owner, a customer waiting for a person, and what was taken today.',
-      homePhone: 'The same home screen on a phone.',
-      products: 'The products screen: each product with its price, sizes, colours and stock.',
-      channels: 'The channels screen with Telegram, Messenger and WhatsApp connected.',
+      inbox: "HeyDesk's inbox, drawn simply: customers' messages come in, get answered and land as new orders, while the day's takings go up.",
+      channels: 'Website chat, Messenger, WhatsApp and Telegram connecting to your assistant one at a time.',
     },
     // The problem: one night, run by the scroll.
     night: {
@@ -1487,37 +1483,34 @@ export default {
         lamia: 'Lamia Chowdhury',
       },
     },
-    costs: {
-      title: 'A slow reply loses the buyer.',
-      first: { title: 'Buyers order from whoever answers first.', text: 'They message several pages at once. By morning, your reply is a reply to nobody.' },
-      same: { title: 'You type the same answers all day.', text: 'The price, the size, the delivery charge. You answer by hand, or you pay someone to.' },
-      wrong: { title: 'Mistakes cost you twice.', text: 'A wrong total, a missed size, an order lost in a long chat. You pay for the parcel and for the apology.' },
-    },
     // Words between *stars* get a lime marker as the scroll reaches them.
     turn: '*Every message* gets an answer, at any hour. Every price comes *from your own list*. And nothing becomes an order until the customer says *yes*.',
-    tourTitle: 'The same night, with HeyDesk.',
-    tourText: 'Each of those problems has an answer. Here they are, on the real screens.',
-    tour: {
-      answer: {
-        title: 'Every customer gets an answer.',
-        text: 'In seconds, at any hour, in the language they wrote in. Banglish gets Banglish, Bangla gets Bangla, English gets English.',
-        alt: 'A chat on Messenger: the customer asks in Banglish and the assistant answers in Banglish, then confirms the order.',
+    products: { cotton: 'Cotton Panjabi', silk: 'Silk Panjabi', lawn: 'Lawn Three-Piece', kurti: 'Cotton Kurti', kids: 'Kids Panjabi' },
+    // How it works: one message followed from the customer to the owner.
+    how: {
+      title: 'The same message, with HeyDesk.',
+      text: 'Sabbir wrote at 11:47 PM. Scroll to follow the message.',
+      steps: {
+        list: { title: 'It answers from your own list.', text: 'It checks your products, sizes and stock, and quotes only what it finds there.' },
+        total: { title: 'The total is worked out, never guessed.', text: 'HeyDesk adds it up itself. The AI only writes the words around it.' },
+        yes: { title: 'Nothing is saved until they say yes.', text: 'It reads the order back and waits. No clear yes, no order.' },
+        done: { title: 'You get a finished order.', text: 'Name, phone, address and items, all there when you next look.' },
       },
-      list: {
-        title: 'It only sells what you sell.',
-        text: 'Add your products, sizes, stock and delivery areas once. It quotes from that list and nothing else, so it cannot invent a price or a discount.',
-        alt: 'The products screen: each product with its price, sizes, colours and stock.',
+      lanes: { customer: 'Your customer', desk: 'HeyDesk', you: 'You' },
+      jobs: { list: 'Checks your list', left: '{n} left', total: 'Works out the total', yes: 'Waits for a yes', yesGot: 'The customer said yes' },
+      says: {
+        address: 'Mirpur 10, Dhaka. Ami Sabbir, 01700-000114',
+        readBack: '1 ta Cotton Panjabi ৳1,850, Mirpur 10 e delivery ৳60, mot ৳1,910. Order ta confirm korbo?',
+        yes: 'Ji, korun',
+        done: 'Order O-114 confirmed, Sabbir bhai. Dhonnobad.',
       },
-      yes: {
-        title: 'Orders arrive finished, with the customer\'s yes.',
-        text: 'HeyDesk works out every total itself. The assistant only writes the words around it, reads the order back, and saves it after a clear yes. Name, phone, address and items are all there.',
-        alt: 'An order in the inbox with its items, delivery charge and total, marked as confirmed by the customer in chat.',
-      },
-      person: {
-        title: 'When it should be you, it says so.',
-        text: 'A customer who wants a person goes to the top of your day, with the whole chat. Call them, or reply from here or from Telegram, and your words appear in their chat.',
-        alt: 'A chat marked in orange as needing a person, with buttons for the owner to take it.',
-      },
+      you: { empty: 'Nothing yet. You are packing parcels.', phone: 'Phone', address: 'Mirpur 10, Dhaka' },
+    },
+    perks: {
+      title: 'What changes for you.',
+      langs: { banglish: 'Banglish', bangla: 'বাংলা', english: 'English' },
+      answer: { title: 'Every customer gets an answer.', text: 'In seconds, at any hour, in the language they wrote in. Banglish gets Banglish, Bangla gets Bangla, English gets English.', },
+      person: { title: 'When it should be you, it says so.', text: 'A customer who wants a person goes to the top of your day, with the whole chat. Call them, or reply from here or from Telegram, and your words appear in their chat.', },
     },
     morningTitle: '8:05 AM. This is what you wake up to.',
     morningText: 'New orders, each one confirmed by the customer. One person who wants to talk to you, at the top. Nothing to chase.',

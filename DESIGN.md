@@ -340,46 +340,47 @@ for the action, lime for the signature.
   (done black, current lime). The kinds of agent are rounded grey rows, the
   chosen one pale lime. The last step puts the live chat beside the chat
   link and a notice listing what is still to fill in.
-- **Landing** (`/`, rewritten 4 Nov 2026): one story told in colour, the
-  problem first and the answer on the real screens: day (the promise), night
-  (the problem), light again (the answer), pale lime (the morning after), lime
-  (the action). Same customers throughout: the night's messages are the orders
-  on the screens. It is a long-form page for a seller who does not know the
-  product yet, and it stays calm: one pinned scene, one held screen, one thing
-  to do. Bands that do not reach the edges are 32px round. Every example says
-  it is one (`ExampleTag`). No testimonials, logos or statistics until real ones
-  exist. The one place lime may be a whole field is the close, with the black
-  action on it.
-  - **The pictures** are real screens (`ProductShot`, `public/landing/<language>/`),
-    taken from the running app on an example shop by `dev/landing-shots/`, in
-    both languages and in phone versions. The figures on them come from its seed.
-    Screens lie flat with a 1px rule; only what sits over another screen floats.
+- **Landing** (`/`, restructured 4 Nov 2026): one offer told in order: the
+  promise, the problem, one message followed from the customer to the owner, what
+  that changes, then what it takes to start. Same customers throughout: the
+  night's messages are the orders further down. Bands that do not reach the edges
+  are 32px round. Every example says it is one (`ExampleTag`). No testimonials,
+  logos or statistics until real ones exist. The one place lime may be a whole
+  field is the close, with the black action on it.
+  - **Nothing is a picture and nothing is scaled.** What looks like the console
+    is plain HTML at its real size, simplified on purpose so a visitor gets the
+    idea without learning the dashboard. No screenshots, no tilt and no
+    `transform: scale` on anything holding words: the owner rejected those as
+    blurry.
   - **Header**: a plain bar, the section you are in lime. It steps aside on the
     way down and comes back on the way up.
-  - **The promise** (canvas): the headline on two lines, the line, the black
-    action with "no card" under it; below, the Inbox lying back a little and
-    standing up with the scroll, the phone's Home over its corner, and one order
-    landing on top. A phone sees the phone's Inbox instead.
+  - **The promise** (canvas, centred): the headline on two lines, the line, the
+    black action with "no card" under it; below, `HeroConsole` running while on
+    screen: a customer's message appears beside the console, is answered, flies in
+    and lands as an order lit lime, the takings roll up, and the owner's phone
+    hears. Then the channels it answers on.
   - **The problem** (`NightStory`, black): a tall section whose contents pin, so
     the scroll runs a clock from 9 PM to 8:05 AM. A white phone fills with
     customers' messages at their own times, none answered, and the unread count
-    climbs; the line under the clock follows the night; the last message is the
-    customer who went elsewhere, in orange. Then, still on black, what it costs:
-    three plain rows that the next chapter answers.
+    climbs; the last message is the customer who went elsewhere, in orange.
   - **The turn** (`ScrollWords`, white, sliding up over the black): one
     paragraph whose words light as it rises, the promises marked in lime.
-  - **The answer** (`ScreenTour`, `#how`): four claims scroll past one held
-    screen, which moves to the part each is about (the chat, the products, the
-    order with its proof, the orange strip). Under 1024px each carries its own
-    screen.
-  - **The morning after** (pale lime): the night's clock again, "8:05 AM", on
-    Home; the screen opens to full width as it comes up.
+  - **How it works** (`OneOrder`, `#how`): Sabbir's message from the night, followed
+    through three lanes on one pinned screen: the customer's phone, HeyDesk's three
+    jobs on black (checks the list, works out the total, waits for a yes), the
+    owner's inbox. The scroll runs the story and rewinds it; four bars and one big
+    sentence say which step it is, and something visibly travels between lanes. A
+    phone shows one lane at a time.
+  - **What changes** (`Perk*`, cards of different weights): the three languages
+    through the night on black, the orange strip and the owner taking the chat on
+    white, and "8:05 AM" on pale lime, where the list slides in, the takings roll
+    up and the hours grow.
   - **Try it** (`AskTry`, `#try`): the one live thing. Pick a question in
     Banglish, Bangla or English and the answer comes back in that language, from
     the example shop's real prices. Written answers, and it says it is an
     example; a request for a person ends in the orange chip.
-  - **Setup**: three outcome-worded steps beside the products screen and the
-    connected channels, sliding across each other.
+  - **Setup**: three outcome-worded steps beside `SetupHub`: the four channels
+    wire up to the assistant one at a time, then messages run the wires.
   - **Price** (`#price`): plans as rows, the free trial in black. The figures
     are copied from the backend's `PLANS`.
   - **Questions**: native `<details>` rows, the fears an owner has first.
@@ -391,12 +392,14 @@ Landing motion. Each piece had to pass one test: it explains something, or it
 shows where something went. The old marquee, magnetic buttons, pointer-lit dots,
 leaning card, progress line and sideways rail did not, and went.
 
-- Scroll-run pieces (the night, the hero and morning screens, the setup screens,
-  the paragraph, the footer) read `useScrollProgress`. Under reduced motion it is
-  1 at once, so every story shows its end and nothing pins.
+- Scroll-run pieces (the night, how it works, the paragraph, the footer) read
+  `useScrollProgress`. Under reduced motion it is 1 at once, so every story shows
+  its end and nothing pins.
+- Timed pieces (the hero, the perks, the setup hub) run on `useSceneClock`, only
+  while on screen, and under reduced motion show their last step. Digits roll
+  (`RollingNumber`) on `--ease-settle`.
 - Headings rise word by word (`SplitWords`), the rest of a section settles in
-  once (`v-reveal`, 16px, staggered 60-70ms). The held screen's moves are 1.1s on
-  `--ease-settle`, its cross-fade 0.45s.
+  once (`v-reveal`, 16px, staggered 60-70ms).
 - Press feedback on the main actions and the question pills (scale 0.97).
 - Long motion is kept for this page: the console stays at 150-250ms.
 

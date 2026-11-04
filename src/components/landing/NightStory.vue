@@ -99,7 +99,7 @@ const clock = computed(() => timeOf(Math.floor(minute.value)));
 
 <style scoped>
 .night {
-  height: 420svh;
+  height: 300svh;
   background-color: var(--color-night);
   color: #fff;
 }
