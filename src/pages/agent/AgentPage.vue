@@ -1,15 +1,32 @@
 <template>
   <section class="page px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
-    <!-- The frame around the settings sections: the sections on a track
-         under the title, who the agent is and whether it answers, what is
-         still missing, and on the
+    <!-- The frame around the settings sections: whether the agent answers
+         beside the title, the sections on a track under it, what is still
+         missing, and on the
          talk and bubble sections a preview of what a customer sees, drawn
          from the form as it is edited. Each section (a child route) has its
          own form and Save.
          This comment stays inside <section>: one placed before it makes a
          second root node, and the page <transition> in App.vue can never
          finish leaving such a page, so the next page stayed blank. -->
-    <PageHeader :title="t('agent.title')" :tip="t('agent.subtitle')"></PageHeader>
+    <PageHeader :title="t('agent.title')" :tip="t('agent.subtitle')">
+      <!-- Whether it answers, and the two things done from here most: switch the AI off, copy the chat link. -->
+      <template v-if="agent.config" #actions>
+        <LiveStatus class="max-sm:basis-full" :paused="!answering" :label="t('agent.status.answering')" :paused-label="pausedLabel"></LiveStatus>
+        <!-- The master switch for the whole agent: saved at once, so it is never lost in a form. -->
+        <div
+          class="flex h-8 items-center gap-2 rounded-full border bg-surface pr-1 pl-3 transition-colors max-sm:h-11 max-sm:flex-1 max-sm:justify-between max-sm:pr-2.5"
+          :class="aiOn ? 'border-line-strong' : 'border-attention/40 !bg-attention-tint/60'"
+        >
+          <label class="text-[0.8125rem] font-semibold whitespace-nowrap" for="ai-on">{{ t('agent.aiOn.short') }}</label>
+          <ToggleSwitch id="ai-on" :model-value="aiOn" :label="t('agent.aiOn.title')" :disabled="savingAi" @update:model-value="saveAiOn"></ToggleSwitch>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm !rounded-full max-sm:flex-1" @click="copyLink">
+          <component :is="copied ? PhCheck : PhLink" :size="14" :weight="copied ? 'bold' : 'regular'"></component>
+          {{ copied ? t('common.copied') : t('home.copyChatLink') }}
+        </button>
+      </template>
+    </PageHeader>
 
     <!-- The sections, on a white track under the title, staying in reach while
          a long form scrolls. Full width from 1024px; on a phone it scrolls
@@ -39,13 +56,6 @@
     <LoadError v-if="loadError" class="island" :message="loadError" @retry="load"></LoadError>
 
     <div v-else-if="!agent.config" class="flex flex-col gap-2" aria-hidden="true">
-      <div class="island flex items-center gap-3 px-4 py-3 sm:px-5">
-        <div class="skeleton h-10 w-10 !rounded-[var(--radius-control)]"></div>
-        <div class="flex-1">
-          <div class="skeleton h-4 w-40"></div>
-          <div class="skeleton mt-2 h-3 w-64 max-w-full"></div>
-        </div>
-      </div>
       <div class="island px-4 py-3 sm:px-6">
         <div v-for="n in 3" :key="n" class="grid gap-4 border-b border-hairline py-8 last:border-b-0 md:grid-cols-[11rem_1fr]">
           <div class="skeleton h-5 w-32"></div>
@@ -58,84 +68,34 @@
     </div>
 
     <div v-else class="flex flex-col gap-2">
-      <!-- Who the agent is, whether it answers, and the two things done from
-           here most: switch the AI off, copy the chat link. -->
-      <div class="island px-4 py-3 sm:px-5">
-        <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <div class="flex min-w-0 flex-1 basis-72 items-center gap-3">
-            <img
-              v-if="agent.config.widget?.logo"
-              :src="agent.config.widget.logo"
-              alt=""
-              class="h-10 w-10 shrink-0 rounded-[var(--radius-control)] border border-hairline bg-surface object-cover"
-            />
-            <span
-              v-else
-              class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-ink text-sm font-bold text-lime"
-              aria-hidden="true"
-            >
-              {{ initials(agent.config.name) }}
-            </span>
-            <div class="min-w-0">
-              <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                <h2 class="truncate text-base leading-tight font-semibold tracking-[-0.015em]">{{ agent.config.name || t('nav.yourAgent') }}</h2>
-                <LiveStatus :paused="!answering" :label="t('agent.status.answering')" :paused-label="pausedLabel"></LiveStatus>
-              </div>
-              <p class="mt-0.5 truncate text-[0.8125rem] text-ink-soft">
-                {{ t('agent.forBusiness', { business: agent.config.business_name || t('common.businessName'), kind: serviceLabel(agent.kind) }) }}
-              </p>
-            </div>
-          </div>
+      <p v-if="aiError" class="island px-4 py-2.5 text-sm text-danger" role="alert">{{ aiError }}</p>
+      <!-- With the AI off, say plainly where the messages go now. -->
+      <p v-else-if="!aiOn" class="island flex items-start gap-2 px-4 py-2.5 text-sm" role="status">
+        <PhHandPalm :size="18" class="mt-px shrink-0 text-attention"></PhHandPalm>
+        <span>
+          {{ t('agent.aiOn.off') }}
+          <router-link to="/conversations" class="link ml-1">{{ t('agent.openConversations') }}</router-link>
+        </span>
+      </p>
 
-          <div class="flex flex-wrap items-center gap-2 max-sm:w-full">
-            <!-- The master switch for the whole agent: saved at once, so it is never lost in a form. -->
-            <div
-              class="flex h-8 items-center gap-2 rounded-full border pr-1 pl-3 transition-colors max-sm:h-11 max-sm:flex-1 max-sm:justify-between max-sm:pr-2.5"
-              :class="aiOn ? 'border-line-strong' : 'border-attention/40 bg-attention-tint/60'"
-            >
-              <label class="text-[0.8125rem] font-semibold whitespace-nowrap" for="ai-on">{{ t('agent.aiOn.short') }}</label>
-              <ToggleSwitch id="ai-on" :model-value="aiOn" :label="t('agent.aiOn.title')" :disabled="savingAi" @update:model-value="saveAiOn"></ToggleSwitch>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm !rounded-full max-sm:flex-1" @click="copyLink">
-              <component :is="copied ? PhCheck : PhLink" :size="14" :weight="copied ? 'bold' : 'regular'"></component>
-              {{ copied ? t('common.copied') : t('home.copyChatLink') }}
-            </button>
-          </div>
-        </div>
-
-        <p v-if="aiError" class="mt-3 text-sm text-danger" role="alert">{{ aiError }}</p>
-        <!-- With the AI off, say plainly where the messages go now. -->
-        <p v-else-if="!aiOn" class="mt-2.5 flex items-start gap-2 text-sm text-ink" role="status">
-          <PhHandPalm :size="18" class="mt-px shrink-0 text-attention"></PhHandPalm>
-          <span>
-            {{ t('agent.aiOn.off') }}
-            <router-link to="/conversations" class="link ml-1">{{ t('agent.openConversations') }}</router-link>
-          </span>
+      <!-- What the backend says is still missing, each a link to its field. One
+           quiet line, and gone once nothing is. -->
+      <div v-if="agent.missing.length" class="island flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5" role="status">
+        <p class="flex items-center gap-2 text-sm font-semibold">
+          <PhListChecks :size="18" class="shrink-0 text-attention"></PhListChecks>
+          {{ t('agent.thingsLeft', { n: formatNumber(agent.missing.length) }, agent.missing.length) }}
         </p>
-
-        <!-- What the backend says is still missing, each a link to its field;
-             once nothing is, one green line says so. -->
-        <div v-if="agent.missing.length" class="mt-3 rounded-[var(--radius-card)] bg-wash p-3" role="status">
-          <p class="flex items-center gap-2 text-sm font-semibold">
-            <PhListChecks :size="18" class="shrink-0 text-attention"></PhListChecks>
-            {{ t('agent.thingsLeft', { n: formatNumber(agent.missing.length) }, agent.missing.length) }}
-          </p>
-          <ul class="mt-2 flex flex-wrap gap-2">
-            <li v-for="item in agent.missing" :key="item">
-              <router-link
-                :to="whereToFix(item)"
-                class="group inline-flex min-h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface py-1 pr-2.5 pl-3 text-[0.8125rem] font-medium transition-colors hover:border-ink"
-              >
-                {{ item }}
-                <PhArrowRight :size="14" class="shrink-0 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-ink"></PhArrowRight>
-              </router-link>
-            </li>
-          </ul>
-        </div>
-        <p v-else class="mt-3 flex items-center gap-2 border-t border-hairline pt-2.5 text-[0.8125rem] text-ink-soft">
-          <PhCheckCircle :size="16" weight="fill" class="shrink-0 text-success"></PhCheckCircle>
-          {{ t('agent.ready') }}
-        </p>
+        <ul class="flex flex-wrap gap-2">
+          <li v-for="item in agent.missing" :key="item">
+            <router-link
+              :to="whereToFix(item)"
+              class="group inline-flex min-h-7 items-center gap-1.5 rounded-full border border-line-strong py-0.5 pr-2.5 pl-3 text-[0.8125rem] font-medium transition-colors hover:border-ink"
+            >
+              {{ item }}
+              <PhArrowRight :size="14" class="shrink-0 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-ink"></PhArrowRight>
+            </router-link>
+          </li>
+        </ul>
       </div>
 
       <div
@@ -181,7 +141,6 @@ import {
   PhChatCircleText,
   PhChatsCircle,
   PhCheck,
-  PhCheckCircle,
   PhHandPalm,
   PhLink,
   PhListChecks,
@@ -198,8 +157,7 @@ import BubblePreview from '../../components/agent/BubblePreview.vue';
 import { SWATCHES } from '../../lib/colour.js';
 import { whereToFix, markShared } from '../../lib/setup.js';
 import { formatNumber } from '../../lib/format.js';
-import { initials } from '../../lib/group.js';
-import { chatLink, serviceLabel } from '../../lib/presets.js';
+import { chatLink } from '../../lib/presets.js';
 import { useAgentStore } from '../../stores/agent.js';
 import { useAuthStore } from '../../stores/auth.js';
 

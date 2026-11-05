@@ -34,7 +34,7 @@ import { useI18n } from 'vue-i18n';
 import { PhUserSound } from '@phosphor-icons/vue';
 
 import RollingNumber from './RollingNumber.vue';
-import HourBars from '../home/HourBars.vue';
+import HourBars from './HourBars.vue';
 import StatusChip from '../ui/StatusChip.vue';
 import { useSceneClock } from '../../composables/useSceneClock.js';
 import { formatMoney, formatNumber } from '../../lib/format.js';

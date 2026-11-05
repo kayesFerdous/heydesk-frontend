@@ -16,7 +16,7 @@
     </div>
 
     <section v-for="day in days" :key="day.label">
-      <h2 class="sticky top-9 z-[1] flex h-8 items-center justify-between border-b border-hairline bg-wash px-4 text-xs font-semibold text-ink-soft">
+      <h2 class="sticky top-9 z-[1] flex h-8 items-end justify-between bg-surface px-4 pb-1 text-xs font-semibold text-ink-soft">
         {{ day.label }}
         <span v-if="money" class="font-medium">{{ formatMoney(day.items.reduce((sum, r) => sum + (r.total || 0), 0)) }}</span>
       </h2>

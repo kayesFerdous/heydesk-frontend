@@ -2,7 +2,7 @@
   <!-- Two islands on the canvas under the status tabs: the list and the open
        record (its actions at the top). A phone shows the list, then one record with a way back. -->
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
-    <PageHeader :class="{ 'max-lg:hidden': opened }" :title="t('inbox.title')" :subtitle="t('inbox.subtitle')">
+    <PageHeader :class="{ 'max-lg:hidden': opened }" :title="t('inbox.title')" :tip="t('inbox.subtitle')">
       <template #actions>
         <label class="relative w-full sm:w-60">
           <span class="sr-only">{{ t('inbox.search') }}</span>
@@ -27,22 +27,19 @@
       </template>
     </PageHeader>
 
+    <!-- A customer waiting for a person: the sidebar's strip says so from 768px,
+         so this one line is for a phone, which has no strip. -->
     <router-link
       v-if="inbox.needsHuman > 0"
       to="/conversations?filter=needs_human"
-      class="island mb-3 flex items-center gap-3 p-3 pr-5 text-sm transition-shadow hover:shadow-[var(--shadow-lift)]"
+      class="island mb-2 flex items-center gap-2.5 px-3 py-2.5 text-sm md:hidden"
       :class="{ 'max-lg:hidden': opened }"
     >
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-attention-tint text-attention" aria-hidden="true">
-        <PhUserSound :size="20" weight="bold"></PhUserSound>
+      <PhUserSound :size="18" weight="fill" class="shrink-0 text-attention"></PhUserSound>
+      <span class="min-w-0 flex-1 font-semibold text-ink">
+        {{ t('inbox.waitingForPerson', { n: formatNumber(inbox.needsHuman) }, inbox.needsHuman) }}
       </span>
-      <span class="min-w-0 flex-1">
-        <span class="block font-bold text-ink">
-          {{ t('inbox.waitingForPerson', { n: formatNumber(inbox.needsHuman) }, inbox.needsHuman) }}
-        </span>
-        <span class="block text-ink-soft">{{ t('inbox.handedOver') }}</span>
-      </span>
-      <span class="flex items-center gap-1 font-bold whitespace-nowrap">
+      <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
         {{ t('common.open') }}
         <PhArrowRight :size="14" weight="bold"></PhArrowRight>
       </span>

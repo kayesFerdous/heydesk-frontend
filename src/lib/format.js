@@ -41,6 +41,11 @@ export function formatDay(isoString, timeZone = 'Asia/Dhaka') {
   });
 }
 
+// A day's short name under a bar: "Thu", where the business is.
+export function formatWeekday(isoString, timeZone = 'Asia/Dhaka') {
+  return new Date(isoString).toLocaleDateString(localeTag(), { weekday: 'short', timeZone });
+}
+
 // Today as the top of a statement: "Tuesday, 14 October", where the business is.
 export function formatToday(timeZone = 'Asia/Dhaka') {
   return new Date().toLocaleDateString(localeTag(), {

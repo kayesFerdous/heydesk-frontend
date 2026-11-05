@@ -11,7 +11,7 @@
       <SettingsGroup :title="t('team.people')" :tip="t('team.peopleTip')">
         <ul class="border-t border-hairline">
           <li v-for="member in members" :key="member.id" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hairline py-3">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-semibold text-brand" aria-hidden="true">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold" :class="avatarTint(member.email)" aria-hidden="true">
               {{ member.email.charAt(0).toUpperCase() }}
             </span>
             <span class="min-w-0 flex-1">
@@ -29,7 +29,7 @@
               {{ t('team.invited') }}
             </span>
             <!-- How busy they are now (backend I1): what a hand-off goes by. -->
-            <span v-else class="chip bg-hover text-ink-soft" :title="t('conversations.assign.openHint')">
+            <span v-else-if="member.open_chats" class="chip bg-hover text-ink-soft" :title="t('conversations.assign.openHint')">
               <PhChatsCircle :size="14"></PhChatsCircle>
               {{ t('conversations.assign.open', { n: formatNumber(member.open_chats || 0) }) }}
             </span>
@@ -145,7 +145,7 @@ import SkeletonRows from '../../components/ui/SkeletonRows.vue';
 import ShowMore from '../../components/ui/ShowMore.vue';
 import { fetchActivity, fetchMembers, inviteMember, removeMember, resendInvite } from '../../api/team.js';
 import { formatDay, formatNumber, formatTime } from '../../lib/format.js';
-import { groupByDay, PAGE_SIZE } from '../../lib/group.js';
+import { avatarTint, groupByDay, PAGE_SIZE } from '../../lib/group.js';
 import { describeActivity, roleName } from '../../lib/team.js';
 import { useAgentStore } from '../../stores/agent.js';
 

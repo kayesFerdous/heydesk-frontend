@@ -85,7 +85,8 @@
               </span>
               <template v-if="!collapsed">
                 <span class="flex-1 truncate">{{ item.label }}</span>
-                <span v-if="item.count" class="nav-count" :class="{ 'nav-count-attention': item.attention }">
+                <!-- Unfolded, the orange strip above already says someone waits, so the count stays quiet. -->
+                <span v-if="item.count" class="nav-count">
                   {{ formatNumber(item.count) }}
                 </span>
               </template>

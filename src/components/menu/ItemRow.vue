@@ -2,7 +2,7 @@
   <!-- One product on the list: name, price, whether it is offered, edit.
        Edit opens the form in a sheet (ItemEditor); `editing` marks its row meanwhile. -->
   <div
-    class="row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:px-8"
+    class="row group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:px-8"
     :class="[columns, { 'row-selected': editing }]"
   >
     <div class="flex min-w-0 items-center gap-3" :class="{ 'opacity-55': !item.available }">
@@ -41,7 +41,8 @@
       </div>
 
       <div class="flex items-center justify-end gap-1">
-        <template v-if="page">
+        <!-- Open and copy show on hover or focus with a mouse (always on touch), so the list is not a wall of icons. -->
+        <div v-if="page" class="flex items-center gap-1 transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100">
           <a
             :href="page"
             target="_blank"
@@ -61,7 +62,7 @@
           >
             <component :is="copied ? PhCheck : PhLinkSimple" :size="18" :class="{ 'text-success': copied }"></component>
           </button>
-        </template>
+        </div>
         <button
           type="button"
           class="btn btn-quiet btn-icon !h-8 !w-8"

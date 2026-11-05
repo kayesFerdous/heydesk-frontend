@@ -270,6 +270,16 @@
     @apply rounded-[var(--radius-panel)] border border-hairline bg-surface;
   }
 
+  /* An empty state fills what holds it and sits in the middle, so an empty
+     page reads as resting, not as a block stranded in a corner. */
+  .empty-state {
+    @apply flex min-h-64 flex-1 items-center justify-center text-center;
+  }
+
+  .island:has(> .empty-state) {
+    @apply flex flex-col;
+  }
+
   /* A page whose content is shorter than the screen: its last island
      stretches to the bottom, so the canvas never shows a bare gap under it
      on a tall monitor. */

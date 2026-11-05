@@ -45,15 +45,15 @@
       </SettingsGroup>
 
       <SettingsGroup :title="t('billing.choose')" :tip="t('billing.chooseTip')">
-        <div class="flex gap-1 self-start rounded-lg bg-hover p-1 text-sm" role="radiogroup">
+        <div class="segmented self-start" role="radiogroup">
           <button
             v-for="option in [1, 12]"
             :key="option"
             type="button"
             role="radio"
             :aria-checked="months === option"
-            class="rounded-md px-3 py-1.5"
-            :class="months === option ? 'bg-surface font-semibold shadow-sm' : 'text-ink-soft'"
+            class="segment"
+            :class="{ 'segment-active': months === option }"
             @click="months = option"
           >
             {{ option === 1 ? t('billing.monthly') : t('billing.yearly') }}
@@ -101,15 +101,6 @@
                 <PhCoins :size="16" class="shrink-0 text-ink-soft"></PhCoins>
                 {{ t('billing.per100', { money: formatMoney(per100(plan)) }) }}
               </li>
-              <!-- A paid plan keeps answering for GRACE_DAYS after it ends (backend D106). -->
-              <li class="flex items-center gap-2">
-                <PhClockCounterClockwise :size="16" class="shrink-0 text-ink-soft"></PhClockCounterClockwise>
-                {{ t('billing.grace') }}
-              </li>
-              <li class="flex items-center gap-2">
-                <PhCheckCircle :size="16" class="shrink-0 text-ink-soft"></PhCheckCircle>
-                {{ t('billing.everything') }}
-              </li>
             </ul>
             <!-- One button per gateway HeyDesk has set up; the first is the main one. -->
             <div v-if="billing.gateways.length" class="mt-auto flex flex-col gap-2">
@@ -118,7 +109,7 @@
                 :key="gateway"
                 type="button"
                 class="btn"
-                :class="plan.key === billing.plan ? 'btn-quiet' : index === 0 ? 'btn-primary' : 'btn-secondary'"
+                :class="plan.key === billing.plan && billing.active ? 'btn-quiet' : plan.key === suggested && index === 0 ? 'btn-primary' : 'btn-secondary'"
                 :disabled="paying !== null"
                 @click="pay(plan, gateway)"
               >
@@ -129,7 +120,11 @@
             </div>
           </div>
         </div>
-        <p class="hint">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
+        <!-- What every plan shares is said once, so the cards show only what differs. A paid plan keeps answering for GRACE_DAYS after it ends (backend D106). -->
+        <p class="hint">
+          {{ t('billing.allPlans') }}
+          {{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}
+        </p>
 
         <p v-if="payError" class="flex items-start gap-2 text-sm text-danger" role="alert">
           <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
@@ -148,7 +143,6 @@ import {
   PhCalendarBlank,
   PhChatsCircle,
   PhCheckCircle,
-  PhClockCounterClockwise,
   PhCoins,
   PhUsersThree,
   PhWarningCircle,

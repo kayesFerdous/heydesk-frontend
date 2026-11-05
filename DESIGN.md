@@ -14,6 +14,13 @@ went (the nav counts say the same), the open page became a quiet fill with a
 lime icon, and Home puts "Needs you" first and widest, with today's figures
 ruled under it and a white agent island beside it.
 
+v5.2 (5 Nov 2026) is a calmer pass, nothing new in the palette or the type: each
+screen has one loud thing. A customer waiting shows once per screen, not three
+times. Home splits into a column to act and a column to know. Settings lost its
+identity island, so the form starts higher. What a row can do shows when you
+reach for it. The idea comes from Linear's 2026 refresh: what only helps you find
+your way steps back, and structure is felt rather than drawn.
+
 v5 (22 Oct 2026) replaced v4 ("Passbook", cobalt rules on white paper). The
 owner judged v4 too plain and picked this direction from three generated
 Home screens (the prompts are in [docs/image-prompts.md](docs/image-prompts.md)).
@@ -35,7 +42,7 @@ density 4 (roomy, big numbers, big tap targets).
 - **A black panel for where you can go**: the sidebar floats on the canvas
   with round corners. Its counts sit beside their pages; a customer waiting
   for a person also gets an orange strip at the top, only while they wait.
-- **Islands, not sheets.** Home lays white islands (20px corners, a hairline, no shadow)
+- **Islands, not sheets.** Home lays white islands (16px corners, a hairline, no shadow)
   straight on the canvas. Every other page sits in one white island beside
   the sidebar.
 - **Lime is selection only**: the open page in the sidebar and the tab bar,
@@ -44,8 +51,7 @@ density 4 (roomy, big numbers, big tap targets).
 - **One black primary per screen.** On a black surface the primary is lime
   (`.btn-lime`).
 - **Lists stay rows** with hairlines, grouped Today / Yesterday, inside an
-  island. Home's "Needs you" uses rounded grey rows instead, because it is a
-  short list of things to act on, not a ledger.
+  island. Home's "Needs you" too.
 - **Codes are serials** (A-104, M-42) in a mono face. Nothing else is.
 
 ## Colour
@@ -91,7 +97,7 @@ tabular figures; the detector flags Plus Jakarta Sans and Geist as overused), **
 
 ## Shape and elevation
 
-Concentric: **islands 20px** (`--radius-panel`), **things inside them 12px**
+Concentric: **islands 16px** (`--radius-panel`), **things inside them 12px**
 (`--radius-card`: rows, panels, popovers, textareas), **small boxes inside
 those 8px** (`--radius-thumb`: photos, tooltips, a ruled list in a panel),
 **controls 10px** (`--radius-control`: buttons, fields, tabs, nav items; a
@@ -110,13 +116,17 @@ get `--shadow-float`.
 - **Tabs** `.tabs` / `.tab` / `.tab-active`: 10px corners, the open one lime.
   **Segmented** `.segmented` / `.segment`: a grey 10px track, the chosen
   segment white.
-- **Island** `.island`: a white block with 20px corners and a hairline. **Panel** `.panel`:
+- **Island** `.island`: a white block with 16px corners and a hairline. **Panel** `.panel`:
   a ruled 12px box inside an island. **Notice** `.notice`: a ruled white box,
   the orange carried by its icon.
 - **Rows** `.row`, `.row-selected` (pale lime), `.day-head`, `.ledger`: as v4.
 - **Chip** `.chip` via `StatusChip`: a soft pill, icon plus word.
-- **HourBars** (`components/home/`): today hour by hour, the busiest hour in
-  black, under a figure on Home once that figure is above zero.
+- **WeekBars** (`components/home/`): the last seven days under the figure that
+  leads Home, one bar a day, today in black and the others in `line-strong`, a
+  bar's figure on hover or focus. It stays away until the week has something in it.
+- **EmptyState**: in the middle of whatever holds it, the icon on a grey circle,
+  so an empty page reads as resting. An island that holds one becomes a column so
+  it can fill it.
 - `PageHeader`, `EmptyState`, `LoadError`, `SaveBar`, `InfoTip`,
   `SettingsGroup`, `.popover`: as v4, in the new shapes.
 
@@ -149,8 +159,8 @@ get `--shadow-float`.
 - The sidebar: the mark on a lime tile, the business name and live status,
   an orange "Needs a person" strip while someone waits (hidden when folded,
   where the count sits on the Chats icon), the grouped nav (the open
-  item a quiet fill with its filled icon in lime; counts in dark pills,
-  orange when someone waits),
+  item a quiet fill with its filled icon in lime; counts in dark pills: the
+  strip above is the one orange, and only folded does the Chats count turn orange),
   "Try your assistant" as a dark pill with a lime icon, the account row.
   The nav has three labelled groups from `navGroups`: Daily work, Your
   business (the lists, a shop's Coupons) and Setup, one Settings row that
@@ -170,32 +180,34 @@ page. Language stays one click away in the account menu.
 
 ## Home
 
-On the canvas, no `PageHeader`: the greeting (40px, 600) and today's date.
-Then a bento:
+On the canvas, no `PageHeader`: the greeting (40px, 600) and today's date. Then
+one column to act and one to know:
 
-- The setup guide across the top while anything is left (rounded grey steps,
-  the next one's number on lime, its button the primary).
-- Left, two thirds wide: **Needs you** (hand-offs first, with a black call
-  button when the customer left a phone; then new records with code and
-  line). No status chip, everything in it is new: with a mouse each row's
-  next step shows on hover or focus and the amount (or time) closes the row
-  after it; a finger sees the step always. Under it **today** in one island:
-  one figure leads (the money taken today, else the first job's count) in
-  40px at 500 with its hours (`HourBars`) under it, beside the small figures
-  two to a row (chats, the other jobs); one with nothing yet says
-  "None yet" in soft ink instead of a bold 0.
-- Right: **the assistant as a card of its own** (its initials on a black tile in
-  lime, "Live on 2 channels", the ask box as a pill opening the test chat,
-  channels as pills, copy the chat link and edit settings as quiet links),
-  and under it **Today so far** ruling what the assistant answered and what went
-  to the team.
+- The setup guide across the top while anything is left: only the next step in
+  full (a grey row, its number on lime, its button the primary), each one after
+  it one quiet line.
+- Left, two thirds wide: **Needs you** with how many beside the title (hand-offs
+  first, with a black call button when the customer left a phone; then new
+  records with code and line) as ruled rows. No status chip, everything in it is
+  new: with a mouse each row's next step shows on hover or focus and the amount
+  (or time) closes the row after it; a tablet sees the step always; a phone keeps
+  the amount and the step is one tap away, in the record.
+- Right: **Today so far** in one island: one figure leads (the money taken today,
+  else the first job's count) in 32px at 500, in soft ink while it is nothing,
+  `WeekBars` under it, then the rest ruled like a receipt (chats, the other jobs,
+  what the assistant answered, what went to the team); one with nothing yet says
+  "None yet" in soft ink. Under it **the assistant as a card of its own** (its
+  initials on a black tile in lime, "Live on 2 channels", the ask box as a pill
+  opening the test chat, channels as pills, copy the chat link and edit settings
+  as quiet links).
 
 ## Inbox and Chats
 
 **Chats** (v8, denser): one ruled island, three panes edge to edge.
 The list (21rem, 20rem at xl, 23rem from 1536px) has search with a funnel
-icon (channel, blocked visitors), Mine / Unassigned / All as a segmented
-switch, All / Needs a person / Done as small tabs, then ruled rows under
+icon (channel, blocked visitors), Mine / Nobody yet / Everyone as a segmented
+switch once there is a team (an owner alone never sees it), All / Needs a person
+/ Done as small tabs, then ruled rows under
 Today / Yesterday: avatar, name, channel icon, time (orange age while
 waiting), preview, then a status chip, the order code and who has it. The chat
 has a compact header (name, channel and time; Call, Done, Take it in black,
@@ -205,9 +217,10 @@ Summary / Ask / Draft. The side (17rem, 20rem from 1536px) shows the buyer,
 orders taken here, then assigned to, channel, started, messages. The title is
 for screen readers on wide screens.
 
-The title and line on the canvas, the switch (jobs, or All / Needs a person) as tabs on a white track to the right.
-A waiting hand-off shows as a white strip with an orange icon above the
-Inbox. Then three islands:
+The title on the canvas, the switch (jobs, or All / Needs a person) as tabs on a
+white track to the right. What the page is for lives behind the "i". On a phone,
+which has no sidebar strip, a waiting hand-off is one white line with an orange
+icon above the Inbox. Then three islands:
 
 - **The Inbox** is one island from 1024px: the list on the left, the open
   record ruled off on the right (20rem, 24rem from 1280px, 27rem from
@@ -220,7 +233,7 @@ Inbox. Then three islands:
   else on All.
 - **The Inbox table** (`RecordTable`): one 44px line per record, same columns
   down the page (code, customer, items, status, time, total), under sticky day
-  headings on grey (orders show the day's total). It reads its own width: as
+  headings in soft ink, no fill or rule (orders show the day's total). It reads its own width: as
   the record takes room the items go first, then the time; code, customer and
   total stay. The status column exists only under All. The selected line is
   pale lime with an ink edge. A phone keeps the rounded rows, then one record
@@ -274,20 +287,19 @@ settings (the name, greeting and look); the other sections use the full width.
 
 `PageHeader` on the canvas, tabs on a white track under it.
 
-- **Assistant settings**: under the title, the sections on one white track,
+- **Assistant settings**: beside the title, "Answering" (or "AI off", "Paused by
+  HeyDesk"), the "AI answers" switch as a pill (saved at once, orange-tinted
+  while off, with a line pointing to Chats) and "Copy chat link". Under it, the
+  sections on one white track,
   in setup order: Business (its details and opening hours), How it talks
   (name, welcome message, tone, hand-off, what it does), Answers (common
   questions, saved replies), Delivery and payments (accounts, courier, areas,
   cash orders, paying first), Chat bubble, Calls
   (an icon and the name, the open one lime with a filled icon, gap counts in
   orange), sticky while a long form scrolls; the tabs share the width from
-  1024px and scroll sideways on a phone with the open one centred. Then the
-  agent's own island: its logo or initials on a black tile, its name with
-  "Answering" (or "AI off", "Paused by HeyDesk"), its kind and business; on
-  the right the "AI answers" switch as a pill (saved at once, orange-tinted
-  while off, with a line pointing to Chats) and "Copy chat link".
-  Under them, on a grey band, what is still missing as pill links to where
-  each is fixed, or one green "Ready" line. Then the form island, which opens
+  1024px and scroll sideways on a phone with the open one centred. Then, while
+  anything is missing, one quiet island: how many things are left and each as a
+  pill link to where it is fixed. Then the form island, which opens
   with the section's name and one line on what it holds; the form is
   `SettingsGroup`s ruled apart with the floating `SaveBar`, and a section
   settles in with a short fade. From 1280px a sticky **Preview** island
@@ -298,9 +310,13 @@ settings (the name, greeting and look); the other sections use the full width.
   categories as pills with counts ("All 42", "Biryani 6"), then any import
   panel or linked-sheet bar, then the list as ruled rows (photo, name, tags,
   facts, price, the availability switch, edit; a shop's also open and copy its
-  page). Edit and Add open the form in a sheet from the right (`ItemEditor`), the
+  page, which show on hover or focus with a mouse and always on touch). Edit and Add open the form in a sheet from the right (`ItemEditor`), the
   row marked meanwhile: photos first, then sections, Save always at the bottom;
   closing with changes asks first. Full screen on a phone.
+
+- **Plan and payment**: the plans side by side, showing only what differs; what
+  every plan shares is one line under them. One black button: renewing once the
+  plan has ended, else the next plan up, and none on the biggest plan.
 
 - **Coupons**: the codes are the page. The `PageHeader` says how many are live, with "Send an offer" (secondary) and "New coupon" (the black primary) on the right; they hide while a form is open, so the form's own button is the one black one. A form opens as one island under the header (Cancel closes it): the kind of discount as a segmented switch with the amount beside it, the optional fields marked so, and the coupon read back in one plain sentence before saving. The list is one island of ruled rows under "Live" and "Stopped working": the code as a serial chip, what it takes off over its uses and last day, a status chip (Live, Ended, Used up) and a quiet Stop or Remove that asks once in the row.
 
