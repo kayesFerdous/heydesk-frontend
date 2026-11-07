@@ -1,5 +1,5 @@
 // Every fetch in the app goes through here, so the base URL, the JSON headers,
-// the Bearer token and the error shape are decided in exactly one place.
+// and the error shape are decided in exactly one place.
 //
 // The backend answers every failure as { error: { code, message, fields? } };
 // `fields` maps a config path to what is wrong with it (422 invalid_config).
@@ -7,15 +7,16 @@ import i18n, { t } from '../i18n/index.js';
 
 const BASE_URL = '/api';
 
-// The auth store hands over the session's token, and main.js registers what
-// should happen when it is rejected, so this file never imports a store (the
+// The browser sends the session cookie by itself; scripts can never read it. The
+// auth store says whether someone is signed in, and main.js registers what should
+// happen when the session is rejected, so this file never imports a store (the
 // stores import this file).
-let authToken = null;
+let signedIn = false;
 let viewedBusiness = null;
 let onUnauthorized = () => {};
 
-export function setAuthToken(token) {
-  authToken = token;
+export function setSignedIn(next) {
+  signedIn = next;
 }
 
 // The business an admin is looking at (backend D23): sent as X-Business, so the
@@ -24,21 +25,18 @@ export function setViewedBusiness(businessId) {
   viewedBusiness = businessId;
 }
 
-export function getAuthToken() {
-  return authToken;
+export function isSignedIn() {
+  return signedIn;
 }
 
 export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler;
 }
 
-// The headers every call sends: the token, the business an admin looks at, the
+// The headers every call sends: the business an admin looks at, the
 // language, and the ngrok one.
 function baseHeaders() {
   const headers = {};
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
-  }
   if (viewedBusiness) {
     headers['X-Business'] = viewedBusiness;
   }
@@ -51,7 +49,7 @@ function baseHeaders() {
 }
 
 export async function request(path, { method = 'GET', body } = {}) {
-  const token = authToken;
+  const wasSignedIn = signedIn;
   const headers = baseHeaders();
 
   // A file upload is a FormData: the browser sets its own Content-Type (with
@@ -86,8 +84,8 @@ export async function request(path, { method = 'GET', body } = {}) {
     error.code = detail && detail.code;
     error.fields = detail && detail.fields;
 
-    // A rejected token on a call that sent one: the session is over.
-    if (response.status === 401 && token) {
+    // A rejected session (a wrong password at sign-in is also a 401): it is over.
+    if (response.status === 401 && wasSignedIn) {
       onUnauthorized();
     }
     throw error;
@@ -96,12 +94,12 @@ export async function request(path, { method = 'GET', body } = {}) {
   return responseData;
 }
 
-// A stream the server holds open (text/event-stream). An EventSource can't send
-// the Bearer token, and the token must not go in the URL, so this is a fetch the
-// caller reads with `response.body` and ends with `signal`. A failure to open
+// A stream the server holds open (text/event-stream). This is a fetch, not an
+// EventSource, so it can send the headers above; the caller reads it with
+// `response.body` and ends it with `signal`. A failure to open
 // throws like `request` does.
 export async function openStream(path, signal) {
-  const token = authToken;
+  const wasSignedIn = signedIn;
   let response;
   try {
     response = await fetch(BASE_URL + path, {
@@ -119,7 +117,7 @@ export async function openStream(path, signal) {
       (detail && detail.message) || t('errors.requestFailed', { status: response.status })
     );
     error.status = response.status;
-    if (response.status === 401 && token) {
+    if (response.status === 401 && wasSignedIn) {
       onUnauthorized();
     }
     throw error;

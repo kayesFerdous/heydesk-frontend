@@ -29,8 +29,8 @@ session.
   backend's own sentences (errors, `missing`, the agent's replies) show as sent.
 - Imported components are written PascalCase in templates (`<LoadError>`), so
   a ref with the same camelCase name (`loadError`) can never shadow them.
-- Every request goes through `src/api/client.js`, which also holds the session
-  token (API functions take no token). The backend's error shape is
+- Every request goes through `src/api/client.js`. The session is an HttpOnly cookie
+  the browser sends by itself, so no script holds a token (API functions take none). The backend's error shape is
   `{ error: { code, message, fields? } }`; show `message` as-is.
 - Money arrives in minor units (45000 = ৳450): always `formatMoney`. Times are
   UTC: always `formatTime` (agent timezone, default `Asia/Dhaka`).

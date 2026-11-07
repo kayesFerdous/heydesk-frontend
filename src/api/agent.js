@@ -1,4 +1,4 @@
-import { request, getAuthToken } from './client.js';
+import { request, isSignedIn } from './client.js';
 
 // The backend has no presets any more (D41): each kind of business is a "desk"
 // with its own fields and tables. This file keeps the shapes the pages use:
@@ -13,26 +13,26 @@ const JOBS = {
 };
 
 // The business's desk ("shop"). A business
-// never changes its desk, so it is asked once per sign-in (per token) and the
+// never changes its desk, and the shop is the only one, so it is asked once and the
 // answer is reused by every list call, instead of a GET /agent before each one.
 // The promise itself is kept, so calls made at the same moment share one request.
-let kindOf = { token: null, kind: null };
+let kindOf = { session: false, kind: null };
 
 export function agentKind() {
-  const token = getAuthToken();
-  if (kindOf.token !== token) {
+  const session = isSignedIn();
+  if (kindOf.session !== session) {
     const kind = request('/agent').then((agent) => agent.kind);
-    kindOf = { token, kind };
+    kindOf = { session, kind };
     // No agent yet (404) or the API is down: forget it, so the next call asks again.
     kind.catch(() => {
-      if (kindOf.kind === kind) kindOf = { token: null, kind: null };
+      if (kindOf.kind === kind) kindOf = { session: false, kind: null };
     });
   }
   return kindOf.kind;
 }
 
 function rememberKind(kind) {
-  kindOf = { token: getAuthToken(), kind: Promise.resolve(kind) };
+  kindOf = { session: isSignedIn(), kind: Promise.resolve(kind) };
 }
 
 function ownSchema(schema) {

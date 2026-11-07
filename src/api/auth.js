@@ -7,7 +7,7 @@ export function login(email, password) {
   });
 }
 
-// No token yet: the API emails a 6-digit code, and verifyEmail logs them in (backend D94).
+// Not logged in yet: the API emails a 6-digit code, and verifyEmail logs them in (backend D94).
 export function signup(email, password, workspaceName) {
   return request('/auth/signup', {
     method: 'POST',
@@ -15,7 +15,7 @@ export function signup(email, password, workspaceName) {
   });
 }
 
-// The code from the signup email: returns { token }, or 403 if it is wrong or expired.
+// The code from the signup email: sets the session cookie, or 403 if it is wrong or expired.
 export function verifyEmail(email, code) {
   return request('/auth/verify', { method: 'POST', body: { email, code } });
 }
@@ -30,7 +30,7 @@ export function forgotPassword(email) {
   return request('/auth/forgot', { method: 'POST', body: { email } });
 }
 
-// The emailed code and a new password: returns { token }, or 403 if the code is wrong.
+// The emailed code and a new password: sets the session cookie, or 403 if the code is wrong.
 export function resetPassword(email, code, newPassword) {
   return request('/auth/reset', {
     method: 'POST',
@@ -44,6 +44,11 @@ export function changePassword(currentPassword, newPassword) {
     method: 'PUT',
     body: { current_password: currentPassword, new_password: newPassword },
   });
+}
+
+// Clears the session cookie, which scripts here cannot do.
+export function logout() {
+  return request('/auth/logout', { method: 'POST' });
 }
 
 export function fetchMe() {
