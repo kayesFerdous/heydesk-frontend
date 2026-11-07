@@ -11,7 +11,7 @@ import { useAuthStore } from './stores/auth.js';
 const app = createApp(App).use(createPinia()).use(i18n);
 const auth = useAuthStore();
 
-// A rejected token ends the session wherever it happens: clear it, and the
+// A rejected session ends here wherever it happens: clear it, and the
 // router guard sends the owner to the sign-in page.
 setUnauthorizedHandler(() => {
   auth.logout();

@@ -1,23 +1,26 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-import { login, signup, verifyEmail, resetPassword, fetchMe } from '../api/auth.js';
-import { setAuthToken, setViewedBusiness } from '../api/client.js';
+import { login, logout as endSession, signup, verifyEmail, resetPassword, fetchMe } from '../api/auth.js';
+import { setSignedIn, setViewedBusiness } from '../api/client.js';
 import { useAgentStore } from './agent.js';
 import { useInboxStore } from './inbox.js';
 import { useUiStore } from './ui.js';
 
-const TOKEN_KEY = 'heydesk_token';
+// Not a secret: the session is in a cookie scripts can't read. This only says a
+// session may exist, so a signed-out visitor's page load asks the API nothing.
+const SIGNED_IN_KEY = 'heydesk_signed_in';
+const OLD_TOKEN_KEY = 'heydesk_token'; // where the token used to be: removed on start
 // The business an admin is viewing lasts as long as the browser tab, not longer.
 const VIEWING_KEY = 'heydesk_viewing';
 
-// The token survives a reload; `me` is fetched again from it every time.
+// The cookie survives a reload; `me` is fetched again with it every time.
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(null);
+  const signedIn = ref(false);
   const me = ref(null);
   const viewing = ref(null); // { id, name, status }: the business an admin opened
 
-  const isAuthenticated = computed(() => !!token.value);
+  const isAuthenticated = computed(() => signedIn.value);
   const isAdmin = computed(() => me.value?.role === 'admin');
   // Someone the owner added to the team (backend D97): the inbox, the records and the
   // lists, but not the agent's settings, the channels or the team.
@@ -30,16 +33,16 @@ export const useAuthStore = defineStore('auth', () => {
   const business = computed(() => me.value?.business ?? (isViewing.value ? viewing.value : null));
   const isSuspended = computed(() => business.value?.status === 'suspended');
 
-  function setToken(next) {
-    token.value = next;
-    setAuthToken(next);
+  function setSession(next) {
+    signedIn.value = next;
+    setSignedIn(next);
   }
 
   // Called once when the app starts: pick the session back up if there is one.
   async function tryLogin() {
-    const saved = localStorage.getItem(TOKEN_KEY);
-    if (!saved) return;
-    setToken(saved);
+    localStorage.removeItem(OLD_TOKEN_KEY);
+    if (!localStorage.getItem(SIGNED_IN_KEY)) return;
+    setSession(true);
     try {
       me.value = await fetchMe();
       // A reload while an admin was inside a business keeps them there.
@@ -47,20 +50,20 @@ export const useAuthStore = defineStore('auth', () => {
       if (opened && isAdmin.value) setViewing(opened);
     } catch (error) {
       // A 401 already cleared the session through the handler in main.js. Any
-      // other failure (the API is down) keeps the token and shows no account.
+      // other failure (the API is down) keeps the session and shows no account.
       if (error.status !== 401) throw error;
     }
   }
 
-  async function startSession(next) {
-    localStorage.setItem(TOKEN_KEY, next);
-    setToken(next);
+  async function startSession() {
+    localStorage.setItem(SIGNED_IN_KEY, '1');
+    setSession(true);
     me.value = await fetchMe();
   }
 
   async function signIn({ email, password }) {
-    const { token: next } = await login(email, password);
-    await startSession(next);
+    await login(email, password);
+    await startSession();
   }
 
   // Signing up gives no session: the emailed code does (verify below).
@@ -69,13 +72,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function verify({ email, code }) {
-    const { token: next } = await verifyEmail(email, code);
-    await startSession(next);
+    await verifyEmail(email, code);
+    await startSession();
   }
 
   async function reset({ email, code, newPassword }) {
-    const { token: next } = await resetPassword(email, code, newPassword);
-    await startSession(next);
+    await resetPassword(email, code, newPassword);
+    await startSession();
   }
 
   function setViewing(next) {
@@ -107,15 +110,17 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
+    // ponytail: if this request fails (offline), the cookie stays until it expires; retry it if that matters
+    endSession().catch(() => {});
     stopViewing();
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
+    localStorage.removeItem(SIGNED_IN_KEY);
+    setSession(false);
     me.value = null;
     clearBusinessData();
   }
 
   return {
-    token, me, viewing,
+    me, viewing,
     isAuthenticated, isAdmin, isModerator, isViewing, seesBusiness, canManage, business, isSuspended,
     tryLogin, signIn, signUp, verify, reset, logout, view, stopViewing,
   };

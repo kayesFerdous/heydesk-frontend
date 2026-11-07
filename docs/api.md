@@ -14,7 +14,8 @@ Last synced 4 Oct 2026 (after agent jobs + document ingest); paging added 9 Oct 
   rows than `limit` means the last page. `limit` out of range is 422
   `invalid_request`. The frontend asks for `PAGE_SIZE` (30, `lib/group.js`).
 
-- Base `/api`, JSON, `Authorization: Bearer <token>`. The token carries the
+- Base `/api`, JSON. Login sets the `heydesk_session` cookie (HttpOnly, so scripts
+  never see it; backend D174) and the browser sends it by itself. The token inside carries the
   workspace, so there are no ids for the business in URLs.
 - Errors: `{ error: { code, message, fields? } }`. `client.js` turns it into
   `Error` with `.status`, `.code`, `.fields`. Show `message` as-is.
@@ -39,12 +40,13 @@ Frontend file: `src/api/<file>.js`. "-" means the frontend does not call it.
 | Call | What it does |
 |---|---|
 | `POST /auth/signup` `{email, password>=8, workspace_name}` | New business + owner. 204 and an email with a 6-digit code: no token until it is typed (D94) |
-| `POST /auth/login` `{email, password}` | Returns `{token}`; 401 for a wrong email or password; 403 `email_not_verified` for the right one before the code (`SignIn.vue` then sends a fresh code and shows the code step) |
-| `POST /auth/verify` `{email, code}` | The signup code. Returns `{token}`; 403 if wrong or expired; 429 after 5 tries in 15 minutes |
+| `POST /auth/login` `{email, password}` | Sets the session cookie (and returns `{token}`, which the console ignores); 401 for a wrong email or password; 403 `email_not_verified` for the right one before the code (`SignIn.vue` then sends a fresh code and shows the code step) |
+| `POST /auth/verify` `{email, code}` | The signup code. Sets the session cookie; 403 if wrong or expired; 429 after 5 tries in 15 minutes |
 | `POST /auth/verify/resend` `{email}` | Always 204; emails the code again if the account exists and is not verified. 3 an hour per email |
 | `POST /auth/forgot` `{email}` | Always 204; emails a reset code if the account exists. 3 an hour per email |
-| `POST /auth/reset` `{email, code, new_password>=8}` | Returns `{token}`; 403 if the code is wrong, expired or already used. An invited moderator joins here, with the code in their invite (D97) |
+| `POST /auth/reset` `{email, code, new_password>=8}` | Sets the session cookie; 403 if the code is wrong, expired or already used. An invited moderator joins here, with the code in their invite (D97) |
 | `PUT /auth/password` `{current_password, new_password}` | Your own password (owner or admin); the new one at least 8 characters. 204, or 403 `forbidden` if the current one is wrong; 429 counts with the login limit |
+| `POST /auth/logout` | Clears the session cookie. Always 204 |
 | `GET /auth/me` | `{email, role: owner/moderator/admin, business: {id, name, status: active/suspended} \| null}` |
 
 ### Team (`team.js`, owner only, D97)
@@ -344,15 +346,15 @@ also has `at`, ISO 8601 in UTC. Optional fields are left out, not null. Four kin
 ## Frontend map
 
 - `src/api/client.js`: the only `fetch` wrapper (JSON or FormData, error shape,
-  401 handler, the session token, `Accept-Language`). `chat.js` streams with
+  401 handler, `Accept-Language`; the browser sends the session cookie). `chat.js` streams with
   its own fetch because of SSE.
-- `src/stores/` (Pinia): `auth` (token, me), `agent` (info, presets; `config`,
+- `src/stores/` (Pinia): `auth` (signed-in flag, me), `agent` (info, presets; `config`,
   `jobs`, `missing`, `preset`, `kind`), `inbox` (badge counts), `ui` (test chat
   sheet, phone drawer). Pages fetch lists (items, documents, records)
   themselves, they are not in a store.
 - Request budget (see [performance.md](performance.md)): `agent/load` fetches
   once per session (`{ force: true }` after a menu change); `agentKind` is
-  remembered per token; sidebar counts ask only `?status=new`; a conversation's
+  remembered while signed in; sidebar counts ask only `?status=new`; a conversation's
   records come from one records list (`byConversation`), never one fetch per
   conversation. Inbox, Conversations and the admin Activity log fetch one page
   (`PAGE_SIZE`) and `ShowMore` fetches the next. A link to a record older than
