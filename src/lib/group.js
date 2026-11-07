@@ -58,18 +58,3 @@ export function initials(name) {
 export function isToday(isoString, timeZone = 'Asia/Dhaka') {
   return dayKey(isoString, timeZone) === dayKey(new Date().toISOString(), timeZone);
 }
-
-// The last seven days added up, oldest first and today last. `value` says what
-// one item adds (1 to count them, its total to add up money).
-export function lastSevenDays(items, timeZone = 'Asia/Dhaka', value = () => 1) {
-  const days = [];
-  for (let back = 6; back >= 0; back--) {
-    const moment = new Date(Date.now() - back * 86400000).toISOString();
-    days.push({ key: dayKey(moment, timeZone), moment, total: 0 });
-  }
-  for (const item of items) {
-    const day = days.find((d) => d.key === dayKey(item.created_at, timeZone));
-    if (day) day.total += value(item);
-  }
-  return days;
-}

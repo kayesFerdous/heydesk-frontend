@@ -263,11 +263,11 @@ import BrandMark from '../../components/ui/BrandMark.vue';
 import WeekBars from '../../components/home/WeekBars.vue';
 import SidebarToggle from '../../components/layout/SidebarToggle.vue';
 import { fetchRecords, setRecordStatus, byConversation } from '../../api/records.js';
-import { fetchConversations } from '../../api/conversations.js';
+import { fetchConversations, fetchStats } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';
 import { fetchDocuments } from '../../api/agent.js';
 import { formatDay, formatMoney, formatNumber, formatAgo, formatToday, formatWeekday, greeting } from '../../lib/format.js';
-import { isToday, avatarTint, initials, lastSevenDays } from '../../lib/group.js';
+import { isToday, avatarTint, initials } from '../../lib/group.js';
 import { chatLink, itemsLabel } from '../../lib/presets.js';
 import { channelOf } from '../../lib/channels.js';
 import { nextSteps } from '../../lib/flows.js';
@@ -291,6 +291,7 @@ const ready = ref(false);
 const error = ref(null);
 const records = ref([]);
 const conversations = ref([]);
+const stats = ref(null);
 const telegram = ref(null);
 const documentCount = ref(0);
 const shared = ref(false);
@@ -300,57 +301,41 @@ const title = computed(() => greeting(timezone.value));
 const link = computed(() => chatLink(agent.publicKey));
 
 const today = computed(() => formatToday(timezone.value));
-// Only an agent that takes orders handles money, so only it gets an amount column.
-const takesMoney = computed(() => agent.jobs.includes('order'));
-const conversationsToday = computed(
-  () => conversations.value.filter((c) => isToday(c.created_at, timezone.value)).length,
-);
+// Today's figures come from the server, which leaves out cancelled and unpaid
+// orders: conversations, then the lead (the money orders brought in), then the jobs.
+const todayFigures = computed(() => stats.value?.today ?? { conversations: 0, handed_off: 0, sales: 0, amount: 0 });
+const conversationsToday = computed(() => todayFigures.value.conversations);
+const handedToday = computed(() => todayFigures.value.handed_off);
 
-// Today's figures: conversations, then the lead (the money orders brought in,
-// else the first job's count), then the other jobs.
-// ponytail: counted from the first page (100 of each), enough for a day of a
-// small business; a figures endpoint when one outgrows it.
-const todayRecords = computed(() => records.value.filter((r) => isToday(r.created_at, timezone.value)));
+// ponytail: the day's messages are counted from the first page (100), enough for
+// a day of a small business; a count in the stats when one outgrows it.
+const messagesToday = computed(() => records.value.filter((r) => r.job === 'message' && isToday(r.created_at, timezone.value)).length);
 const jobFigures = computed(() =>
-  agent.jobs.map((job) => ({
-    id: job,
-    label: t(`home.figures.${job}`),
-    value: formatNumber(todayRecords.value.filter((r) => r.job === job).length),
-    zero: !todayRecords.value.some((r) => r.job === job),
-  })),
+  agent.jobs.map((job) => {
+    const count = job === 'order' ? todayFigures.value.sales : messagesToday.value;
+    return { id: job, label: t(`home.figures.${job}`), value: formatNumber(count), zero: !count };
+  }),
 );
-const lead = computed(() => {
-  if (!takesMoney.value) return jobFigures.value[0] || { id: 'none', label: '', value: '' };
-  const orders = todayRecords.value.filter((r) => r.job === 'order');
-  return {
-    id: 'taken',
-    label: t('home.figures.taken'),
-    value: formatMoney(orders.reduce((sum, r) => sum + (r.total || 0), 0)),
-    zero: !orders.length,
-  };
-});
+const lead = computed(() => ({
+  id: 'taken',
+  label: t('home.figures.taken'),
+  value: formatMoney(todayFigures.value.amount),
+  zero: !todayFigures.value.sales,
+}));
 
-// The week behind the lead figure: the same thing, added up per day.
-const weekDays = computed(() => {
-  const job = takesMoney.value ? 'order' : agent.jobs[0];
-  const adds = takesMoney.value ? (r) => r.total || 0 : undefined;
-  return lastSevenDays(records.value.filter((r) => r.job === job), timezone.value, adds);
-});
-const weekFigure = (value) => (takesMoney.value ? formatMoney(value) : formatNumber(value));
+// The week behind the lead figure: the same thing, day by day.
+const weekDays = computed(() => stats.value?.daily ?? []);
 const week = computed(() =>
   weekDays.value.map((day) => ({
-    key: day.key,
-    label: formatWeekday(day.moment, timezone.value),
-    value: day.total,
-    text: `${formatDay(day.moment, timezone.value)}: ${weekFigure(day.total)}`,
+    key: day.start,
+    label: formatWeekday(day.start, timezone.value),
+    value: day.amount,
+    text: `${formatDay(day.start, timezone.value)}: ${formatMoney(day.amount)}`,
   })),
 );
-const weekTotal = computed(() => weekFigure(weekDays.value.reduce((sum, day) => sum + day.total, 0)));
+const weekTotal = computed(() => formatMoney(weekDays.value.reduce((sum, day) => sum + day.amount, 0)));
 
 // The rest of the day, in words, ruled under the figure. Each one with nothing yet has no value.
-const handedToday = computed(
-  () => conversations.value.filter((c) => c.status === 'needs_human' && isToday(c.created_at, timezone.value)).length,
-);
 const todayLines = computed(() => [
   { id: 'conversations', label: t('home.figures.conversations'), value: conversationsToday.value ? formatNumber(conversationsToday.value) : '' },
   ...jobFigures.value.filter((cell) => cell.id !== lead.value.id).map((cell) => ({ id: cell.id, label: cell.label, value: cell.zero ? '' : cell.value })),
@@ -430,9 +415,9 @@ async function advance(record) {
   moving.value = null;
 }
 
-async function refreshConversations() {
+async function refreshChats() {
   try {
-    conversations.value = await fetchConversations();
+    [conversations.value, stats.value] = await Promise.all([fetchConversations(), fetchStats()]);
   } catch (err) {
     // Best effort: the next visit loads it again.
   }
@@ -447,16 +432,17 @@ async function load() {
       ready.value = true;
       return;
     }
-    await agent.loadPresets();
-    const [recordList, conversationList, bot, documents] = await Promise.all([
+    const [recordList, conversationList, figures, bot, documents] = await Promise.all([
       fetchRecords(),
       fetchConversations(),
+      fetchStats(),
       // A moderator has no Telegram or Knowledge to set up (backend D97).
       auth.canManage ? fetchTelegram().catch(() => null) : null,
       auth.canManage ? fetchDocuments().catch(() => []) : [],
     ]);
     records.value = recordList;
     conversations.value = conversationList;
+    stats.value = figures;
     telegram.value = bot;
     documentCount.value = documents.length;
     shared.value = !!auth.business && wasShared(auth.business.id);
@@ -489,7 +475,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer));
 watch(
   () => ui.testSheetOpen,
   (open) => {
-    if (!open && agent.hasAgent) refreshConversations();
+    if (!open && agent.hasAgent) refreshChats();
   },
 );
 

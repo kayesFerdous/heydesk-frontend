@@ -219,12 +219,11 @@ when nothing happens.
 
 ## Next, on the backend
 
-Paging is done (section 6). Two more small additions would cut requests
-further. Each one is a frontend change of
-a few lines after it lands:
+Paging is done (section 6), and Home's figures come from `GET /stats` (D176).
+Only the Agent pages ask for `GET /desks` now, since only their forms read it.
+One more small addition would cut requests further, a frontend change of a
+few lines after it lands:
 
 1. **Name in `GET /conversations`.** The last message is there now
    (D167); with the name too, the Conversations list needs 1 request
    instead of 3.
-2. **Today's totals.** The waiting counts are in `GET /conversations/counts`
-   now (D167); with today's totals too, Home's "Today" line needs no lists.
