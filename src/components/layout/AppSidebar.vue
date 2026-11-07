@@ -230,7 +230,6 @@ watch(
   (business) => {
     if (!business) return;
     inbox.load().catch(() => {});
-    agent.loadPresets().catch(() => {});
     agent.load().catch(() => {});
   },
   { immediate: true },

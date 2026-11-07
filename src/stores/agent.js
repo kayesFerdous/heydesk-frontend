@@ -59,7 +59,8 @@ export const useAgentStore = defineStore('agent', () => {
     return loading;
   }
 
-  // The kinds of business never change while the app is open.
+  // The fields of the settings forms; only the Agent pages read them, so only they
+  // ask. They never change while the app is open.
   function loadPresets() {
     if (presets.value.length) return Promise.resolve();
     if (!loadingPresets) {
