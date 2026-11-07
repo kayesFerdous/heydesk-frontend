@@ -74,12 +74,12 @@
           </div>
 
           <!-- Who has it (backend I1): one choice, with how many there wait for a person. -->
-          <div v-if="!auth.isViewing" class="segmented flex w-full" role="group" :aria-label="t('conversations.assign.filter')">
+          <div v-if="showWho" class="segmented flex w-full" role="group" :aria-label="t('conversations.assign.filter')">
             <button
               v-for="id in WHO"
               :key="id"
               type="button"
-              class="segment !h-7 flex-1 justify-center !px-2"
+              class="segment !h-7 flex-auto justify-center !px-2 whitespace-nowrap"
               :class="{ 'segment-active': who === id }"
               :aria-pressed="who === id"
               @click="setWho(id)"
@@ -213,12 +213,8 @@
         <div class="skeleton mt-8 h-12 w-2/3 !rounded-[var(--radius-card)]"></div>
         <div class="skeleton mt-3 ml-auto h-12 w-1/2 !rounded-[var(--radius-card)]"></div>
       </div>
-      <div v-else class="hidden flex-col items-center justify-center p-8 text-center lg:flex xl:col-span-2">
-        <span class="grid h-14 w-14 place-items-center rounded-full bg-brand-tint" aria-hidden="true">
-          <PhChatsCircle :size="26"></PhChatsCircle>
-        </span>
-        <h2 class="mt-4 text-lg font-bold">{{ t('conversations.pick') }}</h2>
-        <p class="mt-1 max-w-xs text-sm text-ink-soft">{{ t('conversations.pickText') }}</p>
+      <div v-else class="hidden flex-col lg:flex xl:col-span-2">
+        <EmptyState :icon="PhChatsCircle" :title="t('conversations.pick')" :text="t('conversations.pickText')"></EmptyState>
       </div>
     </div>
   </section>
@@ -302,6 +298,8 @@ const WHO = ['mine', 'unassigned', 'all'];
 const FILTERS = ['needs_human', 'done', 'blocked'];
 const FILTER_TABS = [null, 'needs_human', 'done']; // every chat, waiting for a person, done
 const who = computed(() => (!auth.isViewing && WHO.includes(route.query.who) ? route.query.who : 'all'));
+// Whose chats only means something with a team: an owner alone never sees the switch.
+const showWho = computed(() => !auth.isViewing && (!auth.canManage || members.value.length > 1));
 const filter = computed(() => (FILTERS.includes(route.query.filter) ? route.query.filter : null));
 // How many chats wait for a person, in each tab and on the "Needs a person" tab.
 const waitingIn = computed(() => ({ mine: inbox.mineWaiting, unassigned: inbox.unassignedWaiting, all: inbox.needsHuman }));

@@ -1,6 +1,6 @@
 <template>
   <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
-    <PageHeader :title="t('calls.title')" :subtitle="t('calls.subtitle')">
+    <PageHeader :title="t('calls.title')" :tip="t('calls.subtitle')">
       <template #actions>
         <div class="tabs rounded-[0.875rem] bg-surface p-1" role="tablist">
           <button
@@ -24,16 +24,14 @@
     <router-link
       v-if="settings && !settings.enabled"
       to="/agent/calls"
-      class="island mb-3 flex items-center gap-3 p-3 pr-5 text-sm transition-shadow hover:shadow-[var(--shadow-lift)]"
+      class="island mb-2 flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-wash"
     >
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-attention-tint text-attention" aria-hidden="true">
-        <PhPhoneSlash :size="20" weight="bold"></PhPhoneSlash>
-      </span>
+      <PhPhoneSlash :size="18" class="shrink-0 text-ink-soft"></PhPhoneSlash>
       <span class="min-w-0 flex-1">
         <span class="block font-semibold text-ink">{{ t('calls.offTitle') }}</span>
         <span class="mt-0.5 block text-ink-soft">{{ t('calls.offText') }}</span>
       </span>
-      <span class="flex items-center gap-1 font-bold whitespace-nowrap">
+      <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
         {{ t('calls.turnOn') }}
         <PhArrowRight :size="14" weight="bold"></PhArrowRight>
       </span>

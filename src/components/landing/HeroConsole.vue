@@ -349,7 +349,7 @@ watch(step, (now) => {
   }
 
   .bubble-enter-active {
-    animation: bubble-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: bubble-in 0.55s var(--ease-settle);
   }
 
   .pop {

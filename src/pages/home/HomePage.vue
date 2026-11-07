@@ -1,14 +1,14 @@
 <template>
-  <!-- Home lays its islands straight on the canvas, under a greeting: what
-       needs the owner first and widest, today's figures under it, the agent
-       beside them. -->
+  <!-- Home lays its islands straight on the canvas, under a greeting. Two
+       columns: on the left what needs the owner, on the right how the day is
+       going and the assistant. -->
   <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
     <header class="flex items-start gap-3 px-1 pb-6 md:px-3 md:pt-3">
       <SidebarToggle class="mt-[0.3125rem] sm:mt-[0.5625rem]"></SidebarToggle>
       <div class="min-w-0">
         <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
         <p class="mt-1 max-w-2xl text-base text-ink-soft">
-          {{ today }}<template v-if="ready && agent.hasAgent && !conversationsToday"> &middot; {{ t('home.todayNone') }}</template>
+          {{ today }}
         </p>
       </div>
     </header>
@@ -27,12 +27,9 @@
     </div>
 
     <div v-else-if="!ready" class="grid gap-2 xl:grid-cols-12" aria-hidden="true">
-      <div class="grid content-start gap-2 xl:col-span-8">
-        <div class="island p-6">
-          <div class="skeleton h-6 w-32"></div>
-          <div v-for="n in 3" :key="n" class="skeleton mt-4 h-16 w-full !rounded-[var(--radius-card)]"></div>
-        </div>
-        <div class="skeleton h-28 !rounded-[var(--radius-panel)]"></div>
+      <div class="island p-6 xl:col-span-8">
+        <div class="skeleton h-6 w-32"></div>
+        <div v-for="n in 4" :key="n" class="skeleton mt-4 h-11 w-full !rounded-[var(--radius-card)]"></div>
       </div>
       <div class="skeleton h-72 !rounded-[var(--radius-panel)] xl:col-span-4"></div>
     </div>
@@ -52,51 +49,49 @@
             <span v-for="step in steps" :key="step.id" class="h-2 w-8 rounded-full" :class="step.done ? 'bg-ink' : 'bg-hover'"></span>
           </div>
         </div>
-        <!-- Only what is left. Done steps only count toward the bar above. -->
-        <ol class="flex flex-col gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
+        <!-- Only what is left, and only the next step in full: the ones after it
+             are one quiet line each. Done steps only count toward the bar above. -->
+        <ol class="flex flex-col gap-1 px-3 pb-3 sm:px-4 sm:pb-4">
           <li
             v-for="(step, index) in todo"
             :key="step.id"
-            class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 rounded-[var(--radius-card)] bg-wash p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+            class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 rounded-[var(--radius-card)]"
+            :class="index === 0 ? 'bg-wash p-4 max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:items-start' : 'px-4 py-1'"
           >
             <span
-              class="mt-px grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold"
-              :class="index === 0 ? 'bg-lime text-ink' : 'bg-surface text-ink-soft'"
+              class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold"
+              :class="index === 0 ? 'bg-lime text-ink' : 'text-ink-soft'"
               aria-hidden="true"
             >
               {{ formatNumber(doneCount + index + 1) }}
             </span>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-bold">{{ step.title }}</p>
-              <p class="mt-0.5 text-sm text-ink-soft">{{ step.text }}</p>
+            <div class="min-w-0">
+              <p class="text-sm" :class="index === 0 ? 'font-semibold' : 'text-ink-soft'">{{ step.title }}</p>
+              <p v-if="index === 0" class="mt-0.5 text-sm text-ink-soft">{{ step.text }}</p>
             </div>
-            <button
-              v-if="step.opensChat"
-              type="button"
-              class="btn col-start-2 mt-3 justify-self-start sm:col-start-auto sm:mt-0"
-              :class="index === 0 ? 'btn-primary' : 'btn-secondary'"
-              @click="ui.testSheetOpen = true"
+            <component
+              :is="step.opensChat ? 'button' : 'router-link'"
+              :type="step.opensChat ? 'button' : undefined"
+              :to="step.opensChat ? undefined : step.to"
+              class="btn"
+              :class="index === 0 ? 'btn-primary max-sm:col-start-2 max-sm:mt-3 max-sm:justify-self-start' : 'btn-quiet btn-sm'"
+              @click="step.opensChat && (ui.testSheetOpen = true)"
             >
               {{ step.action }}
-            </button>
-            <router-link
-              v-else
-              :to="step.to"
-              class="btn col-start-2 mt-3 justify-self-start sm:col-start-auto sm:mt-0"
-              :class="index === 0 ? 'btn-primary' : 'btn-secondary'"
-            >
-              {{ step.action }}
-            </router-link>
+            </component>
           </li>
         </ol>
       </div>
 
-      <div class="flex min-w-0 flex-col gap-3 xl:col-span-8">
-        <!-- What needs a person now: hand-offs first, then new records. -->
-        <div class="island min-w-0 p-5 sm:p-6">
+      <!-- What needs a person now: hand-offs first, then new records. -->
+      <div class="min-w-0 xl:col-span-8">
+        <div class="island h-full min-w-0 p-5 sm:p-6">
           <div class="flex items-center justify-between gap-4">
-            <h2 class="section-title">{{ t('home.needsYou') }}</h2>
-            <router-link to="/inbox" class="btn btn-secondary btn-sm btn-icon" :aria-label="t('home.openInbox')" :title="t('home.openInbox')">
+            <h2 class="flex items-center gap-2 section-title">
+              {{ t('home.needsYou') }}
+              <span v-if="waitingCount" class="count">{{ formatNumber(waitingCount) }}</span>
+            </h2>
+            <router-link to="/inbox" class="btn btn-quiet btn-sm btn-icon" :aria-label="t('home.openInbox')" :title="t('home.openInbox')">
               <PhArrowRight :size="16" weight="bold"></PhArrowRight>
             </router-link>
           </div>
@@ -108,39 +103,40 @@
             </span>
           </p>
 
-          <ul v-else class="mt-4 flex flex-col gap-2">
-            <li v-for="item in attention" :key="item.id" class="group flex items-center gap-2 rounded-[var(--radius-card)] bg-wash p-2 pr-2.5 transition-colors hover:bg-hover">
-              <router-link :to="item.to" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-card)] p-1">
+          <ul v-else class="-mx-2 mt-2 divide-y divide-hairline">
+            <li v-for="item in attention" :key="item.id" class="group flex items-center gap-2 px-2 py-1 transition-colors hover:bg-wash">
+              <router-link :to="item.to" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-thumb)] py-1.5">
                 <span
-                  class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-bold"
+                  class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-semibold"
                   :class="item.handoff ? 'bg-attention-tint text-attention' : item.tint"
                   aria-hidden="true"
                 >
-                  <PhUserSound v-if="item.handoff" :size="20" weight="bold"></PhUserSound>
+                  <PhUserSound v-if="item.handoff" :size="18" weight="bold"></PhUserSound>
                   <template v-else>{{ item.initials }}</template>
                 </span>
                 <span class="min-w-0 flex-1">
-                  <span class="block truncate text-[0.9375rem] font-bold">{{ item.title }}</span>
+                  <span class="block truncate text-sm font-semibold">{{ item.title }}</span>
                   <span class="block truncate text-sm text-ink-soft">
                     <span v-if="item.code" class="serial">{{ item.code }}</span><template v-if="item.code">, </template>{{ item.text }}
                   </span>
                 </span>
-                <!-- Wider, the amount sits at the row's end, out of this link: a screen reader still hears it here. -->
+                <!-- The amount sits at the row's end, out of this link: a screen reader still hears it here. -->
                 <span v-if="item.amount || item.when" class="sr-only">, {{ item.amount || item.when }}</span>
               </router-link>
               <!-- A new record: its one next step, shown on hover or focus with a
-                   mouse (always on touch), so the list is not a wall of buttons. -->
+                   mouse (always on a tablet), so the list is not a wall of buttons.
+                   A phone has no room for it beside the amount, and the record is one tap away. -->
               <button
                 v-if="item.record && nextSteps(item.record).primary"
                 type="button"
-                class="btn btn-secondary btn-sm shrink-0 transition-opacity pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100"
+                class="btn btn-secondary btn-sm shrink-0 transition-opacity max-sm:hidden pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100"
                 :disabled="moving === item.id"
                 @click="advance(item.record)"
               >
                 {{ moving === item.id ? t('common.saving') : nextSteps(item.record).primary.label }}
               </button>
               <!-- The amount (or the time) closes the row, after its step. -->
-              <router-link :to="item.to" tabindex="-1" aria-hidden="true" class="hidden w-20 shrink-0 text-right text-[0.8125rem] sm:block">
+              <router-link :to="item.to" tabindex="-1" aria-hidden="true" class="shrink-0 text-right text-[0.8125rem] sm:w-20">
                 <span v-if="item.amount" class="font-semibold">{{ item.amount }}</span>
                 <span v-else class="text-ink-soft">{{ item.when }}</span>
               </router-link>
@@ -161,29 +157,30 @@
             <template #inbox><router-link to="/inbox" class="link">{{ t('home.inbox') }}</router-link></template>
           </i18n-t>
         </div>
+      </div>
 
-        <!-- Today: one figure leads, large, with its hours under it; the small
-             ones sit beside it, ruled apart. One with nothing yet says so
-             quietly instead of a bold 0. -->
-        <div class="island grid overflow-hidden lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <div v-if="lead.label" class="flex min-w-0 flex-col border-b border-hairline px-5 py-4 lg:border-r lg:border-b-0">
-            <h2 class="text-[0.8125rem] font-medium text-ink-soft">{{ lead.label }}</h2>
-            <p class="mt-1 text-[2.5rem] leading-none font-medium tracking-[-0.035em]">{{ lead.value }}</p>
-            <HourBars class="mt-auto h-12 pt-4" :values="lead.hours" :label="lead.label"></HourBars>
+      <!-- How the day is going, then the assistant. -->
+      <div class="flex min-w-0 flex-col gap-2 xl:col-span-4">
+      <!-- Today: one figure leads, the week behind it in bars once there is one,
+           then the rest ruled like a receipt. One with nothing yet says so
+           quietly instead of a bold 0. -->
+      <div class="island min-w-0 px-5 pt-5 pb-3 sm:px-6">
+        <h2 class="section-title">{{ t('home.todaySoFar') }}</h2>
+        <template v-if="lead.label">
+          <p class="mt-3 text-[0.8125rem] text-ink-soft">{{ lead.label }}</p>
+          <p class="mt-1 text-[2rem] leading-none font-medium tracking-[-0.03em]" :class="{ 'text-ink-soft': lead.zero }">{{ lead.value }}</p>
+        </template>
+        <WeekBars v-if="week.some((day) => day.value)" class="mt-5" :days="week" :total="weekTotal"></WeekBars>
+        <dl class="mt-3 text-sm">
+          <div v-for="line in todayLines" :key="line.id" class="flex items-baseline gap-3 border-t border-hairline py-2">
+            <dt class="min-w-0 flex-1 truncate text-ink-soft">{{ line.label }}</dt>
+            <dd :class="line.value ? 'font-semibold' : 'text-ink-soft'">{{ line.value || t('home.figures.none') }}</dd>
           </div>
-          <ul class="grid grid-cols-2 gap-px bg-hairline [&>li:last-child:nth-child(odd)]:col-span-2">
-            <li v-for="cell in figures" :key="cell.id" class="flex min-w-0 flex-col bg-surface px-4 py-3.5">
-              <h2 class="truncate text-[0.8125rem] font-medium text-ink-soft">{{ cell.label }}</h2>
-              <p v-if="cell.zero" class="mt-1.5 truncate text-base text-ink-soft">{{ t('home.figures.none') }}</p>
-              <p v-else class="mt-1 truncate text-2xl leading-none font-medium tracking-[-0.025em]">{{ cell.value }}</p>
-            </li>
-          </ul>
-        </div>
+        </dl>
       </div>
 
       <!-- The agent, as its own card: who it is and whether it answers, one
            tap to try it, where customers reach it, then the quiet links. -->
-      <div class="flex min-w-0 flex-col gap-3 self-start xl:col-span-4">
       <div class="island min-w-0 p-5 sm:p-6">
         <div class="flex items-center gap-3">
           <span class="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-thumb)] bg-ink text-sm font-bold text-lime" aria-hidden="true">
@@ -239,17 +236,6 @@
           </router-link>
         </div>
       </div>
-
-      <!-- How the day went so far, in words, ruled like a receipt. -->
-      <div class="island min-w-0 px-5 py-3 sm:px-6">
-        <h2 class="section-title">{{ t('home.todaySoFar') }}</h2>
-        <dl class="mt-1 text-sm">
-          <div v-for="line in soFar" :key="line.id" class="flex items-baseline gap-3 border-b border-hairline py-2 last:border-b-0">
-            <dt class="min-w-0 flex-1 truncate text-ink-soft">{{ line.label }}</dt>
-            <dd :class="line.value ? 'font-semibold' : 'text-ink-soft'">{{ line.value || t('home.figures.none') }}</dd>
-          </div>
-        </dl>
-      </div>
       </div>
     </div>
   </section>
@@ -274,14 +260,14 @@ import {
 
 import LoadError from '../../components/ui/LoadError.vue';
 import BrandMark from '../../components/ui/BrandMark.vue';
-import HourBars from '../../components/home/HourBars.vue';
+import WeekBars from '../../components/home/WeekBars.vue';
 import SidebarToggle from '../../components/layout/SidebarToggle.vue';
 import { fetchRecords, setRecordStatus, byConversation } from '../../api/records.js';
 import { fetchConversations } from '../../api/conversations.js';
 import { fetchTelegram } from '../../api/telegram.js';
 import { fetchDocuments } from '../../api/agent.js';
-import { formatMoney, formatNumber, formatAgo, formatToday, greeting } from '../../lib/format.js';
-import { isToday, avatarTint, initials, todayByHour } from '../../lib/group.js';
+import { formatDay, formatMoney, formatNumber, formatAgo, formatToday, formatWeekday, greeting } from '../../lib/format.js';
+import { isToday, avatarTint, initials, lastSevenDays } from '../../lib/group.js';
 import { chatLink, itemsLabel } from '../../lib/presets.js';
 import { channelOf } from '../../lib/channels.js';
 import { nextSteps } from '../../lib/flows.js';
@@ -331,30 +317,43 @@ const jobFigures = computed(() =>
     label: t(`home.figures.${job}`),
     value: formatNumber(todayRecords.value.filter((r) => r.job === job).length),
     zero: !todayRecords.value.some((r) => r.job === job),
-    hours: todayByHour(todayRecords.value.filter((r) => r.job === job), timezone.value),
   })),
 );
 const lead = computed(() => {
-  if (!takesMoney.value) return jobFigures.value[0] || { id: 'none', label: '', value: '', hours: Array(24).fill(0) };
+  if (!takesMoney.value) return jobFigures.value[0] || { id: 'none', label: '', value: '' };
   const orders = todayRecords.value.filter((r) => r.job === 'order');
   return {
     id: 'taken',
     label: t('home.figures.taken'),
     value: formatMoney(orders.reduce((sum, r) => sum + (r.total || 0), 0)),
-    hours: todayByHour(orders, timezone.value, (r) => r.total || 0),
+    zero: !orders.length,
   };
 });
-const others = computed(() => jobFigures.value.filter((cell) => cell.id !== lead.value.id));
-const figures = computed(() => [
-  { id: 'conversations', label: t('home.figures.conversations'), value: formatNumber(conversationsToday.value), zero: !conversationsToday.value },
-  ...others.value,
-]);
 
-// How the day went, in words: what the agent answered alone, and what it handed on.
+// The week behind the lead figure: the same thing, added up per day.
+const weekDays = computed(() => {
+  const job = takesMoney.value ? 'order' : agent.jobs[0];
+  const adds = takesMoney.value ? (r) => r.total || 0 : undefined;
+  return lastSevenDays(records.value.filter((r) => r.job === job), timezone.value, adds);
+});
+const weekFigure = (value) => (takesMoney.value ? formatMoney(value) : formatNumber(value));
+const week = computed(() =>
+  weekDays.value.map((day) => ({
+    key: day.key,
+    label: formatWeekday(day.moment, timezone.value),
+    value: day.total,
+    text: `${formatDay(day.moment, timezone.value)}: ${weekFigure(day.total)}`,
+  })),
+);
+const weekTotal = computed(() => weekFigure(weekDays.value.reduce((sum, day) => sum + day.total, 0)));
+
+// The rest of the day, in words, ruled under the figure. Each one with nothing yet has no value.
 const handedToday = computed(
   () => conversations.value.filter((c) => c.status === 'needs_human' && isToday(c.created_at, timezone.value)).length,
 );
-const soFar = computed(() => [
+const todayLines = computed(() => [
+  { id: 'conversations', label: t('home.figures.conversations'), value: conversationsToday.value ? formatNumber(conversationsToday.value) : '' },
+  ...jobFigures.value.filter((cell) => cell.id !== lead.value.id).map((cell) => ({ id: cell.id, label: cell.label, value: cell.zero ? '' : cell.value })),
   {
     id: 'ai',
     label: t('home.figures.ai'),
@@ -413,7 +412,8 @@ const attention = computed(() => {
   }));
   return [...people, ...taken].slice(0, ATTENTION_LIMIT);
 });
-const moreWaiting = computed(() => Math.max(0, handoffs.value.length + waiting.value.length - ATTENTION_LIMIT));
+const waitingCount = computed(() => handoffs.value.length + waiting.value.length);
+const moreWaiting = computed(() => Math.max(0, waitingCount.value - ATTENTION_LIMIT));
 
 // The row's next step, without opening it: the server judges, the list updates.
 const moving = ref(null);

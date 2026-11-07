@@ -1,6 +1,6 @@
 <template>
-  <!-- Today, hour by hour: one bar per hour, the busiest in black. Sits under
-       a figure on Home. -->
+  <!-- A day hour by hour: one bar per hour, the busiest in black. Sits under
+       the example takings on the landing page. -->
   <figure class="flex items-end gap-[3px]" :aria-label="label">
     <span
       v-for="(value, hour) in values"

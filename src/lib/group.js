@@ -59,17 +59,17 @@ export function isToday(isoString, timeZone = 'Asia/Dhaka') {
   return dayKey(isoString, timeZone) === dayKey(new Date().toISOString(), timeZone);
 }
 
-// The hour (0 to 23) a moment falls in, where the business is.
-export function hourOf(isoString, timeZone = 'Asia/Dhaka') {
-  return Number(new Date(isoString).toLocaleString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone }));
-}
-
-// Today's items added up per hour: 24 numbers, 00:00 first. `value` says what
+// The last seven days added up, oldest first and today last. `value` says what
 // one item adds (1 to count them, its total to add up money).
-export function todayByHour(items, timeZone = 'Asia/Dhaka', value = () => 1) {
-  const hours = Array(24).fill(0);
-  for (const item of items) {
-    if (isToday(item.created_at, timeZone)) hours[hourOf(item.created_at, timeZone)] += value(item);
+export function lastSevenDays(items, timeZone = 'Asia/Dhaka', value = () => 1) {
+  const days = [];
+  for (let back = 6; back >= 0; back--) {
+    const moment = new Date(Date.now() - back * 86400000).toISOString();
+    days.push({ key: dayKey(moment, timeZone), moment, total: 0 });
   }
-  return hours;
+  for (const item of items) {
+    const day = days.find((d) => d.key === dayKey(item.created_at, timeZone));
+    if (day) day.total += value(item);
+  }
+  return days;
 }
