@@ -1208,10 +1208,9 @@ export default {
     opening: 'Opening...',
     payHint: 'You pay by bKash, Nagad or card on SSLCommerz\'s page. A bigger plan starts at once and you pay only the difference for the days left. A smaller plan can be chosen once this one ends.',
     plans: { trial: 'Free trial', starter: 'Starter', growth: 'Growth', pro: 'Pro' },
-    // One button per gateway HeyDesk has set up (backend D109).
-    payWith: { sslcommerz: 'Pay with card (SSLCommerz)', bkash: 'Pay with bKash' },
-    renewWith: { sslcommerz: 'Renew with card (SSLCommerz)', bkash: 'Renew with bKash' },
-    allPlans: 'Every plan has every channel and feature, plus 3 extra days after it ends.',
+    payBy: 'Pay by',
+    gateway: { sslcommerz: 'Card', bkash: 'bKash' },
+    shared: { features: 'Every channel and feature', grace: '3 extra days after a plan ends' },
     payNote: 'A bigger plan starts at once and you pay only the difference for the days left. A smaller plan can be chosen once this one ends.',
     noGateway: "Paying online isn't set up yet. Contact HeyDesk to pay for a plan.",
   },

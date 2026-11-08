@@ -311,9 +311,15 @@ settings (the name, greeting and look); the other sections use the full width.
   row marked meanwhile: photos first, then sections, Save always at the bottom;
   closing with changes asks first. Full screen on a phone.
 
-- **Plan and payment**: the plans side by side, showing only what differs; what
-  every plan shares is one line under them. One black button: renewing once the
-  plan has ended, else the next plan up, and none on the biggest plan.
+- **Plan and payment**: two islands. **Your plan**: the plan's name large with
+  a green "until" chip (red "Ended"), and beside it, ruled off, the replies used
+  as a big figure over a black meter (red from 80%). **Choose a plan**: Monthly /
+  Yearly (and Card / bKash when both are set up) as segmented switches beside the
+  title, then the plans side by side, showing only what differs as checked lines.
+  The plan you are on is the dark card with a lime "Your plan" chip. What every
+  plan shares is one line of green checks under them. One black button: renewing
+  once the plan has ended (lime, on the dark card), else the next plan up, and
+  none on the biggest plan.
 
 - **Coupons**: the codes are the page. The `PageHeader` says how many are live, with "Send an offer" (secondary) and "New coupon" (the black primary) on the right; they hide while a form is open, so the form's own button is the one black one. A form opens as one island under the header (Cancel closes it): the kind of discount as a segmented switch with the amount beside it, the optional fields marked so, and the coupon read back in one plain sentence before saving. The list is one island of ruled rows under "Live" and "Stopped working": the code as a serial chip, what it takes off over its uses and last day, a status chip (Live, Ended, Used up) and a quiet Stop or Remove that asks once in the row.
 
