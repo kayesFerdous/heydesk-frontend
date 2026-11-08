@@ -25,6 +25,11 @@ export function fetchCounts() {
   return request('/conversations/counts');
 }
 
+// Home's figures: today's and the last seven days' sales, without cancelled or unpaid orders.
+export function fetchStats() {
+  return request('/stats?days=7');
+}
+
 // The transcript only. The orders, appointments or messages that came out of
 // it come from the page's own records list (`byConversation` in records.js).
 // The newest TRANSCRIPT_PAGE lines, or those before the line `before` (its

@@ -275,7 +275,7 @@ async function load() {
   loadError.value = null;
   try {
     // No agent yet: the items belong to it, so set it up first.
-    await Promise.all([agent.load(), agent.loadPresets()]);
+    await agent.load();
     if (agent.noAgent) {
       router.replace('/setup');
       return;
