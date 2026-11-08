@@ -56,8 +56,10 @@
       </div>
 
       <!-- The plans as a pricing page: three cards stepping up to the right, the
-           popular one dark. Each shows its name, price, button, then what it holds. -->
-      <div class="island p-5">
+           popular one dark. Each shows its name, price, button, then what it holds.
+           On a wide screen the island takes the rest of the window and the cards sit
+           in the middle of it: their tops step, their bottoms line up. -->
+      <div class="island p-5 lg:flex lg:flex-1 lg:flex-col">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="section-title">
             {{ t('billing.choose') }}
@@ -97,11 +99,12 @@
           </div>
         </div>
 
-        <div class="mx-auto mt-5 grid max-w-5xl gap-4 lg:grid-cols-3">
+        <div class="mt-5 lg:flex lg:flex-1 lg:items-center">
+        <div class="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-3">
           <div
             v-for="(plan, index) in billing.plans"
             :key="plan.key"
-            class="flex flex-col gap-4 rounded-[var(--radius-panel)] p-5 shadow-[var(--shadow-float)]"
+            class="flex flex-col gap-4 rounded-[var(--radius-panel)] p-5 shadow-[var(--shadow-float)] [@media(min-height:820px)]:gap-6 [@media(min-height:820px)]:p-7 [@media(min-height:820px)]:lg:min-h-[32rem]"
             :class="[STEP[index], plan.key === POPULAR ? 'plan-popular text-white' : ['plan-light border', plan.key === billing.plan ? 'border-ink' : 'border-hairline']]"
           >
             <div class="flex min-h-7 items-center justify-between gap-2">
@@ -136,15 +139,22 @@
               {{ paying === plan.key ? t('billing.opening') : t(plan.key === billing.plan ? 'billing.renew' : 'billing.pay') }}
             </button>
 
-            <ul class="flex flex-col gap-2.5 text-sm">
+            <ul class="flex flex-col gap-2.5 text-sm [@media(min-height:820px)]:gap-3.5">
               <li v-for="line in lines(plan)" :key="line" class="flex items-center gap-2.5">
                 <PhCheck :size="16" weight="bold" class="shrink-0"></PhCheck>
                 {{ line }}
               </li>
             </ul>
+
+            <!-- What 100 replies cost here, the plans' one like-for-like figure, closes the card. -->
+            <p class="mt-auto flex items-baseline justify-between gap-3 border-t pt-3 text-sm [@media(min-height:820px)]:pt-4" :class="plan.key === POPULAR ? 'border-white/10' : 'border-hairline'">
+              <span :class="soft(plan)">{{ t('billing.per100Label') }}</span>
+              <span class="font-semibold">{{ formatMoney(per100(plan)) }}</span>
+            </p>
           </div>
         </div>
-        <p class="hint mt-4">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
+        </div>
+        <p class="hint mt-4 [@media(min-height:820px)]:mt-6">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
 
         <p v-if="payError" class="mt-3 flex items-start gap-2 text-sm text-danger" role="alert">
           <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
@@ -173,7 +183,7 @@ const { t } = useI18n();
 // The plan most shops pick: its card is the dark one.
 const POPULAR = 'growth';
 // Cards step up left to right, as on a pricing page; stacked on a phone.
-const STEP = ['lg:mt-10', 'lg:mt-5'];
+const STEP = ['lg:mt-6 [@media(min-height:820px)]:lg:mt-12', 'lg:mt-3 [@media(min-height:820px)]:lg:mt-6'];
 
 const billing = ref(null);
 const loadError = ref(null);
@@ -212,7 +222,6 @@ function lines(plan) {
     t('billing.repliesEach', { n: formatNumber(plan.replies) }),
     t('billing.repliesDay', { n: formatNumber(Math.floor(plan.replies / 30)) }),
     t('billing.moderators', { n: formatNumber(plan.moderators) }, plan.moderators),
-    t('billing.per100', { money: formatMoney(per100(plan)) }),
     t('billing.shared.grace'),
     t('billing.shared.features'),
   ];

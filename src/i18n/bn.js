@@ -1180,7 +1180,7 @@ export default {
     repliesEach: '৩০ দিনে {n}টি রিপ্লাই',
     moderators: '{n} জন মডারেটর | {n} জন মডারেটর',
     repliesDay: 'দিনে প্রায় {n}টি রিপ্লাই',
-    per100: 'প্রতি ১০০ রিপ্লাইয়ে {money}',
+    per100Label: 'প্রতি ১০০ রিপ্লাইয়ে',
     orYearly: 'অথবা বছরে {money}',
     yearSaves: 'মাসে {money}, বাঁচবে {saved}',
     current: 'আপনার প্ল্যান',

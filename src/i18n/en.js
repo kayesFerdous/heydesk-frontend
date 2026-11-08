@@ -1193,7 +1193,7 @@ export default {
     repliesEach: '{n} replies in 30 days',
     moderators: '{n} moderator | {n} moderators',
     repliesDay: 'About {n} replies a day',
-    per100: '{money} for every 100 replies',
+    per100Label: 'For every 100 replies',
     orYearly: 'or {money} a year',
     yearSaves: '{money} a month, you save {saved}',
     current: 'Your plan',
