@@ -321,11 +321,13 @@ settings (the name, greeting and look); the other sections use the full width.
   checked lines (what differs, then what every plan shares), and closing the
   card under a hairline what 100 replies cost there. On a wide screen the island
   takes the rest of the window and the cards sit in its middle, bottoms lined
-  up; on a window 820px tall or more they get roomier padding, gaps and steps. Growth is the dark
+  up; their padding, gaps, steps and price follow the window's height
+  (`vh`, clamped), and a window 720px tall or less flattens the steps and
+  tightens the islands. How upgrading is charged sits behind the "i". Growth is the dark
   card, lit by a soft lime glow from its top corner, with "Most popular" in
   pastel gradient text and a white button; the light cards fade from the wash
   to white (this page's gradients are the console's only ones). The page fits
-  1280x720 to 1920x1080 without scrolling or bare canvas; the plan you are on has an ink border and a pale lime
+  any landscape window from 1024x640 up without scrolling or bare canvas; the plan you are on has an ink border and a pale lime
   "Your plan" chip and a Renew button.
 - **Coupons**: the codes are the page. The `PageHeader` says how many are live, with "Send an offer" (secondary) and "New coupon" (the black primary) on the right; they hide while a form is open, so the form's own button is the one black one. A form opens as one island under the header (Cancel closes it): the kind of discount as a segmented switch with the amount beside it, the optional fields marked so, and the coupon read back in one plain sentence before saving. The list is one island of ruled rows under "Live" and "Stopped working": the code as a serial chip, what it takes off over its uses and last day, a status chip (Live, Ended, Used up) and a quiet Stop or Remove that asks once in the row.
 

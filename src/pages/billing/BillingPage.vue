@@ -17,7 +17,7 @@
     <div v-else class="flex flex-col gap-2">
       <!-- Your plan in one row: which one and until when, then how much of it is used.
            What a reply is and what happens when they run out sit behind the "i". -->
-      <div class="island flex flex-col gap-4 px-5 py-4 sm:px-6 md:flex-row md:items-center md:gap-10">
+      <div class="plan-row island flex flex-col gap-4 px-5 py-4 sm:px-6 md:flex-row md:items-center md:gap-10">
         <div class="shrink-0">
           <div class="flex flex-wrap items-center gap-3">
             <h2 class="text-2xl leading-none font-semibold tracking-[-0.03em]">
@@ -59,11 +59,11 @@
            popular one dark. Each shows its name, price, button, then what it holds.
            On a wide screen the island takes the rest of the window and the cards sit
            in the middle of it: their tops step, their bottoms line up. -->
-      <div class="island p-5 lg:flex lg:flex-1 lg:flex-col">
+      <div class="plan-island island p-5 lg:flex lg:flex-1 lg:flex-col">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="section-title">
             {{ t('billing.choose') }}
-            <InfoTip :text="t('billing.chooseTip')" class="ml-0.5 -translate-y-px"></InfoTip>
+            <InfoTip :text="billing.gateways.length ? `${t('billing.chooseTip')} ${t('billing.payNote')}` : t('billing.chooseTip')" class="ml-0.5 -translate-y-px"></InfoTip>
           </h2>
           <div class="flex flex-wrap items-center gap-2">
             <!-- How to pay, only when HeyDesk has more than one way set up. -->
@@ -99,12 +99,12 @@
           </div>
         </div>
 
-        <div class="mt-5 lg:flex lg:flex-1 lg:items-center">
+        <div class="plan-stage mt-5 lg:flex lg:flex-1 lg:items-center">
         <div class="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-3">
           <div
             v-for="(plan, index) in billing.plans"
             :key="plan.key"
-            class="flex flex-col gap-4 rounded-[var(--radius-panel)] p-5 shadow-[var(--shadow-float)] [@media(min-height:820px)]:gap-6 [@media(min-height:820px)]:p-7 [@media(min-height:820px)]:lg:min-h-[32rem]"
+            class="plan-card flex flex-col gap-4 rounded-[var(--radius-panel)] p-5 shadow-[var(--shadow-float)]"
             :class="[STEP[index], plan.key === POPULAR ? 'plan-popular text-white' : ['plan-light border', plan.key === billing.plan ? 'border-ink' : 'border-hairline']]"
           >
             <div class="flex min-h-7 items-center justify-between gap-2">
@@ -117,7 +117,7 @@
 
             <div>
               <p>
-                <span class="text-4xl font-semibold tracking-[-0.03em]">{{ formatMoney(months === 1 ? plan.price : plan.year_price) }}</span>
+                <span class="plan-price text-4xl font-semibold tracking-[-0.03em]">{{ formatMoney(months === 1 ? plan.price : plan.year_price) }}</span>
                 <span class="font-semibold" :class="soft(plan)"> /{{ months === 1 ? t('billing.month') : t('billing.year') }}</span>
               </p>
               <!-- The other way of paying, so the two can be compared without switching. -->
@@ -139,7 +139,7 @@
               {{ paying === plan.key ? t('billing.opening') : t(plan.key === billing.plan ? 'billing.renew' : 'billing.pay') }}
             </button>
 
-            <ul class="flex flex-col gap-2.5 text-sm [@media(min-height:820px)]:gap-3.5">
+            <ul class="plan-list flex flex-col gap-2.5 text-sm">
               <li v-for="line in lines(plan)" :key="line" class="flex items-center gap-2.5">
                 <PhCheck :size="16" weight="bold" class="shrink-0"></PhCheck>
                 {{ line }}
@@ -147,14 +147,15 @@
             </ul>
 
             <!-- What 100 replies cost here, the plans' one like-for-like figure, closes the card. -->
-            <p class="mt-auto flex items-baseline justify-between gap-3 border-t pt-3 text-sm [@media(min-height:820px)]:pt-4" :class="plan.key === POPULAR ? 'border-white/10' : 'border-hairline'">
+            <p class="mt-auto flex items-baseline justify-between gap-3 border-t pt-3 text-sm" :class="plan.key === POPULAR ? 'border-white/10' : 'border-hairline'">
               <span :class="soft(plan)">{{ t('billing.per100Label') }}</span>
               <span class="font-semibold">{{ formatMoney(per100(plan)) }}</span>
             </p>
           </div>
         </div>
         </div>
-        <p class="hint mt-4 [@media(min-height:820px)]:mt-6">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
+        <!-- How upgrading is charged sits behind the "i" above; only a missing gateway is said here. -->
+        <p v-if="!billing.gateways.length" class="hint mt-4">{{ t('billing.noGateway') }}</p>
 
         <p v-if="payError" class="mt-3 flex items-start gap-2 text-sm text-danger" role="alert">
           <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
@@ -183,7 +184,7 @@ const { t } = useI18n();
 // The plan most shops pick: its card is the dark one.
 const POPULAR = 'growth';
 // Cards step up left to right, as on a pricing page; stacked on a phone.
-const STEP = ['lg:mt-6 [@media(min-height:820px)]:lg:mt-12', 'lg:mt-3 [@media(min-height:820px)]:lg:mt-6'];
+const STEP = ['plan-step-2', 'plan-step-1'];
 
 const billing = ref(null);
 const loadError = ref(null);
@@ -262,6 +263,65 @@ load();
 
 .plan-light {
   background: linear-gradient(to bottom, var(--color-wash), var(--color-surface) 45%);
+}
+
+/* On a wide screen the page fits the window, whatever its height: the cards'
+   padding, gaps, steps and price follow the window's height (vh), between a
+   compact floor (a short laptop) and a roomy ceiling (a tall monitor). */
+@media (min-width: 1024px) {
+  .plan-stage {
+    margin-top: clamp(0.75rem, 2.5vh, 2rem);
+  }
+
+  .plan-card {
+    padding: clamp(1rem, 2.8vh, 1.75rem);
+    gap: clamp(0.625rem, 2.2vh, 1.5rem);
+  }
+
+  .plan-list {
+    gap: clamp(0.375rem, 1.3vh, 0.875rem);
+  }
+
+  .plan-price {
+    font-size: clamp(1.75rem, 4.4vh, 2.5rem);
+  }
+
+  .plan-step-1 {
+    margin-top: clamp(0.25rem, 2.8vh, 1.75rem);
+  }
+
+  .plan-step-2 {
+    margin-top: clamp(0.5rem, 5.6vh, 3.5rem);
+  }
+}
+
+/* A short window (a 13-inch laptop under the browser's bars): flatter steps,
+   tighter islands and buttons, so the page still fits without scrolling. */
+@media (min-width: 1024px) and (max-height: 720px) {
+  .plan-row {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .plan-island {
+    padding: 1rem 1.25rem;
+  }
+
+  .plan-stage {
+    margin-top: 0.5rem;
+  }
+
+  .plan-step-1 {
+    margin-top: 0.375rem;
+  }
+
+  .plan-step-2 {
+    margin-top: 0.75rem;
+  }
+
+  .plan-card .btn {
+    height: 2.5rem;
+  }
 }
 
 /* "Most popular" in the soft pastels. */
