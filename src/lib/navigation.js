@@ -10,7 +10,6 @@ import {
   PhUsersThree,
   PhCreditCard,
   PhTicket,
-  PhGear,
 } from '@phosphor-icons/vue';
 
 import { t } from '../i18n/index.js';
@@ -27,7 +26,7 @@ export function navGroups({ isAdmin, canManage = true, waitingTotal, needsHuman 
     return [{ label: null, items: [{ to: '/admin', match: '/admin', label: t('nav.businesses'), icon: PhBuildings }] }];
   }
 
-  // Set up once and opened rarely: one Settings row that folds open to them.
+  // Set up once and opened rarely, listed under their own heading.
   const setup = [
     { to: '/agent', match: '/agent', label: t('nav.agent'), icon: PhSlidersHorizontal },
     { to: '/knowledge', match: '/knowledge', label: t('nav.knowledge'), icon: PhBooks },
@@ -69,12 +68,11 @@ export function navGroups({ isAdmin, canManage = true, waitingTotal, needsHuman 
     // A moderator (D97) has no setup.
     {
       label: t('nav.setup'),
-      items: canManage ? [{ to: setup[0].to, match: '/settings', label: t('nav.settings'), icon: PhGear, children: setup }] : [],
+      items: canManage ? setup : [],
     },
   ].filter((group) => group.items.length);
 }
 
 export function isActive(item, path) {
-  if (item.children) return item.children.some((child) => isActive(child, path));
   return path === item.match || path.startsWith(item.match + '/');
 }

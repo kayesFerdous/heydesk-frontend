@@ -2,8 +2,10 @@
   <!-- Home lays its islands straight on the canvas, under a greeting. Two
        columns: on the left what needs the owner, on the right how the day is
        going and the assistant. -->
-  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0">
-    <header class="flex items-start gap-3 px-1 pb-6 md:px-3 md:pt-3">
+  <!-- On a wide screen Home fits the window: the islands share its height and a
+       long list scrolls inside its own island, so the page itself never scrolls. -->
+  <section class="px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 xl:flex xl:h-full xl:flex-col">
+    <header class="flex shrink-0 items-start gap-3 px-1 pb-6 md:px-3 md:pt-3 xl:pb-3">
       <SidebarToggle class="mt-[0.3125rem] sm:mt-[0.5625rem]"></SidebarToggle>
       <div class="min-w-0">
         <h1 class="text-[2rem] leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-[2.5rem]">{{ title }}</h1>
@@ -34,10 +36,12 @@
       <div class="skeleton h-72 !rounded-[var(--radius-panel)] xl:col-span-4"></div>
     </div>
 
-    <div v-else class="grid gap-2 xl:grid-cols-12">
+    <div v-else class="grid gap-2 xl:min-h-0 xl:flex-1 xl:grid-cols-12 xl:grid-rows-[minmax(0,1fr)]">
+      <!-- The left column: the setup guide while it lasts, then what needs the owner. -->
+      <div class="flex min-w-0 flex-col gap-2 xl:col-span-8 xl:min-h-0">
       <!-- The setup guide: the shortest road to a first real customer. It
            goes away once every step is done. -->
-      <div v-if="!setupDone && auth.canManage" class="island overflow-hidden xl:col-span-12">
+      <div v-if="showSetup" class="island shrink-0 overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-3 sm:px-6">
           <div>
             <h2 class="section-title">{{ t('setup.finish') }}</h2>
@@ -84,9 +88,8 @@
       </div>
 
       <!-- What needs a person now: hand-offs first, then new records. -->
-      <div class="min-w-0 xl:col-span-8">
-        <div class="island h-full min-w-0 p-5 sm:p-6">
-          <div class="flex items-center justify-between gap-4">
+        <div class="island flex min-h-0 min-w-0 flex-1 flex-col p-5 sm:p-6">
+          <div class="flex shrink-0 items-center justify-between gap-4">
             <h2 class="flex items-center gap-2 section-title">
               {{ t('home.needsYou') }}
               <span v-if="waitingCount" class="count">{{ formatNumber(waitingCount) }}</span>
@@ -103,7 +106,7 @@
             </span>
           </p>
 
-          <ul v-else class="-mx-2 mt-2 divide-y divide-hairline">
+          <ul v-else class="relative -mx-2 mt-2 min-h-0 flex-1 divide-y divide-hairline overflow-y-auto">
             <li v-for="item in attention" :key="item.id" class="group flex items-center gap-2 px-2 py-1 transition-colors hover:bg-wash">
               <router-link :to="item.to" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-thumb)] py-1.5">
                 <span
@@ -152,7 +155,7 @@
               </a>
             </li>
           </ul>
-          <i18n-t v-if="moreWaiting" keypath="home.moreWaiting" tag="p" class="mt-3 px-1 text-sm text-ink-soft" scope="global">
+          <i18n-t v-if="moreWaiting" keypath="home.moreWaiting" tag="p" class="mt-3 shrink-0 px-1 text-sm text-ink-soft" scope="global">
             <template #n>{{ formatNumber(moreWaiting) }}</template>
             <template #inbox><router-link to="/inbox" class="link">{{ t('home.inbox') }}</router-link></template>
           </i18n-t>
@@ -160,7 +163,7 @@
       </div>
 
       <!-- How the day is going, then the assistant. -->
-      <div class="flex min-w-0 flex-col gap-2 xl:col-span-4">
+      <div class="flex min-w-0 flex-col gap-2 xl:col-span-4 xl:min-h-0 xl:overflow-y-auto">
       <!-- Today: one figure leads, the week behind it in bars once there is one,
            then the rest ruled like a receipt. One with nothing yet says so
            quietly instead of a bold 0. -->
@@ -170,8 +173,8 @@
           <p class="mt-3 text-[0.8125rem] text-ink-soft">{{ lead.label }}</p>
           <p class="mt-1 text-[2rem] leading-none font-medium tracking-[-0.03em]" :class="{ 'text-ink-soft': lead.zero }">{{ lead.value }}</p>
         </template>
-        <WeekBars v-if="week.some((day) => day.value)" class="mt-5" :days="week" :total="weekTotal"></WeekBars>
-        <dl class="mt-3 text-sm">
+        <WeekBars v-if="week.some((day) => day.value)" class="mt-4" :days="week" :total="weekTotal"></WeekBars>
+        <dl class="mt-2 text-sm">
           <div v-for="line in todayLines" :key="line.id" class="flex items-baseline gap-3 border-t border-hairline py-2">
             <dt class="min-w-0 flex-1 truncate text-ink-soft">{{ line.label }}</dt>
             <dd :class="line.value ? 'font-semibold' : 'text-ink-soft'">{{ line.value || t('home.figures.none') }}</dd>
@@ -197,7 +200,7 @@
 
         <button
           type="button"
-          class="mt-4 flex h-11 w-full items-center gap-3 rounded-full border border-line-strong bg-surface pr-1 pl-4 text-left text-sm text-ink-soft transition-colors hover:border-ink"
+          class="mt-3 flex h-11 w-full items-center gap-3 rounded-full border border-line-strong bg-surface pr-1 pl-4 text-left text-sm text-ink-soft transition-colors hover:border-ink"
           @click="ui.testSheetOpen = true"
         >
           <span class="min-w-0 flex-1 truncate">{{ t('home.askAgent') }}</span>
@@ -225,7 +228,7 @@
           </li>
         </ul>
 
-        <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-hairline pt-3 text-[0.8125rem] font-medium text-ink-soft">
+        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-hairline pt-3 text-[0.8125rem] font-medium text-ink-soft">
           <button type="button" class="inline-flex items-center gap-1.5 hover:text-ink" @click="copyLink">
             <component :is="copied ? PhCheck : PhLink" :size="15" weight="bold"></component>
             {{ copied ? t('common.copied') : t('home.copyChatLink') }}
@@ -362,6 +365,7 @@ const steps = computed(() =>
 const doneCount = computed(() => steps.value.filter((step) => step.done).length);
 const todo = computed(() => steps.value.filter((step) => !step.done));
 const setupDone = computed(() => todo.value.length === 0);
+const showSetup = computed(() => !setupDone.value && auth.canManage);
 const waiting = computed(() => records.value.filter((r) => r.status === 'new'));
 // Customers waiting for a person. Their name comes from a record the
 // conversation made, so no conversation has to be opened for it.

@@ -16,7 +16,7 @@ ruled under it and a white agent island beside it.
 
 v5.2 (5 Nov 2026) is a calmer pass, nothing new in the palette or the type: each
 screen has one loud thing. A customer waiting shows once per screen, not three
-times. Home splits into a column to act and a column to know. Settings lost its
+times. Home splits into a column to act and a column to know. On a wide screen Home fits the window: the columns share its height and a long "Needs you" list scrolls inside its island, so the page itself never scrolls. Settings lost its
 identity island, so the form starts higher. What a row can do shows when you
 reach for it. The idea comes from Linear's 2026 refresh: what only helps you find
 your way steps back, and structure is felt rather than drawn.
@@ -163,12 +163,9 @@ get `--shadow-float`.
   strip above is the one orange, and only folded does the Chats count turn orange),
   "Try your assistant" as a dark pill with a lime icon, the account row.
   The nav has three labelled groups from `navGroups`: Daily work, Your
-  business (the lists, a shop's Coupons) and Setup, one Settings row that
-  folds open to Assistant, Documents, Channels, Team and Plan and payment on a guide line
-  (words only; the open page white with a 2px lime mark on the line). It
-  opens by itself on one of its pages and stays as the owner leaves it
-  (`aria-expanded`). Folded to icons, Settings opens Assistant. A moderator has
-  no Setup.
+  business (the lists, a shop's Coupons) and Setup (Assistant, Documents,
+  Channels, Team, Plan and payment, each its own row, always shown). A
+  moderator has no Setup.
 - Under 768px: a floating black pill tab bar (the "Daily work" group, then
   More, the open one lime); More opens the sidebar as a drawer.
 
