@@ -55,8 +55,8 @@
         </div>
       </div>
 
-      <!-- The plans side by side. The one you are on is the dark card; the one black
-           button is the plan to pick next (renew once yours ended, else the next one up). -->
+      <!-- The plans as a pricing page: three cards stepping up to the right, the
+           popular one dark. Each shows its name, price, button, then what it holds. -->
       <div class="island p-5 sm:p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="section-title">
@@ -97,59 +97,54 @@
           </div>
         </div>
 
-        <div class="mt-5 grid gap-3 md:grid-cols-3">
+        <div class="mx-auto mt-6 grid max-w-5xl gap-4 lg:grid-cols-3">
           <div
-            v-for="plan in billing.plans"
+            v-for="(plan, index) in billing.plans"
             :key="plan.key"
-            class="flex flex-col rounded-[var(--radius-card)] p-6 sm:p-7"
-            :class="plan.key === billing.plan ? 'plan-current text-white' : 'plan-other border border-hairline'"
+            class="flex flex-col gap-5 rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-float)]"
+            :class="[STEP[index], plan.key === POPULAR ? 'bg-night text-white' : ['bg-surface border', plan.key === billing.plan ? 'border-ink' : 'border-hairline']]"
           >
             <div class="flex min-h-7 items-center justify-between gap-2">
-              <h3 class="font-semibold">{{ t(`billing.plans.${plan.key}`) }}</h3>
-              <span v-if="plan.key === billing.plan" class="chip bg-lime text-ink">{{ t('billing.current') }}</span>
+              <h3 class="font-semibold" :class="soft(plan)">{{ t(`billing.plans.${plan.key}`) }}</h3>
+              <span v-if="plan.key === billing.plan" class="chip bg-brand-tint text-ink">{{ t('billing.current') }}</span>
+              <span v-else-if="plan.key === POPULAR" class="chip border border-white/20 bg-night-tile">
+                <span class="popular-text">{{ t('billing.popular') }}</span>
+              </span>
             </div>
-            <p class="mt-0.5 text-sm" :class="soft(plan)">{{ t(`billing.planFor.${plan.key}`) }}</p>
 
-            <p class="mt-8 flex items-baseline gap-1">
-              <span class="text-4xl font-semibold tracking-[-0.03em]">{{ formatMoney(months === 1 ? plan.price : plan.year_price) }}</span>
-              <span class="text-sm font-medium" :class="soft(plan)">/ {{ months === 1 ? t('billing.month') : t('billing.year') }}</span>
-            </p>
-            <!-- The other way of paying, so the two can be compared without switching. -->
-            <p class="mt-1 text-sm" :class="soft(plan)">
-              {{ months === 1
-                ? t('billing.orYearly', { money: formatMoney(plan.year_price) })
-                : t('billing.yearSaves', { money: formatMoney(Math.round(plan.year_price / 1200) * 100), saved: formatMoney(plan.price * 12 - plan.year_price) }) }}
-            </p>
+            <div>
+              <p>
+                <span class="text-4xl font-semibold tracking-[-0.03em]">{{ formatMoney(months === 1 ? plan.price : plan.year_price) }}</span>
+                <span class="font-semibold" :class="soft(plan)"> /{{ months === 1 ? t('billing.month') : t('billing.year') }}</span>
+              </p>
+              <!-- The other way of paying, so the two can be compared without switching. -->
+              <p class="mt-1 text-sm" :class="soft(plan)">
+                {{ months === 1
+                  ? t('billing.orYearly', { money: formatMoney(plan.year_price) })
+                  : t('billing.yearSaves', { money: formatMoney(Math.round(plan.year_price / 1200) * 100), saved: formatMoney(plan.price * 12 - plan.year_price) }) }}
+              </p>
+            </div>
 
             <button
               v-if="billing.gateways.length"
               type="button"
-              class="btn mt-8 w-full"
-              :class="buttonClass(plan)"
+              class="btn"
+              :class="plan.key === POPULAR ? 'bg-white text-ink hover:bg-hover' : plan.key === billing.plan ? 'btn-secondary' : 'btn-primary'"
               :disabled="paying !== null"
               @click="pay(plan)"
             >
               {{ paying === plan.key ? t('billing.opening') : t(plan.key === billing.plan ? 'billing.renew' : 'billing.pay') }}
             </button>
 
-            <ul class="mt-8 flex flex-col gap-4 border-t pt-6 text-sm" :class="plan.key === billing.plan ? 'border-night-tile' : 'border-hairline'">
-              <li v-for="line in lines(plan)" :key="line" class="flex items-start gap-2.5">
-                <PhCheck :size="16" weight="bold" class="mt-0.5 shrink-0" :class="plan.key === billing.plan ? 'text-lime' : 'text-ink-soft'"></PhCheck>
+            <ul class="flex flex-col gap-3 text-sm">
+              <li v-for="line in lines(plan)" :key="line" class="flex items-center gap-2.5">
+                <PhCheck :size="16" weight="bold" class="shrink-0"></PhCheck>
                 {{ line }}
               </li>
             </ul>
           </div>
         </div>
-
-        <!-- What every plan shares is said once, so the cards show only what differs.
-             A paid plan keeps answering for GRACE_DAYS after it ends (backend D106). -->
-        <ul class="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <li v-for="line in [t('billing.shared.features'), t('billing.shared.grace')]" :key="line" class="flex items-center gap-2">
-            <PhCheckCircle :size="16" weight="fill" class="shrink-0 text-success"></PhCheckCircle>
-            {{ line }}
-          </li>
-        </ul>
-        <p class="hint">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
+        <p class="hint mt-6">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
 
         <p v-if="payError" class="mt-3 flex items-start gap-2 text-sm text-danger" role="alert">
           <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
@@ -175,6 +170,11 @@ import { formatDay, formatMoney, formatNumber } from '../../lib/format.js';
 
 const { t } = useI18n();
 
+// The plan most shops pick: its card is the dark one.
+const POPULAR = 'growth';
+// Cards step up left to right, as on a pricing page; stacked on a phone.
+const STEP = ['lg:mt-16', 'lg:mt-8'];
+
 const billing = ref(null);
 const loadError = ref(null);
 const months = ref(1);
@@ -194,25 +194,9 @@ watch(billing, (value) => {
   if (value && !value.gateways.includes(gateway.value)) gateway.value = value.gateways[0] ?? null;
 });
 
-// The plan to pick next: yours again once it has ended, else the next one up
-// (the first for a free trial), and none when you are on the biggest.
-const suggested = computed(() => {
-  const { plans, plan, active } = billing.value;
-  const index = plans.findIndex((p) => p.key === plan);
-  if (!active) return index >= 0 ? plan : plans[0]?.key;
-  return plans[index + 1]?.key;
-});
-
-// The dark card (your plan) has light text, so its quiet words are the sidebar's soft grey.
+// The dark card (the popular plan) has light text, so its quiet words are the sidebar's soft grey.
 function soft(plan) {
-  return plan.key === billing.value.plan ? 'text-night-soft' : 'text-ink-soft';
-}
-
-function buttonClass(plan) {
-  const current = plan.key === billing.value.plan;
-  if (plan.key === suggested.value) return current ? 'btn-lime' : 'btn-primary';
-  if (current) return 'bg-night-tile text-white hover:bg-[color-mix(in_srgb,var(--color-night-tile),white_8%)]';
-  return 'btn-secondary';
+  return plan.key === POPULAR ? 'text-night-soft' : 'text-ink-soft';
 }
 
 // What 100 replies cost on a plan, paying monthly or yearly: a way to compare plans.
@@ -221,13 +205,16 @@ function per100(plan) {
   return (month / plan.replies) * 100;
 }
 
-// Only what differs between plans; what they share is said once under them.
+// What a plan holds: what differs first, then what every plan shares.
+// A paid plan keeps answering for GRACE_DAYS after it ends (backend D106).
 function lines(plan) {
   return [
     t('billing.repliesEach', { n: formatNumber(plan.replies) }),
     t('billing.repliesDay', { n: formatNumber(Math.floor(plan.replies / 30)) }),
     t('billing.moderators', { n: formatNumber(plan.moderators) }, plan.moderators),
     t('billing.per100', { money: formatMoney(per100(plan)) }),
+    t('billing.shared.grace'),
+    t('billing.shared.features'),
   ];
 }
 
@@ -256,16 +243,11 @@ load();
 </script>
 
 <style scoped>
-/* The plan you are on: the sidebar's black, lit by a soft lime glow from its
-   top corner. The other cards fade from the wash to white, so they read as
-   cards without a shadow. */
-.plan-current {
-  background:
-    radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--color-lime) 20%, transparent), transparent 60%),
-    var(--color-night);
-}
-
-.plan-other {
-  background: linear-gradient(to bottom, var(--color-wash), var(--color-surface) 45%);
+/* "Most popular" in the soft pastels, the one gradient on the page. */
+.popular-text {
+  background: linear-gradient(to right, var(--color-tint-lilac), var(--color-lime), var(--color-tint-sky));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 </style>

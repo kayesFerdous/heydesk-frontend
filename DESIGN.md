@@ -313,16 +313,15 @@ settings (the name, greeting and look); the other sections use the full width.
 
 - **Plan and payment**: two islands. **Your plan** is one compact row: the
   plan's name with a green "until" chip (red "Ended"), then, ruled off, the
-  replies used over a black meter (red from 80%), what a reply is behind the "i". **Choose a plan**: Monthly /
-  Yearly (and Card / bKash when both are set up) as segmented switches beside the
-  title, then the plans side by side, showing only what differs as checked lines.
-  The plan you are on is the dark card with a lime "Your plan" chip and a soft
-  lime glow from its top corner; the others fade from the wash to white. These
-  two are the console's only gradients. What every
-  plan shares is one line of green checks under them. One black button: renewing
-  once the plan has ended (lime, on the dark card), else the next plan up, and
-  none on the biggest plan.
-
+  replies used over a black meter (red from 80%), what a reply is behind the "i".
+  **Choose a plan** is laid out like the website's pricing: Monthly / Yearly
+  (and Card / bKash when both are set up) beside the title, then three floating
+  cards stepping up to the right (stacked on a phone). Each card: the plan's
+  name in soft ink, the price large, the other way of paying, the button, then
+  checked lines (what differs, then what every plan shares). Growth is the dark
+  card with "Most popular" in pastel gradient text (the console's one gradient)
+  and a white button; the plan you are on has an ink border and a pale lime
+  "Your plan" chip and a Renew button.
 - **Coupons**: the codes are the page. The `PageHeader` says how many are live, with "Send an offer" (secondary) and "New coupon" (the black primary) on the right; they hide while a form is open, so the form's own button is the one black one. A form opens as one island under the header (Cancel closes it): the kind of discount as a segmented switch with the amount beside it, the optional fields marked so, and the coupon read back in one plain sentence before saving. The list is one island of ruled rows under "Live" and "Stopped working": the code as a serial chip, what it takes off over its uses and last day, a status chip (Live, Ended, Used up) and a quiet Stop or Remove that asks once in the row.
 
 ## The front door (signed out)
