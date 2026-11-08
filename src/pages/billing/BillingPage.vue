@@ -57,7 +57,7 @@
 
       <!-- The plans as a pricing page: three cards stepping up to the right, the
            popular one dark. Each shows its name, price, button, then what it holds. -->
-      <div class="island p-5 sm:p-6">
+      <div class="island p-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="section-title">
             {{ t('billing.choose') }}
@@ -97,12 +97,12 @@
           </div>
         </div>
 
-        <div class="mx-auto mt-6 grid max-w-5xl gap-4 lg:grid-cols-3">
+        <div class="mx-auto mt-5 grid max-w-5xl gap-4 lg:grid-cols-3">
           <div
             v-for="(plan, index) in billing.plans"
             :key="plan.key"
-            class="flex flex-col gap-5 rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-float)]"
-            :class="[STEP[index], plan.key === POPULAR ? 'bg-night text-white' : ['bg-surface border', plan.key === billing.plan ? 'border-ink' : 'border-hairline']]"
+            class="flex flex-col gap-4 rounded-[var(--radius-panel)] p-5 shadow-[var(--shadow-float)]"
+            :class="[STEP[index], plan.key === POPULAR ? 'plan-popular text-white' : ['plan-light border', plan.key === billing.plan ? 'border-ink' : 'border-hairline']]"
           >
             <div class="flex min-h-7 items-center justify-between gap-2">
               <h3 class="font-semibold" :class="soft(plan)">{{ t(`billing.plans.${plan.key}`) }}</h3>
@@ -136,7 +136,7 @@
               {{ paying === plan.key ? t('billing.opening') : t(plan.key === billing.plan ? 'billing.renew' : 'billing.pay') }}
             </button>
 
-            <ul class="flex flex-col gap-3 text-sm">
+            <ul class="flex flex-col gap-2.5 text-sm">
               <li v-for="line in lines(plan)" :key="line" class="flex items-center gap-2.5">
                 <PhCheck :size="16" weight="bold" class="shrink-0"></PhCheck>
                 {{ line }}
@@ -144,7 +144,7 @@
             </ul>
           </div>
         </div>
-        <p class="hint mt-6">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
+        <p class="hint mt-4">{{ billing.gateways.length ? t('billing.payNote') : t('billing.noGateway') }}</p>
 
         <p v-if="payError" class="mt-3 flex items-start gap-2 text-sm text-danger" role="alert">
           <PhWarningCircle :size="18" class="mt-px shrink-0"></PhWarningCircle>
@@ -173,7 +173,7 @@ const { t } = useI18n();
 // The plan most shops pick: its card is the dark one.
 const POPULAR = 'growth';
 // Cards step up left to right, as on a pricing page; stacked on a phone.
-const STEP = ['lg:mt-16', 'lg:mt-8'];
+const STEP = ['lg:mt-10', 'lg:mt-5'];
 
 const billing = ref(null);
 const loadError = ref(null);
@@ -243,7 +243,19 @@ load();
 </script>
 
 <style scoped>
-/* "Most popular" in the soft pastels, the one gradient on the page. */
+/* The popular plan: the sidebar's black, lit by a soft lime glow from its top
+   corner. The light cards fade from the wash to white. */
+.plan-popular {
+  background:
+    radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--color-lime) 22%, transparent), transparent 60%),
+    var(--color-night);
+}
+
+.plan-light {
+  background: linear-gradient(to bottom, var(--color-wash), var(--color-surface) 45%);
+}
+
+/* "Most popular" in the soft pastels. */
 .popular-text {
   background: linear-gradient(to right, var(--color-tint-lilac), var(--color-lime), var(--color-tint-sky));
   -webkit-background-clip: text;
