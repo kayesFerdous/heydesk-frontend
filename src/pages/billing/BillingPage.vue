@@ -15,15 +15,14 @@
     <SkeletonRows v-else-if="!billing" class="island overflow-hidden"></SkeletonRows>
 
     <div v-else class="flex flex-col gap-2">
-      <!-- Your plan: which one and until when on the left, how much of it is used on the right. -->
-      <div class="island grid gap-6 p-5 sm:p-6 md:grid-cols-2 md:gap-10">
-        <div>
-          <h2 class="section-title">
-            {{ t('billing.yourPlan') }}
-            <InfoTip :text="t('billing.yourPlanTip')" class="ml-0.5 -translate-y-px"></InfoTip>
-          </h2>
-          <div class="mt-3 flex flex-wrap items-center gap-3">
-            <span class="text-[2rem] leading-none font-semibold tracking-[-0.03em]">{{ t(`billing.plans.${billing.plan}`) }}</span>
+      <!-- Your plan in one row: which one and until when, then how much of it is used.
+           What a reply is and what happens when they run out sit behind the "i". -->
+      <div class="island flex flex-col gap-4 px-5 py-4 sm:px-6 md:flex-row md:items-center md:gap-10">
+        <div class="shrink-0">
+          <div class="flex flex-wrap items-center gap-3">
+            <h2 class="text-2xl leading-none font-semibold tracking-[-0.03em]">
+              <span class="sr-only">{{ t('billing.yourPlan') }}: </span>{{ t(`billing.plans.${billing.plan}`) }}
+            </h2>
             <span v-if="billing.active" class="chip bg-success-tint text-success">
               <PhCheckCircle :size="14" weight="fill"></PhCheckCircle>
               {{ t('billing.until', { day: formatDay(billing.paid_until) }) }}
@@ -33,22 +32,26 @@
               {{ t('billing.ended') }}
             </span>
           </div>
-          <p v-if="!billing.active" class="mt-3 max-w-md text-sm text-danger" role="alert">{{ t('billing.endedText') }}</p>
+          <p v-if="!billing.active" class="mt-2 max-w-md text-sm text-danger" role="alert">{{ t('billing.endedText') }}</p>
         </div>
 
-        <div class="md:border-l md:border-hairline md:pl-10">
-          <p class="text-sm text-ink-soft">{{ t('billing.replies') }}</p>
-          <p class="mt-2 flex items-baseline gap-1.5">
-            <span class="text-[2rem] leading-none font-semibold tracking-[-0.03em]">{{ formatNumber(billing.replies_used) }}</span>
-            <span class="text-sm text-ink-soft">/ {{ formatNumber(billing.replies) }}</span>
-          </p>
-          <div class="mt-3 h-2 overflow-hidden rounded-full bg-hover" role="progressbar"
+        <div class="min-w-0 flex-1 md:border-l md:border-hairline md:pl-10">
+          <div class="flex items-baseline justify-between gap-3 text-sm">
+            <span class="text-ink-soft">
+              {{ t('billing.replies') }}
+              <InfoTip :text="`${t('billing.yourPlanTip')} ${t('billing.repliesHint')}`" class="ml-0.5 -translate-y-px"></InfoTip>
+            </span>
+            <span class="shrink-0">
+              <span class="font-semibold">{{ formatNumber(billing.replies_used) }}</span>
+              <span class="text-ink-soft"> / {{ formatNumber(billing.replies) }}</span>
+            </span>
+          </div>
+          <div class="mt-2 h-2 overflow-hidden rounded-full bg-hover" role="progressbar"
                :aria-valuenow="billing.replies_used" aria-valuemin="0" :aria-valuemax="billing.replies">
             <!-- A sliver stays visible even at a handful of replies, so the bar reads as a bar. -->
             <div class="h-full min-w-2 rounded-full transition-[width] duration-500 ease-[var(--ease-settle)]"
                  :class="used >= 0.8 ? 'bg-danger' : 'bg-ink'" :style="{ width: `${used * 100}%` }"></div>
           </div>
-          <p class="hint">{{ t('billing.repliesHint') }}</p>
         </div>
       </div>
 
@@ -98,8 +101,8 @@
           <div
             v-for="plan in billing.plans"
             :key="plan.key"
-            class="flex flex-col rounded-[var(--radius-card)] p-6"
-            :class="plan.key === billing.plan ? 'bg-night text-white' : 'border border-hairline bg-surface'"
+            class="flex flex-col rounded-[var(--radius-card)] p-6 sm:p-7"
+            :class="plan.key === billing.plan ? 'plan-current text-white' : 'plan-other border border-hairline'"
           >
             <div class="flex min-h-7 items-center justify-between gap-2">
               <h3 class="font-semibold">{{ t(`billing.plans.${plan.key}`) }}</h3>
@@ -107,7 +110,7 @@
             </div>
             <p class="mt-0.5 text-sm" :class="soft(plan)">{{ t(`billing.planFor.${plan.key}`) }}</p>
 
-            <p class="mt-6 flex items-baseline gap-1">
+            <p class="mt-8 flex items-baseline gap-1">
               <span class="text-4xl font-semibold tracking-[-0.03em]">{{ formatMoney(months === 1 ? plan.price : plan.year_price) }}</span>
               <span class="text-sm font-medium" :class="soft(plan)">/ {{ months === 1 ? t('billing.month') : t('billing.year') }}</span>
             </p>
@@ -121,7 +124,7 @@
             <button
               v-if="billing.gateways.length"
               type="button"
-              class="btn mt-6 w-full"
+              class="btn mt-8 w-full"
               :class="buttonClass(plan)"
               :disabled="paying !== null"
               @click="pay(plan)"
@@ -129,7 +132,7 @@
               {{ paying === plan.key ? t('billing.opening') : t(plan.key === billing.plan ? 'billing.renew' : 'billing.pay') }}
             </button>
 
-            <ul class="mt-6 flex flex-col gap-3 border-t pt-5 text-sm" :class="plan.key === billing.plan ? 'border-night-tile' : 'border-hairline'">
+            <ul class="mt-8 flex flex-col gap-4 border-t pt-6 text-sm" :class="plan.key === billing.plan ? 'border-night-tile' : 'border-hairline'">
               <li v-for="line in lines(plan)" :key="line" class="flex items-start gap-2.5">
                 <PhCheck :size="16" weight="bold" class="mt-0.5 shrink-0" :class="plan.key === billing.plan ? 'text-lime' : 'text-ink-soft'"></PhCheck>
                 {{ line }}
@@ -251,3 +254,18 @@ async function pay(plan) {
 
 load();
 </script>
+
+<style scoped>
+/* The plan you are on: the sidebar's black, lit by a soft lime glow from its
+   top corner. The other cards fade from the wash to white, so they read as
+   cards without a shadow. */
+.plan-current {
+  background:
+    radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--color-lime) 20%, transparent), transparent 60%),
+    var(--color-night);
+}
+
+.plan-other {
+  background: linear-gradient(to bottom, var(--color-wash), var(--color-surface) 45%);
+}
+</style>

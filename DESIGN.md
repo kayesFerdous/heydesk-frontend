@@ -311,12 +311,14 @@ settings (the name, greeting and look); the other sections use the full width.
   row marked meanwhile: photos first, then sections, Save always at the bottom;
   closing with changes asks first. Full screen on a phone.
 
-- **Plan and payment**: two islands. **Your plan**: the plan's name large with
-  a green "until" chip (red "Ended"), and beside it, ruled off, the replies used
-  as a big figure over a black meter (red from 80%). **Choose a plan**: Monthly /
+- **Plan and payment**: two islands. **Your plan** is one compact row: the
+  plan's name with a green "until" chip (red "Ended"), then, ruled off, the
+  replies used over a black meter (red from 80%), what a reply is behind the "i". **Choose a plan**: Monthly /
   Yearly (and Card / bKash when both are set up) as segmented switches beside the
   title, then the plans side by side, showing only what differs as checked lines.
-  The plan you are on is the dark card with a lime "Your plan" chip. What every
+  The plan you are on is the dark card with a lime "Your plan" chip and a soft
+  lime glow from its top corner; the others fade from the wash to white. These
+  two are the console's only gradients. What every
   plan shares is one line of green checks under them. One black button: renewing
   once the plan has ended (lime, on the dark card), else the next plan up, and
   none on the biggest plan.
