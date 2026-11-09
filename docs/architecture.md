@@ -141,7 +141,7 @@ order's call line in the Inbox).
    Lazy-load it: `const ThingPage = () => import('./pages/<area>/ThingPage.vue');`
 3. Add it to `lib/navigation.js`: daily work goes in "Daily work", what the
    business sells in "Your business", and a page set up once goes in the
-   `setup` children of the Settings row (it folds open). Pick a Phosphor icon. The sidebar, the
+   `setup` list (the "Setup" group). Pick a Phosphor icon. The sidebar, the
    phone drawer and the phone tab bar all read this list. Its label is a
    `nav.*` key.
 4. If it needs data from the backend, add the call to `src/api/` first, and add

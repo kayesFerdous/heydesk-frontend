@@ -16,7 +16,7 @@ ruled under it and a white agent island beside it.
 
 v5.2 (5 Nov 2026) is a calmer pass, nothing new in the palette or the type: each
 screen has one loud thing. A customer waiting shows once per screen, not three
-times. Home splits into a column to act and a column to know. Settings lost its
+times. Home splits into a column to act and a column to know. On a wide screen Home fits the window: the columns share its height and a long "Needs you" list scrolls inside its island, so the page itself never scrolls. Settings lost its
 identity island, so the form starts higher. What a row can do shows when you
 reach for it. The idea comes from Linear's 2026 refresh: what only helps you find
 your way steps back, and structure is felt rather than drawn.
@@ -163,12 +163,9 @@ get `--shadow-float`.
   strip above is the one orange, and only folded does the Chats count turn orange),
   "Try your assistant" as a dark pill with a lime icon, the account row.
   The nav has three labelled groups from `navGroups`: Daily work, Your
-  business (the lists, a shop's Coupons) and Setup, one Settings row that
-  folds open to Assistant, Documents, Channels, Team and Plan and payment on a guide line
-  (words only; the open page white with a 2px lime mark on the line). It
-  opens by itself on one of its pages and stays as the owner leaves it
-  (`aria-expanded`). Folded to icons, Settings opens Assistant. A moderator has
-  no Setup.
+  business (the lists, a shop's Coupons) and Setup (Assistant, Documents,
+  Channels, Team, Plan and payment, each its own row, always shown). A
+  moderator has no Setup.
 - Under 768px: a floating black pill tab bar (the "Daily work" group, then
   More, the open one lime); More opens the sidebar as a drawer.
 
@@ -314,10 +311,24 @@ settings (the name, greeting and look); the other sections use the full width.
   row marked meanwhile: photos first, then sections, Save always at the bottom;
   closing with changes asks first. Full screen on a phone.
 
-- **Plan and payment**: the plans side by side, showing only what differs; what
-  every plan shares is one line under them. One black button: renewing once the
-  plan has ended, else the next plan up, and none on the biggest plan.
-
+- **Plan and payment**: two islands. **Your plan** is one compact row: the
+  plan's name with a green "until" chip (red "Ended"), then, ruled off, the
+  replies used over a black meter (red from 80%), what a reply is behind the "i".
+  **Choose a plan** is laid out like the website's pricing: Monthly / Yearly
+  (and Card / bKash when both are set up) beside the title, then three floating
+  cards stepping up to the right (stacked on a phone). Each card: the plan's
+  name in soft ink, the price large, the other way of paying, the button,
+  checked lines (what differs, then what every plan shares), and closing the
+  card under a hairline what 100 replies cost there. On a wide screen the island
+  takes the rest of the window and the cards sit in its middle, bottoms lined
+  up; their padding, gaps, steps and price follow the window's height
+  (`vh`, clamped), and a window 720px tall or less flattens the steps and
+  tightens the islands. How upgrading is charged sits behind the "i". Growth is the dark
+  card, lit by a soft lime glow from its top corner, with "Most popular" in
+  pastel gradient text and a white button; the light cards fade from the wash
+  to white (this page's gradients are the console's only ones). The page fits
+  any landscape window from 1024x640 up without scrolling or bare canvas; the plan you are on has an ink border and a pale lime
+  "Your plan" chip and a Renew button.
 - **Coupons**: the codes are the page. The `PageHeader` says how many are live, with "Send an offer" (secondary) and "New coupon" (the black primary) on the right; they hide while a form is open, so the form's own button is the one black one. A form opens as one island under the header (Cancel closes it): the kind of discount as a segmented switch with the amount beside it, the optional fields marked so, and the coupon read back in one plain sentence before saving. The list is one island of ruled rows under "Live" and "Stopped working": the code as a serial chip, what it takes off over its uses and last day, a status chip (Live, Ended, Used up) and a quiet Stop or Remove that asks once in the row.
 
 ## The front door (signed out)
