@@ -191,6 +191,7 @@
                 autocomplete="off"
                 @input="fitInput"
                 @keydown.enter="onEnter"
+                @paste="pastePhoto"
               ></textarea>
             </label>
             <button
@@ -436,10 +437,23 @@ async function checkTeam() {
   }
 }
 
-async function pickPhoto(event) {
+function pickPhoto(event) {
   const file = event.target.files[0];
   event.target.value = ''; // the same file can be picked again
-  if (!file) return;
+  if (file) takePhoto(file);
+}
+
+// A photo pasted into the message box (a screenshot, an image copied from a
+// page) is taken like a picked one. Pasted words paste as usual.
+function pastePhoto(event) {
+  if (!takesPhotos.value || sending.value) return;
+  const item = [...event.clipboardData.items].find((i) => i.kind === 'file' && i.type.startsWith('image/'));
+  if (!item) return;
+  event.preventDefault();
+  takePhoto(item.getAsFile());
+}
+
+async function takePhoto(file) {
   error.value = null;
   try {
     photo.value = await shrinkPhoto(file);
