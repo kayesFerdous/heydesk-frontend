@@ -1,7 +1,7 @@
 <template>
   <!-- One island on the canvas: find a dish (words, then a category pill),
        bring a list in, and the list itself. -->
-  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full">
+  <section class="flex flex-col px-4 pt-5 pb-8 md:px-0 md:pt-2 md:pb-0 lg:h-full" @keydown.esc="selecting && !confirmingDelete && stopSelecting()">
     <PageHeader :title="label" :tip="t('menu.subtitle')">
       <template v-if="loaded && auth.canManage" #actions>
         <!-- The ways to bring a whole list in, behind one button. -->
@@ -61,14 +61,20 @@
           <span class="count" :class="{ '!bg-ink !text-white': category === c }">{{ formatNumber(countIn(c)) }}</span>
         </button>
       </div>
+      <!-- Checkboxes only once asked for, so the list stays a quiet list. -->
+      <button v-if="auth.canManage && !selecting" type="button" class="btn btn-secondary" @click="selecting = true">
+        <PhCheckSquare :size="16"></PhCheckSquare>
+        {{ t('menu.select.start') }}
+      </button>
     </div>
 
     <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
     <WooBar v-if="woo" :woo="woo" @synced="onSynced('woo', $event)" @unlinked="woo = null"></WooBar>
 
-    <!-- Rows picked with their checkboxes: one action for all of them. Asks once before deleting. -->
+    <!-- While selecting: how many are picked and the one action for all of them.
+         Asks once before deleting. -->
     <div
-      v-if="picked.length"
+      v-if="selecting"
       class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline bg-brand-tint px-5 py-2.5 sm:px-8"
       role="region"
       :aria-label="t('menu.select.count', { n: formatNumber(picked.length) })"
@@ -82,15 +88,17 @@
         <button type="button" class="btn btn-secondary btn-sm" @click="confirmingDelete = false">{{ t('menu.select.keep') }}</button>
       </template>
       <template v-else>
-        <span class="text-sm font-medium" aria-live="polite">{{ t('menu.select.count', { n: formatNumber(picked.length) }) }}</span>
-        <button v-if="picked.length < filtered.length" type="button" class="btn btn-quiet btn-sm" @click="pickAll">
+        <span class="text-sm font-medium" aria-live="polite">
+          {{ picked.length ? t('menu.select.count', { n: formatNumber(picked.length) }) : t('menu.select.hint', { nouns: itemNoun(2) }) }}
+        </span>
+        <button v-if="picked.length && picked.length < filtered.length" type="button" class="btn btn-quiet btn-sm" @click="pickAll">
           {{ t('menu.select.all', { n: formatNumber(filtered.length) }) }}
         </button>
-        <button type="button" class="btn btn-quiet btn-sm" @click="clearPicked">{{ t('menu.select.clear') }}</button>
-        <button type="button" class="btn btn-quiet btn-sm ml-auto !text-danger" @click="confirmingDelete = true">
+        <button v-if="picked.length" type="button" class="btn btn-quiet btn-sm ml-auto !text-danger" @click="confirmingDelete = true">
           <PhTrash :size="16"></PhTrash>
           {{ t('menu.select.delete', { n: formatNumber(picked.length) }) }}
         </button>
+        <button type="button" class="btn btn-secondary btn-sm" :class="{ 'ml-auto': !picked.length }" @click="stopSelecting">{{ t('menu.select.done') }}</button>
       </template>
     </div>
 
@@ -129,7 +137,7 @@
       >
         <span class="flex items-center gap-3">
           <input
-            v-if="auth.canManage && filtered.length"
+            v-if="selecting && filtered.length"
             type="checkbox"
             class="check"
             :checked="allPicked"
@@ -150,7 +158,7 @@
         :item="item"
         :editing="editingCode === item.code"
         :public-key="agent.publicKey"
-        :selectable="auth.canManage"
+        :selectable="selecting"
         :selected="selection.has(item.code)"
         @select="pick(item, $event)"
         @toggle="toggle(item)"
@@ -192,7 +200,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable, PhCheckCircle, PhTrash } from '@phosphor-icons/vue';
+import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable, PhCheckCircle, PhTrash, PhCheckSquare } from '@phosphor-icons/vue';
 
 import ItemEditor from '../../components/menu/ItemEditor.vue';
 import ItemRow from '../../components/menu/ItemRow.vue';
@@ -283,6 +291,7 @@ const blank = computed(() => ({
 const selection = ref(new Set());
 const picked = computed(() => items.value.filter((item) => selection.value.has(item.code)));
 const allPicked = computed(() => filtered.value.length > 0 && filtered.value.every((item) => selection.value.has(item.code)));
+const selecting = ref(false); // the checkboxes show
 const confirmingDelete = ref(false);
 let lastPicked = null; // the code shift-click picks a run from
 
@@ -310,11 +319,16 @@ function clearPicked() {
   lastPicked = null;
 }
 
+function stopSelecting() {
+  clearPicked();
+  selecting.value = false;
+}
+
 async function removePicked() {
   const gone = picked.value.length;
   if (selection.value.has(editingCode.value)) closeEditor();
   if (await persist(items.value.filter((item) => !selection.value.has(item.code)))) {
-    clearPicked();
+    stopSelecting();
     merged.value = t('menu.select.deleted', { n: formatNumber(gone), nouns: itemNoun(gone) });
   } else {
     confirmingDelete.value = false;

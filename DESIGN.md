@@ -120,9 +120,10 @@ get `--shadow-float`.
   a ruled 12px box inside an island. **Notice** `.notice`: a ruled white box,
   the orange carried by its icon.
 - **Rows** `.row`, `.row-selected` (pale lime), `.day-head`, `.ledger`: as v4.
-- **Check** `.check`: a native checkbox in ink, for picking rows. Picked rows turn
-  pale lime and a lime bar above the list holds the one action for all of them
-  (Products: Delete, confirmed in the bar).
+- **Check** `.check`: a native checkbox in ink, for picking rows. The checkboxes
+  show only after a Select button; picked rows turn pale lime and a lime bar
+  above the list holds the one action for all of them and Done (Products:
+  Delete, confirmed in the bar; Esc leaves).
 - **Chip** `.chip` via `StatusChip`: a soft pill, icon plus word.
 - **WeekBars** (`components/home/`): the last seven days under the figure that
   leads Home, one bar a day, today in black and the others in `line-strong`, a
