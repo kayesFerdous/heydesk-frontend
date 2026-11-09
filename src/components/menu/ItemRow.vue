@@ -3,9 +3,19 @@
        Edit opens the form in a sheet (ItemEditor); `editing` marks its row meanwhile. -->
   <div
     class="row group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:px-8"
-    :class="[columns, { 'row-selected': editing }]"
+    :class="[columns, { 'row-selected': editing || selected }]"
   >
-    <div class="flex min-w-0 items-center gap-3" :class="{ 'opacity-55': !item.available }">
+    <div class="flex min-w-0 items-center gap-3">
+      <!-- Picks the row for Delete in the bar above the list; shift-click picks a run. -->
+      <input
+        v-if="selectable"
+        type="checkbox"
+        class="check"
+        :checked="selected"
+        :aria-label="t('menu.select.one', { name: item.name })"
+        @click="$emit('select', $event.shiftKey)"
+      />
+      <div class="flex min-w-0 items-center gap-3" :class="{ 'opacity-55': !item.available }">
       <img v-if="item.photos?.length" :src="item.photos[0]" alt="" class="size-10 shrink-0 rounded-[var(--radius-thumb)] object-cover ring-1 ring-hairline" />
       <div class="min-w-0">
         <p class="flex min-w-0 items-center gap-2">
@@ -18,6 +28,7 @@
             {{ fact.text }}
           </span>
         </p>
+      </div>
       </div>
     </div>
 
@@ -96,8 +107,11 @@ const props = defineProps({
   editing: { type: Boolean, default: false }, // its sheet is open
   // The agent's key: a shop's product then shows its public page (backend D121, D161).
   publicKey: { type: String, default: null },
+  selectable: { type: Boolean, default: false }, // shows the checkbox
+  selected: { type: Boolean, default: false },
 });
-defineEmits(['toggle', 'edit']);
+// `select` carries whether shift was held.
+defineEmits(['toggle', 'edit', 'select']);
 const { t } = useI18n();
 
 // The list's columns, as its header's (MenuPage): the last one holds the page's two buttons too.
