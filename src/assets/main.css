@@ -314,6 +314,12 @@
     @apply bg-brand-tint;
   }
 
+  /* A native checkbox in ink: picking rows for one action on all of them. */
+  .check {
+    @apply size-[1.125rem] shrink-0 cursor-pointer rounded-[0.3rem];
+    accent-color: var(--color-ink);
+  }
+
   /* A day's heading in a long list ("Today", "Yesterday", "12 October"),
      printed like the date line in a passbook. Sticks while its rows scroll. */
   .day-head {

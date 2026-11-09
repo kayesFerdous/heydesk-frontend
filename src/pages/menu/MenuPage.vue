@@ -66,6 +66,34 @@
     <SheetBar v-if="sheet" :sheet="sheet" @synced="onSynced('sheet', $event)" @unlinked="sheet = null"></SheetBar>
     <WooBar v-if="woo" :woo="woo" @synced="onSynced('woo', $event)" @unlinked="woo = null"></WooBar>
 
+    <!-- Rows picked with their checkboxes: one action for all of them. Asks once before deleting. -->
+    <div
+      v-if="picked.length"
+      class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline bg-brand-tint px-5 py-2.5 sm:px-8"
+      role="region"
+      :aria-label="t('menu.select.count', { n: formatNumber(picked.length) })"
+    >
+      <template v-if="confirmingDelete">
+        <p class="mr-auto min-w-0 text-sm">
+          <span class="font-medium">{{ t('menu.select.confirm', { n: formatNumber(picked.length), nouns: itemNoun(picked.length) }) }}</span>
+          <span v-if="linked" class="block text-ink-soft">{{ t('menu.select.linkedNote') }}</span>
+        </p>
+        <button type="button" class="btn btn-danger btn-sm" :disabled="saving" @click="removePicked">{{ t('common.delete') }}</button>
+        <button type="button" class="btn btn-secondary btn-sm" @click="confirmingDelete = false">{{ t('menu.select.keep') }}</button>
+      </template>
+      <template v-else>
+        <span class="text-sm font-medium" aria-live="polite">{{ t('menu.select.count', { n: formatNumber(picked.length) }) }}</span>
+        <button v-if="picked.length < filtered.length" type="button" class="btn btn-quiet btn-sm" @click="pickAll">
+          {{ t('menu.select.all', { n: formatNumber(filtered.length) }) }}
+        </button>
+        <button type="button" class="btn btn-quiet btn-sm" @click="clearPicked">{{ t('menu.select.clear') }}</button>
+        <button type="button" class="btn btn-quiet btn-sm ml-auto !text-danger" @click="confirmingDelete = true">
+          <PhTrash :size="16"></PhTrash>
+          {{ t('menu.select.delete', { n: formatNumber(picked.length) }) }}
+        </button>
+      </template>
+    </div>
+
     <p v-if="merged" class="flex items-center gap-2 border-b border-hairline px-5 py-3 text-sm text-success sm:px-8" role="status">
       <PhCheckCircle :size="16" class="shrink-0"></PhCheckCircle>
       {{ merged }}
@@ -99,7 +127,18 @@
         v-if="items.length || adding"
         class="ledger-head sticky top-0 z-[1] gap-x-4 bg-surface px-5 pt-2 sm:px-8 grid-cols-[minmax(0,1fr)_7rem_7.5rem_7rem]"
       >
-        <span>{{ capitalize(noun) }}</span>
+        <span class="flex items-center gap-3">
+          <input
+            v-if="auth.canManage && filtered.length"
+            type="checkbox"
+            class="check"
+            :checked="allPicked"
+            :indeterminate="picked.length > 0 && !allPicked"
+            :aria-label="t('menu.select.every')"
+            @change="allPicked ? clearPicked() : pickAll()"
+          />
+          {{ capitalize(noun) }}
+        </span>
         <span class="text-right">{{ t('menu.price') }}</span>
         <span>{{ t('menu.available') }}</span>
         <span></span>
@@ -111,6 +150,9 @@
         :item="item"
         :editing="editingCode === item.code"
         :public-key="agent.publicKey"
+        :selectable="auth.canManage"
+        :selected="selection.has(item.code)"
+        @select="pick(item, $event)"
         @toggle="toggle(item)"
         @edit="startEdit(item.code)"
       ></ItemRow>
@@ -150,7 +192,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable, PhCheckCircle } from '@phosphor-icons/vue';
+import { PhCaretDown, PhFileCsv, PhPlus, PhUploadSimple, PhMagnifyingGlass, PhWarningCircle, PhListBullets, PhStorefront, PhTable, PhCheckCircle, PhTrash } from '@phosphor-icons/vue';
 
 import ItemEditor from '../../components/menu/ItemEditor.vue';
 import ItemRow from '../../components/menu/ItemRow.vue';
@@ -200,7 +242,7 @@ const limit = ref(PAGE_SIZE);
 // The list may come from a sheet or a store. They only add and update products,
 // so the rows stay editable (backend D120).
 const linked = computed(() => !!sheet.value || !!woo.value);
-// "3 added, 5 updated": what a shop's last import did.
+// "3 added, 5 updated" or "4 products deleted": what the last import or delete did.
 const merged = ref(null);
 const label = computed(() => itemsLabel());
 const noun = computed(() => itemNoun());
@@ -236,6 +278,49 @@ const blank = computed(() => ({
   goes_with: [],
 }));
 
+// Rows picked with their checkboxes, by code. Codes no longer on the list
+// (a sync took them) simply don't count.
+const selection = ref(new Set());
+const picked = computed(() => items.value.filter((item) => selection.value.has(item.code)));
+const allPicked = computed(() => filtered.value.length > 0 && filtered.value.every((item) => selection.value.has(item.code)));
+const confirmingDelete = ref(false);
+let lastPicked = null; // the code shift-click picks a run from
+
+// Shift-click sets every row between the last one picked and this one.
+function pick(item, shift) {
+  const on = !selection.value.has(item.code);
+  const codes = shown.value.map((i) => i.code);
+  const from = shift && lastPicked !== null ? codes.indexOf(lastPicked) : -1;
+  const to = codes.indexOf(item.code);
+  const run = from === -1 ? [item.code] : codes.slice(Math.min(from, to), Math.max(from, to) + 1);
+  const next = new Set(selection.value);
+  run.forEach((code) => (on ? next.add(code) : next.delete(code)));
+  selection.value = next;
+  lastPicked = item.code;
+}
+
+// Every row the search and category show, drawn yet or not.
+function pickAll() {
+  selection.value = new Set(filtered.value.map((item) => item.code));
+}
+
+function clearPicked() {
+  selection.value = new Set();
+  confirmingDelete.value = false;
+  lastPicked = null;
+}
+
+async function removePicked() {
+  const gone = picked.value.length;
+  if (selection.value.has(editingCode.value)) closeEditor();
+  if (await persist(items.value.filter((item) => !selection.value.has(item.code)))) {
+    clearPicked();
+    merged.value = t('menu.select.deleted', { n: formatNumber(gone), nouns: itemNoun(gone) });
+  } else {
+    confirmingDelete.value = false;
+  }
+}
+
 // The editor sheet: which entry it shows, kept while it slides out after closing.
 const editKey = computed(() => (adding.value ? NEW : editingCode.value));
 const shownKey = ref(editKey.value);
@@ -256,8 +341,12 @@ function closeEditor() {
   saveError.value = null;
 }
 
-// A new search or category starts from the top again.
-watch([query, category], () => (limit.value = PAGE_SIZE));
+// A new search or category starts from the top again, with nothing picked,
+// so Delete never takes rows the owner can no longer see.
+watch([query, category], () => {
+  limit.value = PAGE_SIZE;
+  clearPicked();
+});
 
 // The Import menu in the header.
 const { open: importMenu, root: importRoot } = usePopover();

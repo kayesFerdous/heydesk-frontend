@@ -977,6 +977,18 @@ export default {
       discardThis: 'পরিবর্তনগুলো বাদ দেবেন?',
       keepEditing: 'বদলাতে থাকুন',
     },
+    select: {
+      one: '{name} বেছে নিন',
+      every: 'দেখানো সব সারি বেছে নিন',
+      count: '{n}টি বাছাই করা',
+      all: 'সব {n}টি বেছে নিন',
+      clear: 'বাদ দিন',
+      delete: '{n}টি মুছুন',
+      confirm: '{n}টি {nouns} মুছে ফেলবেন? এটা আর ফেরানো যাবে না।',
+      linkedNote: 'যেগুলো এখনো আপনার শিট বা স্টোরে আছে, সেখানে বদলালে আবার ফিরে আসবে।',
+      keep: 'রেখে দিন',
+      deleted: '{n}টি {nouns} মুছে ফেলা হয়েছে।',
+    },
     row: {
       editName: '{name} বদলান',
       isAvailable: '{name} পাওয়া যায়',
