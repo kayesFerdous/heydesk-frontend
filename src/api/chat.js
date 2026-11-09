@@ -16,6 +16,12 @@ export function fetchChatAgent(publicKey) {
   return request(`/chat/${publicKey}`);
 }
 
+// This browser's last chat with the agent (backend D178):
+// {conversation_id, messages: [{role: user | assistant | team, text}]}; no chat yet → conversation_id null.
+export function fetchChatHistory(publicKey) {
+  return request(`/chat/${publicKey}/history?visitor_id=${encodeURIComponent(visitorId)}`);
+}
+
 // What the team wrote from Telegram, oldest first (backend D43). The page asks
 // every few seconds and shows the ones it hasn't yet.
 export async function fetchTeamReplies(publicKey, conversationId) {

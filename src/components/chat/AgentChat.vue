@@ -27,7 +27,7 @@
               <template v-else>{{ initials(agentName) }}</template>
             </span>
             <span class="font-semibold">{{ message.role === 'team' ? t('chat.fromTeam') : agentName }}</span>
-            <span class="text-ink-soft">{{ formatTime(message.at) }}</span>
+            <span v-if="message.at" class="text-ink-soft">{{ formatTime(message.at) }}</span>
           </p>
 
           <div
@@ -232,7 +232,7 @@ import {
 } from '@phosphor-icons/vue';
 
 import ChatCard from './ChatCard.vue';
-import { fetchChatAgent, fetchTeamReplies, streamChat } from '../../api/chat.js';
+import { fetchChatAgent, fetchChatHistory, fetchTeamReplies, streamChat } from '../../api/chat.js';
 import { formatTime, formatToday, linkParts } from '../../lib/format.js';
 import { initials } from '../../lib/group.js';
 import { shrinkPhoto } from '../../lib/photo.js';
@@ -347,7 +347,8 @@ function forget() {
 }
 
 // The greeting is shown on load; the first turn stores it (backend D8).
-async function start() {
+// `fresh`: Start over, so this browser's last chat isn't brought back.
+async function start(fresh = false) {
   messages.value = [];
   conversationId.value = null;
   teamSeen = 0;
@@ -363,12 +364,29 @@ async function start() {
     agentName.value = agent.name;
     agentLogo.value = agent.widget?.logo || '';
     const before = props.remember && saved();
+    // Nothing kept here: the server has this browser's last chat (backend D178). Not
+    // in the owner's test chat, which starts clean. A failure just shows the greeting.
+    const past =
+      !before && !fresh && (props.customer || props.remember)
+        ? await fetchChatHistory(props.publicKey).catch(() => null)
+        : null;
     if (before) {
       messages.value = before.messages;
       conversationId.value = before.conversationId;
       teamSeen = before.teamSeen;
       handoff.value = before.handoff;
       if (conversationId.value) watchTeam();
+      scrollDown(true);
+    } else if (past?.conversation_id) {
+      // The server's lines carry no time, so these show none
+      messages.value = past.messages.map((m) => ({
+        role: m.role === 'assistant' ? 'agent' : m.role,
+        text: m.text,
+        at: null,
+      }));
+      conversationId.value = past.conversation_id;
+      teamSeen = past.messages.filter((m) => m.role === 'team').length;
+      watchTeam();
       scrollDown(true);
     } else {
       say('agent', agent.greeting);
@@ -382,7 +400,7 @@ function restart() {
   forget();
   draft.value = '';
   fitInput();
-  start();
+  start(true);
 }
 
 // Follow the conversation down, unless the reader has scrolled up to read
@@ -537,7 +555,7 @@ function focus() {
   nextTick(() => input.value && input.value.focus());
 }
 
-watch(() => props.publicKey, start, { immediate: true });
+watch(() => props.publicKey, () => start(), { immediate: true });
 onBeforeUnmount(() => clearInterval(teamTimer));
 
 defineExpose({ restart, started, focus });
