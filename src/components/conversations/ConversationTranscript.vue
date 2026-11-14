@@ -80,11 +80,11 @@
           <div class="flex" :class="line.role === 'user' ? 'justify-start' : 'justify-end'">
             <div class="max-w-[85%]">
               <p class="mb-1 px-1 text-xs text-ink-soft" :class="{ 'text-right': line.role !== 'user' }">
-                {{ line.role === 'user' ? name : t('conversations.yourAgent') }}
+                {{ speaker(line) }}
               </p>
               <div
                 class="rounded-[var(--radius-card)] px-4 py-2.5 text-[0.9375rem] leading-relaxed whitespace-pre-wrap"
-                :class="line.role === 'user' ? 'rounded-tl-md bg-hover text-ink' : 'rounded-tr-md bg-brand-tint text-ink'"
+                :class="BUBBLES[line.role] || BUBBLES.assistant"
               >
                 <!-- The photo the visitor sent, and the products the agent showed (D57). -->
                 <a v-if="line.photo" :href="line.photo" target="_blank" rel="noopener">
@@ -152,6 +152,18 @@ const phone = computed(() => props.conversation.records.find((r) => r.customer_p
 const when = computed(
   () => `${formatDay(props.conversation.created_at)}, ${formatTime(props.conversation.created_at)}`,
 );
+
+// Who said a line: the visitor (left), the assistant, or someone on the team
+// replying from the inbox (both right, the team's in a plain white bubble).
+const BUBBLES = {
+  user: 'rounded-tl-md bg-hover text-ink',
+  assistant: 'rounded-tr-md bg-brand-tint text-ink',
+  team: 'rounded-tr-md border border-line-strong bg-surface text-ink',
+};
+function speaker(line) {
+  if (line.role === 'user') return name.value;
+  return line.role === 'team' ? t('conversations.yourTeam') : t('conversations.yourAgent');
+}
 
 // Older pages, loaded as the team scrolls up; the newest page is `conversation`
 // itself, kept fresh by the page. Another chat opened starts over.
